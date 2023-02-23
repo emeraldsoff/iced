@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if FAST_FMT
 using System;
@@ -44,11 +24,22 @@ namespace Iced.Intel {
 		readonly FastFmtFlags[] codeFlags;
 		readonly string[] allMemorySizes;
 		readonly string[] rcStrings;
+		readonly string[] rcSaeStrings;
 		readonly string[] scaleNumbers;
+#if MVEX
+		readonly string[] mvexRegMemConsts32;
+		readonly string[] mvexRegMemConsts64;
+#endif
 
 		const bool ShowUselessPrefixes = true;
 
 		static readonly string[] s_rcStrings = new string[] {
+			"{rn}",
+			"{rd}",
+			"{ru}",
+			"{rz}",
+		};
+		static readonly string[] s_rcSaeStrings = new string[] {
 			"{rn-sae}",
 			"{rd-sae}",
 			"{ru-sae}",
@@ -57,6 +48,46 @@ namespace Iced.Intel {
 		static readonly string[] s_scaleNumbers = new string[4] {
 			"*1", "*2", "*4", "*8",
 		};
+#if MVEX
+		static readonly string[] s_mvexRegMemConsts32 = new string[IcedConstants.MvexRegMemConvEnumCount] {
+			string.Empty,
+			string.Empty,
+			"{cdab}",
+			"{badc}",
+			"{dacb}",
+			"{aaaa}",
+			"{bbbb}",
+			"{cccc}",
+			"{dddd}",
+			string.Empty,
+			"{1to16}",
+			"{4to16}",
+			"{float16}",
+			"{uint8}",
+			"{sint8}",
+			"{uint16}",
+			"{sint16}",
+		};
+		static readonly string[] s_mvexRegMemConsts64 = new string[IcedConstants.MvexRegMemConvEnumCount] {
+			string.Empty,
+			string.Empty,
+			"{cdab}",
+			"{badc}",
+			"{dacb}",
+			"{aaaa}",
+			"{bbbb}",
+			"{cccc}",
+			"{dddd}",
+			string.Empty,
+			"{1to8}",
+			"{4to8}",
+			"{float16}",
+			"{uint8}",
+			"{sint8}",
+			"{uint16}",
+			"{sint16}",
+		};
+#endif
 
 		/// <summary>
 		/// Gets the formatter options
@@ -80,7 +111,12 @@ namespace Iced.Intel {
 			codeFlags = FmtData.Flags;
 			allMemorySizes = MemorySizes.AllMemorySizes;
 			rcStrings = s_rcStrings;
+			rcSaeStrings = s_rcSaeStrings;
 			scaleNumbers = s_scaleNumbers;
+#if MVEX
+			mvexRegMemConsts32 = s_mvexRegMemConsts32;
+			mvexRegMemConsts64 = s_mvexRegMemConsts64;
+#endif
 		}
 
 		/// <summary>
@@ -100,6 +136,17 @@ namespace Iced.Intel {
 			if (pseudoOpsNum != 0 && options.UsePseudoOps && instruction.GetOpKind(opCount - 1) == OpKind.Immediate8) {
 				int index = instruction.Immediate8;
 				var pseudoOpKind = (PseudoOpsKind)(pseudoOpsNum - 1);
+				if (pseudoOpKind == PseudoOpsKind.vpcmpd6) {
+					switch (code) {
+#if MVEX
+					case Code.MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8:
+						pseudoOpKind = PseudoOpsKind.vpcmpud6;
+						break;
+#endif
+					default:
+						break;
+					}
+				}
 				var pseudoOps = FormatterConstants.GetPseudoOps(pseudoOpKind);
 				if (pseudoOpKind == PseudoOpsKind.pclmulqdq || pseudoOpKind == PseudoOpsKind.vpclmulqdq) {
 					if (index <= 1) {
@@ -120,39 +167,44 @@ namespace Iced.Intel {
 
 			var prefixSeg = instruction.SegmentPrefix;
 			Static.Assert(Register.None == 0 ? 0 : -1);
-			if (((uint)prefixSeg | instruction.HasAnyOf_Xacquire_Xrelease_Lock_Rep_Repne_Prefix) != 0) {
+			if (((uint)prefixSeg | instruction.HasAnyOf_Lock_Rep_Repne_Prefix) != 0) {
 				bool hasNoTrackPrefix = prefixSeg == Register.DS && FormatterUtils.IsNotrackPrefixBranch(code);
 				if (!hasNoTrackPrefix && prefixSeg != Register.None && ShowSegmentPrefix(instruction, opCount)) {
 					FormatRegister(output, prefixSeg);
 					output.Append(' ');
 				}
 
-				if (instruction.HasXacquirePrefix)
+				bool hasXacquirePrefix = false;
+				if (instruction.HasXacquirePrefix) {
 					output.AppendNotNull("xacquire ");
-				if (instruction.HasXreleasePrefix)
+					hasXacquirePrefix = true;
+				}
+				if (instruction.HasXreleasePrefix) {
 					output.AppendNotNull("xrelease ");
+					hasXacquirePrefix = true;
+				}
 				if (instruction.HasLockPrefix)
 					output.AppendNotNull("lock ");
-
 				if (hasNoTrackPrefix)
 					output.AppendNotNull("notrack ");
-
-				if (instruction.HasRepePrefix && (ShowUselessPrefixes || FormatterUtils.ShowRepOrRepePrefix(code, ShowUselessPrefixes))) {
-					if (FormatterUtils.IsRepeOrRepneInstruction(code))
-						output.AppendNotNull("repe ");
-					else
-						output.AppendNotNull("rep ");
-				}
-				if (instruction.HasRepnePrefix) {
-					if ((Code.Retnw_imm16 <= code && code <= Code.Retnq) ||
-						(Code.Call_rel16 <= code && code <= Code.Jmp_rel32_64) ||
-						(Code.Call_rm16 <= code && code <= Code.Call_rm64) ||
-						(Code.Jmp_rm16 <= code && code <= Code.Jmp_rm64) ||
-						code.IsJccShortOrNear()) {
-						output.AppendNotNull("bnd ");
+				if (!hasXacquirePrefix) {
+					if (instruction.HasRepePrefix && (ShowUselessPrefixes || FormatterUtils.ShowRepOrRepePrefix(code, ShowUselessPrefixes))) {
+						if (FormatterUtils.IsRepeOrRepneInstruction(code))
+							output.AppendNotNull("repe ");
+						else
+							output.AppendNotNull("rep ");
 					}
-					else if (ShowUselessPrefixes || FormatterUtils.ShowRepnePrefix(code, ShowUselessPrefixes))
-						output.AppendNotNull("repne ");
+					if (instruction.HasRepnePrefix) {
+						if ((Code.Retnw_imm16 <= code && code <= Code.Retnq) ||
+							(Code.Call_rel16 <= code && code <= Code.Jmp_rel32_64) ||
+							(Code.Call_rm16 <= code && code <= Code.Call_rm64) ||
+							(Code.Jmp_rm16 <= code && code <= Code.Jmp_rm64) ||
+							code.IsJccShortOrNear()) {
+							output.AppendNotNull("bnd ");
+						}
+						else if (ShowUselessPrefixes || FormatterUtils.ShowRepnePrefix(code, ShowUselessPrefixes))
+							output.AppendNotNull("repne ");
+					}
 				}
 			}
 
@@ -186,6 +238,16 @@ namespace Iced.Intel {
 
 			if (opCount > 0) {
 				output.Append(' ');
+
+#if MVEX
+				int mvexRmOperand;
+				if (IcedConstants.IsMvex(instruction.Code)) {
+					Debug.Assert(opCount != 0);
+					mvexRmOperand = instruction.GetOpKind(opCount - 1) == OpKind.Immediate8 ? opCount - 2 : opCount - 1;
+				}
+				else
+					mvexRmOperand = -1;
+#endif
 
 				for (int operand = 0; operand < opCount; operand++) {
 					if (operand > 0) {
@@ -373,11 +435,6 @@ namespace Iced.Intel {
 						FormatMemory(output, instruction, operand, Register.ES, Register.RDI, Register.None, 0, 0, 0, 8);
 						break;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-					case OpKind.Memory64:
-#pragma warning restore CS0618 // Type or member is obsolete
-						break;
-
 					case OpKind.Memory:
 						int displSize = instruction.MemoryDisplSize;
 						var baseReg = instruction.MemoryBase;
@@ -406,6 +463,20 @@ namespace Iced.Intel {
 						if (instruction.ZeroingMasking)
 							output.AppendNotNull("{z}");
 					}
+#if MVEX
+					if (mvexRmOperand == operand) {
+						var conv = instruction.MvexRegMemConv;
+						if (conv != MvexRegMemConv.None) {
+							var mvex = new MvexInfo(instruction.Code);
+							if (mvex.ConvFn != MvexConvFn.None) {
+								var tbl = mvex.IsConvFn32 ? mvexRegMemConsts32 : mvexRegMemConsts64;
+								var s = tbl[(int)conv];
+								if (s.Length != 0)
+									output.AppendNotNull(s);
+							}
+						}
+					}
+#endif
 				}
 				if (instruction.HasRoundingControlOrSae) {
 					var rc = instruction.RoundingControl;
@@ -415,7 +486,10 @@ namespace Iced.Intel {
 						Static.Assert((int)RoundingControl.RoundDown == 2 ? 0 : -1);
 						Static.Assert((int)RoundingControl.RoundUp == 3 ? 0 : -1);
 						Static.Assert((int)RoundingControl.RoundTowardZero == 4 ? 0 : -1);
-						output.AppendNotNull(rcStrings[(int)rc - 1]);
+						if (IcedConstants.IsMvex(instruction.Code) && !instruction.SuppressAllExceptions)
+							output.AppendNotNull(rcStrings[(int)rc - 1]);
+						else
+							output.AppendNotNull(rcSaeStrings[(int)rc - 1]);
 					}
 					else {
 						Debug.Assert(instruction.SuppressAllExceptions);
@@ -456,9 +530,6 @@ namespace Iced.Intel {
 				case OpKind.MemorySegDI:
 				case OpKind.MemorySegEDI:
 				case OpKind.MemorySegRDI:
-#pragma warning disable CS0618 // Type or member is obsolete
-				case OpKind.Memory64:
-#pragma warning restore CS0618 // Type or member is obsolete
 				case OpKind.Memory:
 					return false;
 
@@ -478,20 +549,23 @@ namespace Iced.Intel {
 			if (useHexPrefix)
 				output.AppendNotNull("0x");
 
-			int digits = 0;
+			int shift = 0;
 			for (ulong tmp = value; ;) {
-				digits++;
+				shift += 4;
 				tmp >>= 4;
 				if (tmp == 0)
 					break;
 			}
 
-			if (!useHexPrefix && (int)((value >> ((digits - 1) << 2)) & 0xF) > 9)
+			if (!useHexPrefix && (int)((value >> (shift - 4)) & 0xF) > 9)
 				output.Append('0');
 			var hexDigits = options.UppercaseHex ? "0123456789ABCDEF" : "0123456789abcdef";
-			for (int i = 0, indexShift = (digits - 1) << 2; i < digits; i++, indexShift -= 4) {
-				int digit = (int)(value >> indexShift) & 0xF;
+			for (; ; ) {
+				shift -= 4;
+				int digit = (int)(value >> shift) & 0xF;
 				output.Append(hexDigits[digit]);
+				if (shift == 0)
+					break;
 			}
 
 			if (!useHexPrefix)
@@ -661,6 +735,10 @@ namespace Iced.Intel {
 			}
 
 			output.Append(']');
+#if MVEX
+			if (instruction.IsMvexEvictionHint)
+				output.AppendNotNull("{eh}");
+#endif
 		}
 	}
 }

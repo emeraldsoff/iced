@@ -1,33 +1,13 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use crate::enum_utils::to_register;
 use crate::register_info::RegisterInfo;
 use pyo3::prelude::*;
 
 /// :class:`Register` enum extension methods, see also :class:`RegisterInfo`
-#[pyclass(module = "_iced_x86_py")]
-#[text_signature = "(/)"]
+#[pyclass(module = "iced_x86._iced_x86_py")]
+#[pyo3(text_signature = "(/)")]
 pub(crate) struct RegisterExt {}
 
 #[pymethods]
@@ -49,7 +29,7 @@ impl RegisterExt {
 	///     info = RegisterExt.info(Register.EAX)
 	///     assert info.size == 4
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn info(register: u32) -> PyResult<RegisterInfo> {
 		Ok(RegisterInfo { info: to_register(register)?.info() })
 	}
@@ -85,7 +65,7 @@ impl RegisterExt {
 	///     assert RegisterExt.base(Register.TR3) == Register.TR0
 	///     assert RegisterExt.base(Register.RIP) == Register.EIP
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn base(register: u32) -> PyResult<u32> {
 		Ok(to_register(register)?.base() as u32)
 	}
@@ -121,7 +101,7 @@ impl RegisterExt {
 	///     assert RegisterExt.number(Register.TR3) == 3
 	///     assert RegisterExt.number(Register.RIP) == 1
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn number(register: u32) -> PyResult<u32> {
 		Ok(to_register(register)?.number() as u32)
 	}
@@ -157,7 +137,7 @@ impl RegisterExt {
 	///     assert RegisterExt.full_register(Register.TR3) == Register.TR3
 	///     assert RegisterExt.full_register(Register.RIP) == Register.RIP
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn full_register(register: u32) -> PyResult<u32> {
 		Ok(to_register(register)?.full_register() as u32)
 	}
@@ -194,7 +174,7 @@ impl RegisterExt {
 	///     assert RegisterExt.full_register32(Register.TR3) == Register.TR3
 	///     assert RegisterExt.full_register32(Register.RIP) == Register.RIP
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn full_register32(register: u32) -> PyResult<u32> {
 		Ok(to_register(register)?.full_register32() as u32)
 	}
@@ -230,7 +210,7 @@ impl RegisterExt {
 	///     assert RegisterExt.size(Register.TR3) == 4
 	///     assert RegisterExt.size(Register.RIP) == 8
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn size(register: u32) -> PyResult<u32> {
 		Ok(to_register(register)?.size() as u32)
 	}
@@ -252,7 +232,7 @@ impl RegisterExt {
 	///     assert RegisterExt.is_segment_register(Register.GS)
 	///     assert not RegisterExt.is_segment_register(Register.RCX)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_segment_register(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_segment_register())
 	}
@@ -278,7 +258,7 @@ impl RegisterExt {
 	///     assert RegisterExt.is_gpr(Register.RSP)
 	///     assert not RegisterExt.is_gpr(Register.XMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_gpr(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_gpr())
 	}
@@ -304,7 +284,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_gpr8(Register.RSP)
 	///     assert not RegisterExt.is_gpr8(Register.XMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_gpr8(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_gpr8())
 	}
@@ -330,7 +310,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_gpr16(Register.RSP)
 	///     assert not RegisterExt.is_gpr16(Register.XMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_gpr16(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_gpr16())
 	}
@@ -356,7 +336,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_gpr32(Register.RSP)
 	///     assert not RegisterExt.is_gpr32(Register.XMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_gpr32(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_gpr32())
 	}
@@ -382,7 +362,7 @@ impl RegisterExt {
 	///     assert RegisterExt.is_gpr64(Register.RSP)
 	///     assert not RegisterExt.is_gpr64(Register.XMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_gpr64(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_gpr64())
 	}
@@ -407,7 +387,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_xmm(Register.YMM0)
 	///     assert not RegisterExt.is_xmm(Register.ZMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_xmm(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_xmm())
 	}
@@ -432,7 +412,7 @@ impl RegisterExt {
 	///     assert RegisterExt.is_ymm(Register.YMM0)
 	///     assert not RegisterExt.is_ymm(Register.ZMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_ymm(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_ymm())
 	}
@@ -457,7 +437,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_zmm(Register.YMM0)
 	///     assert RegisterExt.is_zmm(Register.ZMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_zmm(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_zmm())
 	}
@@ -482,7 +462,7 @@ impl RegisterExt {
 	///     assert RegisterExt.is_vector_register(Register.YMM0)
 	///     assert RegisterExt.is_vector_register(Register.ZMM0)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_vector_register(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_vector_register())
 	}
@@ -504,7 +484,7 @@ impl RegisterExt {
 	///     assert RegisterExt.is_ip(Register.EIP)
 	///     assert RegisterExt.is_ip(Register.RIP)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_ip(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_ip())
 	}
@@ -526,7 +506,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_k(Register.R13D)
 	///     assert RegisterExt.is_k(Register.K3)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_k(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_k())
 	}
@@ -548,7 +528,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_cr(Register.R13D)
 	///     assert RegisterExt.is_cr(Register.CR3)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_cr(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_cr())
 	}
@@ -570,7 +550,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_dr(Register.R13D)
 	///     assert RegisterExt.is_dr(Register.DR3)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_dr(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_dr())
 	}
@@ -592,7 +572,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_tr(Register.R13D)
 	///     assert RegisterExt.is_tr(Register.TR3)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_tr(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_tr())
 	}
@@ -614,7 +594,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_st(Register.R13D)
 	///     assert RegisterExt.is_st(Register.ST3)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_st(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_st())
 	}
@@ -636,7 +616,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_bnd(Register.R13D)
 	///     assert RegisterExt.is_bnd(Register.BND3)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_bnd(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_bnd())
 	}
@@ -658,7 +638,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_mm(Register.R13D)
 	///     assert RegisterExt.is_mm(Register.MM3)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_mm(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_mm())
 	}
@@ -680,7 +660,7 @@ impl RegisterExt {
 	///     assert not RegisterExt.is_tmm(Register.R13D)
 	///     assert RegisterExt.is_tmm(Register.TMM3)
 	#[staticmethod]
-	#[text_signature = "(register, /)"]
+	#[pyo3(text_signature = "(register, /)")]
 	fn is_tmm(register: u32) -> PyResult<bool> {
 		Ok(to_register(register)?.is_tmm())
 	}

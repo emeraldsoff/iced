@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use wasm_bindgen::prelude::*;
 
@@ -279,17 +259,52 @@ pub enum Register {
 	TMM5 = 246,
 	TMM6 = 247,
 	TMM7 = 248,
+	/// Don't use it!
+	///
+	/// ***************************************************
+	/// DEPRECATED since 1.12.0: Not part of the public API
+	DontUse0 = 249,
+	/// Don't use it!
+	///
+	/// ***************************************************
+	/// DEPRECATED since 1.12.0: Not part of the public API
+	DontUseFA = 250,
+	/// Don't use it!
+	///
+	/// ***************************************************
+	/// DEPRECATED since 1.12.0: Not part of the public API
+	DontUseFB = 251,
+	/// Don't use it!
+	///
+	/// ***************************************************
+	/// DEPRECATED since 1.12.0: Not part of the public API
+	DontUseFC = 252,
+	/// Don't use it!
+	///
+	/// ***************************************************
+	/// DEPRECATED since 1.12.0: Not part of the public API
+	DontUseFD = 253,
+	/// Don't use it!
+	///
+	/// ***************************************************
+	/// DEPRECATED since 1.12.0: Not part of the public API
+	DontUseFE = 254,
+	/// Don't use it!
+	///
+	/// ***************************************************
+	/// DEPRECATED since 1.12.0: Not part of the public API
+	DontUseFF = 255,
 }
 // GENERATOR-END: Enum
 
 #[allow(dead_code)]
 pub(crate) fn register_to_iced(value: Register) -> iced_x86_rust::Register {
-	// Safe, the enums are exactly identical
+	// SAFETY: the enums are exactly identical
 	unsafe { std::mem::transmute(value as u8) }
 }
 
 #[allow(dead_code)]
 pub(crate) fn iced_to_register(value: iced_x86_rust::Register) -> Register {
-	// Safe, the enums are exactly identical
+	// SAFETY: the enums are exactly identical
 	unsafe { std::mem::transmute(value as u8) }
 }

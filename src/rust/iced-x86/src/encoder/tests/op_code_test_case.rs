@@ -1,33 +1,27 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::super::iced_constants::IcedConstants;
-use super::super::super::*;
-#[cfg(not(feature = "std"))]
+use crate::iced_constants::IcedConstants;
+use crate::*;
 use alloc::string::String;
 
 #[derive(Default)]
+#[cfg(feature = "mvex")]
+pub(super) struct MvexTestCase {
+	pub(super) eh_bit: MvexEHBit,
+	pub(super) can_use_eviction_hint: bool,
+	pub(super) can_use_imm_rounding_control: bool,
+	pub(super) ignores_op_mask_register: bool,
+	pub(super) no_sae_rc: bool,
+	pub(super) tuple_type_lut_kind: MvexTupleTypeLutKind,
+	pub(super) conversion_func: MvexConvFn,
+	pub(super) valid_conversion_funcs_mask: u8,
+	pub(super) valid_swizzle_funcs_mask: u8,
+}
+
+#[derive(Default)]
 pub(super) struct OpCodeInfoTestCase {
+	#[allow(dead_code)]
 	pub(super) line_number: u32,
 	pub(super) code: Code,
 	pub(super) mnemonic: Mnemonic,
@@ -86,6 +80,7 @@ pub(super) struct OpCodeInfoTestCase {
 	pub(super) no66: bool,
 	pub(super) nfx: bool,
 	pub(super) requires_unique_reg_nums: bool,
+	pub(super) requires_unique_dest_reg_num: bool,
 	pub(super) is_privileged: bool,
 	pub(super) is_save_restore: bool,
 	pub(super) is_stack_instruction: bool,
@@ -133,4 +128,6 @@ pub(super) struct OpCodeInfoTestCase {
 	pub(super) rm_group_index: i32,
 	pub(super) op_count: u32,
 	pub(super) op_kinds: [OpCodeOperandKind; IcedConstants::MAX_OP_COUNT],
+	#[cfg(feature = "mvex")]
+	pub(super) mvex: MvexTestCase,
 }

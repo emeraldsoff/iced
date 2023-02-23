@@ -1,32 +1,9 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::super::*;
-use super::enums::OptionsProps;
-#[cfg(not(feature = "std"))]
+use crate::formatter::tests::enums::OptionsProps;
+use crate::*;
 use alloc::string::String;
-#[cfg(not(feature = "std"))]
-use alloc::vec::Vec;
 
 #[allow(non_camel_case_types)]
 pub(in super::super) enum OptionValue {
@@ -97,7 +74,7 @@ impl OptionValue {
 	}
 
 	fn to_str(&self) -> String {
-		if let &OptionValue::String(ref value) = self {
+		if let OptionValue::String(value) = self {
 			value.clone()
 		} else {
 			panic!()
@@ -231,7 +208,7 @@ impl OptionValue {
 
 	pub(super) fn get_decoder_options(props: &[(OptionsProps, OptionValue)]) -> u32 {
 		let mut decoder_options = DecoderOptions::NONE;
-		for &(_, ref prop) in props.iter() {
+		for (_, prop) in props.iter() {
 			if let &OptionValue::DecoderOptions(value) = prop {
 				decoder_options |= value;
 			}
@@ -248,12 +225,12 @@ impl OptionValue {
 			OptionsProps::BinaryDigitGroupSize => options.set_binary_digit_group_size(self.to_i32_as_u32()),
 			OptionsProps::BinaryPrefix => options.set_binary_prefix_string(self.to_str()),
 			OptionsProps::BinarySuffix => options.set_binary_suffix_string(self.to_str()),
-			OptionsProps::BranchLeadingZeroes => options.set_branch_leading_zeroes(self.to_bool()),
+			OptionsProps::BranchLeadingZeros => options.set_branch_leading_zeros(self.to_bool()),
 			OptionsProps::DecimalDigitGroupSize => options.set_decimal_digit_group_size(self.to_i32_as_u32()),
 			OptionsProps::DecimalPrefix => options.set_decimal_prefix_string(self.to_str()),
 			OptionsProps::DecimalSuffix => options.set_decimal_suffix_string(self.to_str()),
 			OptionsProps::DigitSeparator => options.set_digit_separator_string(self.to_str()),
-			OptionsProps::DisplacementLeadingZeroes => options.set_displacement_leading_zeroes(self.to_bool()),
+			OptionsProps::DisplacementLeadingZeros => options.set_displacement_leading_zeros(self.to_bool()),
 			OptionsProps::FirstOperandCharIndex => options.set_first_operand_char_index(self.to_i32_as_u32()),
 			OptionsProps::GasNakedRegisters => options.set_gas_naked_registers(self.to_bool()),
 			OptionsProps::GasShowMnemonicSizeSuffix => options.set_gas_show_mnemonic_size_suffix(self.to_bool()),
@@ -261,7 +238,7 @@ impl OptionValue {
 			OptionsProps::HexDigitGroupSize => options.set_hex_digit_group_size(self.to_i32_as_u32()),
 			OptionsProps::HexPrefix => options.set_hex_prefix_string(self.to_str()),
 			OptionsProps::HexSuffix => options.set_hex_suffix_string(self.to_str()),
-			OptionsProps::LeadingZeroes => options.set_leading_zeroes(self.to_bool()),
+			OptionsProps::LeadingZeros => options.set_leading_zeros(self.to_bool()),
 			OptionsProps::MasmAddDsPrefix32 => options.set_masm_add_ds_prefix32(self.to_bool()),
 			OptionsProps::MemorySizeOptions => options.set_memory_size_options(self.to_memory_size_options()),
 			OptionsProps::NasmShowSignExtendedImmediateSize => options.set_nasm_show_sign_extended_immediate_size(self.to_bool()),
@@ -316,18 +293,18 @@ impl OptionValue {
 			| OptionsProps::BinaryDigitGroupSize
 			| OptionsProps::BinaryPrefix
 			| OptionsProps::BinarySuffix
-			| OptionsProps::BranchLeadingZeroes
+			| OptionsProps::BranchLeadingZeros
 			| OptionsProps::DecimalDigitGroupSize
 			| OptionsProps::DecimalPrefix
 			| OptionsProps::DecimalSuffix
 			| OptionsProps::DigitSeparator
-			| OptionsProps::DisplacementLeadingZeroes
+			| OptionsProps::DisplacementLeadingZeros
 			| OptionsProps::FirstOperandCharIndex
 			| OptionsProps::GasNakedRegisters
 			| OptionsProps::GasShowMnemonicSizeSuffix
 			| OptionsProps::GasSpaceAfterMemoryOperandComma
 			| OptionsProps::HexDigitGroupSize
-			| OptionsProps::LeadingZeroes
+			| OptionsProps::LeadingZeros
 			| OptionsProps::MasmAddDsPrefix32
 			| OptionsProps::NasmShowSignExtendedImmediateSize
 			| OptionsProps::NumberBase
@@ -385,7 +362,7 @@ impl OptionValue {
 		}
 	}
 
-	pub(super) fn initialize_decoder(&self, decoder: &mut Decoder, property: OptionsProps) {
+	pub(super) fn initialize_decoder(&self, decoder: &mut Decoder<'_>, property: OptionsProps) {
 		if property == OptionsProps::IP {
 			decoder.set_ip(self.to_u64());
 		}

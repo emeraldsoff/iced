@@ -1,51 +1,29 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::super::Register;
-use super::super::regs_tbl::{MAX_STRING_LENGTH, REGS_TBL};
-use super::super::FormatterString;
-#[cfg(not(feature = "std"))]
+use crate::formatter::regs_tbl::MAX_STRING_LENGTH;
+use crate::formatter::regs_tbl_ls::REGS_TBL;
+use crate::formatter::FormatterString;
+use crate::iced_constants::IcedConstants;
+use crate::Register;
+use alloc::boxed::Box;
 use alloc::string::String;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
+use core::convert::TryInto;
 use core::fmt::Write;
-
-#[allow(dead_code)]
-pub(super) struct Registers;
-impl Registers {
-	#[allow(dead_code)]
-	pub(super) const EXTRA_REGISTERS: u32 = 0;
-}
+use lazy_static::lazy_static;
 
 lazy_static! {
-	pub(super) static ref ALL_REGISTERS: Vec<FormatterString> = {
-		let mut v: Vec<_> = (&*REGS_TBL).to_vec();
+	pub(super) static ref ALL_REGISTERS: Box<[FormatterString; IcedConstants::REGISTER_ENUM_COUNT]> = {
+		let mut v: Vec<_> = (*REGS_TBL).to_vec();
+		debug_assert_eq!(v.len(), IcedConstants::REGISTER_ENUM_COUNT);
 		let mut s = String::with_capacity(MAX_STRING_LENGTH);
 		for i in 0..8usize {
 			write!(s, "st{}", i).unwrap();
 			v[Register::ST0 as usize + i] = FormatterString::new(s.clone());
 			s.clear();
 		}
-		v
+		#[allow(clippy::unwrap_used)]
+		v.into_boxed_slice().try_into().ok().unwrap()
 	};
 }

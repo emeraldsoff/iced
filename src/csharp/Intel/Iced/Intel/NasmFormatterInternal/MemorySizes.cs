@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if NASM
 using System;
@@ -59,6 +39,7 @@ namespace Iced.Intel.NasmFormatterInternal {
 			var b1to4 = new FormatterString("1to4");
 			var b1to8 = new FormatterString("1to8");
 			var b1to16 = new FormatterString("1to16");
+			var b1to32 = new FormatterString("1to32");
 			// GENERATOR-END: ConstData
 
 #if HAS_SPAN
@@ -73,36 +54,50 @@ namespace Iced.Intel.NasmFormatterInternal {
 				0x01,
 				0x01,
 				0x02,
-				0x02,
-				0x01,
-				0x01,
-				0x01,
-				0x02,
 				0x01,
 				0x03,
 				0x03,
 				0x02,
 				0x02,
-				0x02,
+				0x01,
+				0x01,
+				0x01,
 				0x03,
+				0x02,
+				0x01,
+				0x02,
+				0x01,
+				0x01,
+				0x02,
 				0x02,
 				0x04,
 				0x04,
 				0x03,
 				0x03,
-				0x03,
+				0x02,
+				0x02,
+				0x02,
 				0x04,
 				0x03,
 				0x02,
 				0x03,
+				0x02,
+				0x02,
+				0x03,
+				0x03,
+				0x05,
+				0x05,
 				0x04,
-				0x01,
-				0x02,
+				0x04,
 				0x03,
-				0x01,
-				0x02,
 				0x03,
-				0x02,
+				0x03,
+				0x05,
+				0x04,
+				0x03,
+				0x04,
+				0x04,
+				0x03,
 				0x03,
 				0x04,
 				// GENERATOR-END: BcstTo
@@ -170,6 +165,7 @@ namespace Iced.Intel.NasmFormatterInternal {
 				0x02,
 				0x02,
 				0x02,
+				0x02,
 				0x09,
 				0x09,
 				0x09,
@@ -191,6 +187,10 @@ namespace Iced.Intel.NasmFormatterInternal {
 				0x08,
 				0x08,
 				0x08,
+				0x08,
+				0x08,
+				0x0C,
+				0x0C,
 				0x0C,
 				0x0C,
 				0x0C,
@@ -220,41 +220,57 @@ namespace Iced.Intel.NasmFormatterInternal {
 				0x0D,
 				0x0D,
 				0x0D,
+				0x0D,
+				0x0D,
+				0x0B,
 				0x02,
 				0x02,
+				0x0B,
 				0x02,
-				0x02,
-				0x02,
-				0x09,
-				0x09,
-				0x09,
-				0x02,
-				0x09,
-				0x02,
-				0x02,
-				0x09,
-				0x09,
-				0x09,
-				0x02,
-				0x09,
+				0x0B,
+				0x0B,
 				0x02,
 				0x02,
 				0x09,
 				0x09,
 				0x09,
+				0x0B,
 				0x02,
 				0x09,
 				0x02,
-				0x02,
-				0x02,
-				0x09,
-				0x09,
-				0x09,
-				0x09,
 				0x09,
 				0x09,
 				0x02,
 				0x02,
+				0x0B,
+				0x0B,
+				0x02,
+				0x02,
+				0x09,
+				0x09,
+				0x09,
+				0x0B,
+				0x02,
+				0x09,
+				0x02,
+				0x09,
+				0x09,
+				0x02,
+				0x02,
+				0x0B,
+				0x0B,
+				0x02,
+				0x02,
+				0x09,
+				0x09,
+				0x09,
+				0x0B,
+				0x02,
+				0x09,
+				0x02,
+				0x02,
+				0x09,
+				0x09,
 				0x02,
 				// GENERATOR-END: MemorySizes
 			};
@@ -295,6 +311,7 @@ namespace Iced.Intel.NasmFormatterInternal {
 						0x02 => b1to4,
 						0x03 => b1to8,
 						0x04 => b1to16,
+						0x05 => b1to32,
 						// GENERATOR-END: BroadcastToKindSwitch
 						_ => throw new InvalidOperationException(),
 					};

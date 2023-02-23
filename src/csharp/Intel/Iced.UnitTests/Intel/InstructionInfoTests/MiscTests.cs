@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if INSTR_INFO
 using System;
@@ -32,6 +12,7 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 		[Fact]
 		void IsBranchCall() {
 			var jccShort = MiscTestsData.JccShort;
+			var jcxShort = MiscTestsData.Jrcxz;
 			var jmpNear = MiscTestsData.JmpNear;
 			var jmpFar = MiscTestsData.JmpFar;
 			var jmpShort = MiscTestsData.JmpShort;
@@ -42,6 +23,11 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 			var callNear = MiscTestsData.CallNear;
 			var callNearIndirect = MiscTestsData.CallNearIndirect;
 			var callFarIndirect = MiscTestsData.CallFarIndirect;
+#if MVEX
+			var jkccShort = MiscTestsData.JkccShort;
+			var jkccNear = MiscTestsData.JkccNear;
+#endif
+			var loop = MiscTestsData.Loop;
 
 			for (int i = 0; i < IcedConstants.CodeEnumCount; i++) {
 				var code = (Code)i;
@@ -56,6 +42,9 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 
 				Assert.Equal(jccShort.Contains(code), code.IsJccShort());
 				Assert.Equal(code.IsJccShort(), instruction.IsJccShort);
+
+				Assert.Equal(jcxShort.Contains(code), code.IsJcxShort());
+				Assert.Equal(code.IsJcxShort(), instruction.IsJcxShort);
 
 				Assert.Equal(jmpShort.Contains(code), code.IsJmpShort());
 				Assert.Equal(code.IsJmpShort(), instruction.IsJmpShort);
@@ -86,6 +75,20 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 
 				Assert.Equal(callFarIndirect.Contains(code), code.IsCallFarIndirect());
 				Assert.Equal(code.IsCallFarIndirect(), instruction.IsCallFarIndirect);
+
+#if MVEX
+				Assert.Equal(jkccShort.Contains(code) || jkccNear.Contains(code), code.IsJkccShortOrNear());
+				Assert.Equal(code.IsJkccShortOrNear(), instruction.IsJkccShortOrNear);
+
+				Assert.Equal(jkccNear.Contains(code), code.IsJkccNear());
+				Assert.Equal(code.IsJkccNear(), instruction.IsJkccNear);
+
+				Assert.Equal(jkccShort.Contains(code), code.IsJkccShort());
+				Assert.Equal(code.IsJkccShort(), instruction.IsJkccShort);
+#endif
+				Assert.Equal(loop.Contains(code), code.IsLoop() || code.IsLoopcc());
+				Assert.Equal(code.IsLoop(), instruction.IsLoop);
+				Assert.Equal(code.IsLoopcc(), instruction.IsLoopcc);
 			}
 		}
 
@@ -100,8 +103,14 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 				toNegatedCodeValue.Add(info.setcc, info.negated);
 			foreach (var info in MiscTestsData.CmovccInfos)
 				toNegatedCodeValue.Add(info.cmovcc, info.negated);
+			foreach (var info in MiscTestsData.CmpccxaddInfos)
+				toNegatedCodeValue.Add(info.cmpccxadd, info.negated);
 			foreach (var info in MiscTestsData.LoopccInfos)
 				toNegatedCodeValue.Add(info.loopcc, info.negated);
+			foreach (var info in MiscTestsData.JkccShortInfos)
+				toNegatedCodeValue.Add(info.jkcc, info.negated);
+			foreach (var info in MiscTestsData.JkccNearInfos)
+				toNegatedCodeValue.Add(info.jkcc, info.negated);
 
 			for (int i = 0; i < IcedConstants.CodeEnumCount; i++) {
 				var code = (Code)i;
@@ -124,6 +133,8 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 				toShortBranch.Add(info.jcc, info.jccShort);
 			foreach (var info in MiscTestsData.JmpInfos)
 				toShortBranch.Add(info.jmpNear, info.jmpShort);
+			foreach (var info in MiscTestsData.JkccNearInfos)
+				toShortBranch.Add(info.jkcc, info.jkccShort);
 
 			for (int i = 0; i < IcedConstants.CodeEnumCount; i++) {
 				var code = (Code)i;
@@ -146,6 +157,8 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 				toNearBranch.Add(info.jcc, info.jccNear);
 			foreach (var info in MiscTestsData.JmpInfos)
 				toNearBranch.Add(info.jmpShort, info.jmpNear);
+			foreach (var info in MiscTestsData.JkccShortInfos)
+				toNearBranch.Add(info.jkcc, info.jkccNear);
 
 			for (int i = 0; i < IcedConstants.CodeEnumCount; i++) {
 				var code = (Code)i;
@@ -172,8 +185,14 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 				toConditionCode.Add(info.setcc, info.cc);
 			foreach (var info in MiscTestsData.CmovccInfos)
 				toConditionCode.Add(info.cmovcc, info.cc);
+			foreach (var info in MiscTestsData.CmpccxaddInfos)
+				toConditionCode.Add(info.cmpccxadd, info.cc);
 			foreach (var info in MiscTestsData.LoopccInfos)
 				toConditionCode.Add(info.loopcc, info.cc);
+			foreach (var info in MiscTestsData.JkccShortInfos)
+				toConditionCode.Add(info.jkcc, info.cc);
+			foreach (var info in MiscTestsData.JkccNearInfos)
+				toConditionCode.Add(info.jkcc, info.cc);
 
 			for (int i = 0; i < IcedConstants.CodeEnumCount; i++) {
 				var code = (Code)i;
@@ -185,6 +204,20 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 
 				Assert.Equal(cc, code.ConditionCode());
 				Assert.Equal(cc, instruction.ConditionCode);
+			}
+		}
+
+		[Fact]
+		void Verify_StringInstr() {
+			var stringInstr = MiscTestsData.StringInstr;
+
+			for (int i = 0; i < IcedConstants.CodeEnumCount; i++) {
+				var code = (Code)i;
+				Instruction instruction = default;
+				instruction.Code = code;
+
+				Assert.Equal(stringInstr.Contains(code), code.IsStringInstruction());
+				Assert.Equal(code.IsStringInstruction(), instruction.IsStringInstruction);
 			}
 		}
 

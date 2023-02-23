@@ -1,27 +1,7 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::instruction::Instruction;
+use crate::instruction::Instruction;
 use wasm_bindgen::prelude::*;
 
 /// x86 formatter that uses less code (smaller wasm files)
@@ -78,8 +58,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov rax, rcx`
-	/// ✔️ | `false` | `mov rax,rcx`
+	/// _ | `true` | `mov rax, rcx`
+	/// 👍 | `false` | `mov rax,rcx`
 	#[wasm_bindgen(getter)]
 	#[wasm_bindgen(js_name = "spaceAfterOperandSeparator")]
 	pub fn space_after_operand_separator(&self) -> bool {
@@ -90,8 +70,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov rax, rcx`
-	/// ✔️ | `false` | `mov rax,rcx`
+	/// _ | `true` | `mov rax, rcx`
+	/// 👍 | `false` | `mov rax,rcx`
 	///
 	/// # Arguments
 	///
@@ -106,8 +86,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rip+12345678h]`
-	/// ✔️ | `false` | `mov eax,[1029384756AFBECDh]`
+	/// _ | `true` | `mov eax,[rip+12345678h]`
+	/// 👍 | `false` | `mov eax,[1029384756AFBECDh]`
 	#[wasm_bindgen(getter)]
 	#[wasm_bindgen(js_name = "ripRelativeAddresses")]
 	pub fn rip_relative_addresses(&self) -> bool {
@@ -118,8 +98,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rip+12345678h]`
-	/// ✔️ | `false` | `mov eax,[1029384756AFBECDh]`
+	/// _ | `true` | `mov eax,[rip+12345678h]`
+	/// 👍 | `false` | `mov eax,[1029384756AFBECDh]`
 	///
 	/// # Arguments
 	///
@@ -134,8 +114,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `vcmpnltsd xmm2,xmm6,xmm3`
-	/// &nbsp; | `false` | `vcmpsd xmm2,xmm6,xmm3,5`
+	/// 👍 | `true` | `vcmpnltsd xmm2,xmm6,xmm3`
+	/// _ | `false` | `vcmpsd xmm2,xmm6,xmm3,5`
 	#[wasm_bindgen(getter)]
 	#[wasm_bindgen(js_name = "usePseudoOps")]
 	pub fn use_pseudo_ops(&self) -> bool {
@@ -146,8 +126,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `vcmpnltsd xmm2,xmm6,xmm3`
-	/// &nbsp; | `false` | `vcmpsd xmm2,xmm6,xmm3,5`
+	/// 👍 | `true` | `vcmpnltsd xmm2,xmm6,xmm3`
+	/// _ | `false` | `vcmpsd xmm2,xmm6,xmm3,5`
 	///
 	/// # Arguments
 	///
@@ -162,8 +142,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[myfield (12345678)]`
-	/// ✔️ | `false` | `mov eax,[myfield]`
+	/// _ | `true` | `mov eax,[myfield (12345678)]`
+	/// 👍 | `false` | `mov eax,[myfield]`
 	#[wasm_bindgen(getter)]
 	#[wasm_bindgen(js_name = "showSymbolAddress")]
 	pub fn show_symbol_address(&self) -> bool {
@@ -174,8 +154,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[myfield (12345678)]`
-	/// ✔️ | `false` | `mov eax,[myfield]`
+	/// _ | `true` | `mov eax,[myfield (12345678)]`
+	/// 👍 | `false` | `mov eax,[myfield]`
 	///
 	/// # Arguments
 	///
@@ -191,8 +171,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,ds:[ecx]`
-	/// ✔️ | `false` | `mov eax,[ecx]`
+	/// _ | `true` | `mov eax,ds:[ecx]`
+	/// 👍 | `false` | `mov eax,[ecx]`
 	#[wasm_bindgen(getter)]
 	#[wasm_bindgen(js_name = "alwaysShowSegmentRegister")]
 	pub fn always_show_segment_register(&self) -> bool {
@@ -204,8 +184,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,ds:[ecx]`
-	/// ✔️ | `false` | `mov eax,[ecx]`
+	/// _ | `true` | `mov eax,ds:[ecx]`
+	/// 👍 | `false` | `mov eax,[ecx]`
 	///
 	/// # Arguments
 	///
@@ -220,8 +200,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example | Example
 	/// --------|-------|---------|--------
-	/// &nbsp; | `true` | `mov eax,dword ptr [ebx]` | `add byte ptr [eax],0x12`
-	/// ✔️ | `false` | `mov eax,[ebx]` | `add byte ptr [eax],0x12`
+	/// _ | `true` | `mov eax,dword ptr [ebx]` | `add byte ptr [eax],0x12`
+	/// 👍 | `false` | `mov eax,[ebx]` | `add byte ptr [eax],0x12`
 	#[wasm_bindgen(getter)]
 	#[wasm_bindgen(js_name = "alwaysShowMemorySize")]
 	pub fn always_show_memory_size(&self) -> bool {
@@ -232,8 +212,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example | Example
 	/// --------|-------|---------|--------
-	/// &nbsp; | `true` | `mov eax,dword ptr [ebx]` | `add byte ptr [eax],0x12`
-	/// ✔️ | `false` | `mov eax,[ebx]` | `add byte ptr [eax],0x12`
+	/// _ | `true` | `mov eax,dword ptr [ebx]` | `add byte ptr [eax],0x12`
+	/// 👍 | `false` | `mov eax,[ebx]` | `add byte ptr [eax],0x12`
 	///
 	/// # Arguments
 	///
@@ -244,24 +224,24 @@ impl FastFormatter {
 		self.0.options_mut().set_always_show_memory_size(value)
 	}
 
-	/// Use upper case hex digits
+	/// Use uppercase hex digits
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `0xFF`
-	/// &nbsp; | `false` | `0xff`
+	/// 👍 | `true` | `0xFF`
+	/// _ | `false` | `0xff`
 	#[wasm_bindgen(getter)]
 	#[wasm_bindgen(js_name = "uppercaseHex")]
 	pub fn uppercase_hex(&self) -> bool {
 		self.0.options().uppercase_hex()
 	}
 
-	/// Use upper case hex digits
+	/// Use uppercase hex digits
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `0xFF`
-	/// &nbsp; | `false` | `0xff`
+	/// 👍 | `true` | `0xFF`
+	/// _ | `false` | `0xff`
 	///
 	/// # Arguments
 	///
@@ -276,8 +256,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `0x5A`
-	/// ✔️ | `false` | `5Ah`
+	/// _ | `true` | `0x5A`
+	/// 👍 | `false` | `5Ah`
 	#[wasm_bindgen(getter)]
 	#[wasm_bindgen(js_name = "useHexPrefix")]
 	pub fn use_hex_prefix(&self) -> bool {
@@ -288,8 +268,8 @@ impl FastFormatter {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `0x5A`
-	/// ✔️ | `false` | `5Ah`
+	/// _ | `true` | `0x5A`
+	/// 👍 | `false` | `5Ah`
 	///
 	/// # Arguments
 	///

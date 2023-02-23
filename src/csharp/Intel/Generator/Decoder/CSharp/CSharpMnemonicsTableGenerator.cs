@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using Generator.Constants;
@@ -41,7 +21,6 @@ namespace Generator.Decoder.CSharp {
 			var icedConstants = genTypes.GetConstantsType(TypeIds.IcedConstants);
 			var defs = genTypes.GetObject<InstructionDefs>(TypeIds.InstructionDefs).Defs;
 			const string ClassName = "MnemonicUtilsData";
-			var mnemonicName = genTypes[TypeIds.Mnemonic].Name(idConverter);
 			using (var writer = new FileWriter(TargetLanguage.CSharp, FileUtils.OpenWrite(CSharpConstants.GetFilename(genTypes, CSharpConstants.IcedNamespace, ClassName + ".g.cs")))) {
 				writer.WriteFileHeader();
 
@@ -49,12 +28,12 @@ namespace Generator.Decoder.CSharp {
 				using (writer.Indent()) {
 					writer.WriteLine($"static class {ClassName} {{");
 					using (writer.Indent()) {
-						writer.WriteLine($"internal static readonly ushort[] toMnemonic = new ushort[{icedConstants.Name(idConverter)}.{icedConstants[IcedConstants.CodeEnumCountName].Name(idConverter)}] {{");
+						writer.WriteLine($"internal static readonly ushort[] toMnemonic = new ushort[{icedConstants.Name(idConverter)}.{icedConstants[IcedConstants.GetEnumCountName(TypeIds.Code)].Name(idConverter)}] {{");
 						using (writer.Indent()) {
 							foreach (var def in defs) {
 								if (def.Mnemonic.Value > ushort.MaxValue)
 									throw new InvalidOperationException();
-								writer.WriteLine($"(ushort){mnemonicName}.{def.Mnemonic.Name(idConverter)},// {def.Code.Name(idConverter)}");
+								writer.WriteLine($"(ushort){idConverter.ToDeclTypeAndValue(def.Mnemonic)},// {def.Code.Name(idConverter)}");
 							}
 						}
 						writer.WriteLine("};");

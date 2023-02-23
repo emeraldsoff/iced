@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use crate::constant_offsets::ConstantOffsets;
 use crate::instruction::Instruction;
@@ -46,8 +26,7 @@ use pyo3::types::PyBytes;
 ///
 ///     # xchg ah,[rdx+rsi+16h]
 ///     data = b"\x86\x64\x32\x16"
-///     decoder = Decoder(64, data)
-///     decoder.ip = 0x1234_5678
+///     decoder = Decoder(64, data, ip=0x1234_5678)
 ///     instr = decoder.decode()
 ///
 ///     encoder = Encoder(64)
@@ -61,8 +40,8 @@ use pyo3::types::PyBytes;
 ///     # We're done, take ownership of the buffer
 ///     buffer = encoder.take_buffer()
 ///     assert buffer == b"\x86\x64\x32\x16"
-#[pyclass(module = "_iced_x86_py")]
-#[text_signature = "(bitness, capacity, /)"]
+#[pyclass(module = "iced_x86._iced_x86_py")]
+#[pyo3(text_signature = "(bitness, capacity, /)")]
 pub(crate) struct Encoder {
 	encoder: iced_x86::Encoder,
 }
@@ -96,8 +75,7 @@ impl Encoder {
 	///
 	///     # je short $+4
 	///     data = b"\x75\x02"
-	///     decoder = Decoder(64, data)
-	///     decoder.ip = 0x1234_5678
+	///     decoder = Decoder(64, data, ip=0x1234_5678)
 	///     instr = decoder.decode()
 	///
 	///     encoder = Encoder(64)
@@ -112,7 +90,7 @@ impl Encoder {
 	///     # We're done, take ownership of the buffer
 	///     buffer = encoder.take_buffer()
 	///     assert buffer == b"\x75\xF2"
-	#[text_signature = "($self, instruction, rip, /)"]
+	#[pyo3(text_signature = "($self, instruction, rip, /)")]
 	fn encode(&mut self, instruction: &Instruction, rip: u64) -> PyResult<usize> {
 		self.encoder.encode(&instruction.instr, rip).map_err(to_value_error)
 	}
@@ -130,8 +108,7 @@ impl Encoder {
 	///
 	///     # je short $+4
 	///     data = b"\x75\x02"
-	///     decoder = Decoder(64, data)
-	///     decoder.ip = 0x1234_5678
+	///     decoder = Decoder(64, data, ip=0x1234_5678)
 	///     instr = decoder.decode()
 	///
 	///     encoder = Encoder(64)
@@ -152,7 +129,7 @@ impl Encoder {
 	///     # We're done, take ownership of the buffer
 	///     buffer = encoder.take_buffer()
 	///     assert buffer == b"\x90\x75\xF2\x90"
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn write_u8(&mut self, value: u8) {
 		self.encoder.write_u8(value)
 	}
@@ -163,10 +140,10 @@ impl Encoder {
 	///
 	/// Returns:
 	///     bytes: The encoded instructions
-	#[text_signature = "($self, /)"]
-	fn take_buffer<'py>(&mut self, py: Python<'py>) -> PyResult<&'py PyBytes> {
+	#[pyo3(text_signature = "($self, /)")]
+	fn take_buffer<'py>(&mut self, py: Python<'py>) -> &'py PyBytes {
 		let buffer = self.encoder.take_buffer();
-		Ok(PyBytes::new(py, &buffer))
+		PyBytes::new(py, &buffer)
 	}
 
 	/// Gets the offsets of the constants (memory displacement and immediate) in the encoded instruction.
@@ -175,7 +152,7 @@ impl Encoder {
 	///
 	/// Returns:
 	///     ConstantOffsets: Offsets and sizes of immediates
-	#[text_signature = "($self, /)"]
+	#[pyo3(text_signature = "($self, /)")]
 	fn get_constant_offsets(&self) -> ConstantOffsets {
 		ConstantOffsets { offsets: self.encoder.get_constant_offsets() }
 	}
@@ -233,6 +210,17 @@ impl Encoder {
 	#[setter]
 	fn set_evex_lig(&mut self, new_value: u32) {
 		self.encoder.set_evex_lig(new_value)
+	}
+
+	/// int: (``u8``) Value of the ``MVEX.W`` bit to use if it's an instruction that ignores the bit. Default is 0.
+	#[getter]
+	fn mvex_wig(&self) -> u32 {
+		self.encoder.mvex_wig()
+	}
+
+	#[setter]
+	fn set_mvex_wig(&mut self, new_value: u32) {
+		self.encoder.set_mvex_wig(new_value)
 	}
 
 	/// int: Gets the bitness (16, 32 or 64)

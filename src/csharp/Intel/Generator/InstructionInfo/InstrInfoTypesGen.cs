@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -119,7 +99,7 @@ namespace Generator.InstructionInfo {
 		static void Add(Dictionary<EnumValue[], EnumValue> cpuidToInternalDict, List<(EnumValue cpuidInternal, EnumValue[] cpuidFeatures)> cpuidFeatures, EnumValue[] cpuid) {
 			if (!cpuidToInternalDict.ContainsKey(cpuid)) {
 				var name = string.Join("_and_", cpuid.Select(a => a.RawName));
-				var internalEnumValue = new EnumValue(0, name, null);
+				var internalEnumValue = new EnumValue(0, name, default);
 				cpuidFeatures.Add((internalEnumValue, cpuid));
 				cpuidToInternalDict.Add(cpuid, internalEnumValue);
 			}
@@ -133,7 +113,7 @@ namespace Generator.InstructionInfo {
 
 			cpuidFeatures.Sort(CompareCpuidInternalEnums);
 
-			EnumCpuidFeatureInternal = new EnumType(TypeIds.CpuidFeatureInternal, null, cpuidFeatures.Select(a => a.cpuidInternal).ToArray(), EnumTypeFlags.None);
+			EnumCpuidFeatureInternal = new EnumType(TypeIds.CpuidFeatureInternal, default, cpuidFeatures.Select(a => a.cpuidInternal).ToArray(), EnumTypeFlags.None);
 			CpuidFeatures = cpuidFeatures.ToArray();
 			foreach (var def in defs) {
 				var info = def;
@@ -184,7 +164,7 @@ namespace Generator.InstructionInfo {
 			var toRflagsInfo = new Dictionary<(RflagsBits read, RflagsBits undefined, RflagsBits written, RflagsBits cleared, RflagsBits set), EnumValue>();
 			for (int i = 0; i < RflagsInfos.Length; i++) {
 				var info = rflags[i];
-				var value = new EnumValue(0, GetName(sb, info), null);
+				var value = new EnumValue(0, GetName(sb, info), default);
 				RflagsInfos[i] = (value, info);
 				toRflagsInfo[info] = value;
 			}
@@ -199,7 +179,7 @@ namespace Generator.InstructionInfo {
 				throw new InvalidOperationException("Dupe names");
 			foreach (var def in defs)
 				def.RflagsInfo = toRflagsInfo[(def.RflagsRead, def.RflagsUndefined, def.RflagsWritten, def.RflagsCleared, def.RflagsSet)];
-			EnumRflagsInfo = new EnumType(TypeIds.RflagsInfo, null, values, EnumTypeFlags.None);
+			EnumRflagsInfo = new EnumType(TypeIds.RflagsInfo, default, values, EnumTypeFlags.None);
 		}
 
 		static int Compare(EnumValue a, EnumValue b) {
@@ -270,11 +250,10 @@ namespace Generator.InstructionInfo {
 			for (int i = 0; i < opInfoHashes.Length; i++)
 				opInfoHashes[i] = new HashSet<OpInfo>();
 			foreach (var def in defs) {
-				var info = def;
 				bool foundNone = false;
 				int i;
-				for (i = 0; i < info.OpInfo.Length; i++) {
-					var opInfo = info.OpInfo[i];
+				for (i = 0; i < def.OpInfo.Length; i++) {
+					var opInfo = def.OpInfo[i];
 					if (opInfo == OpInfo.None)
 						foundNone = true;
 					else if (foundNone)
@@ -330,8 +309,8 @@ namespace Generator.InstructionInfo {
 			for (int i = 0; i < opInfos.Length; i++) {
 				if (opInfos[i].Length == 0 || opInfos[i][0] != OpInfo.None)
 					throw new InvalidOperationException();
-				var values = opInfos[i].Select(a => new EnumValue((uint)a, a.ToString(), null)).ToArray();
-				EnumOpInfos[i] = new EnumType(typeIds[i], null, values, EnumTypeFlags.None);
+				var values = opInfos[i].Select(a => new EnumValue((uint)a, a.ToString(), default)).ToArray();
+				EnumOpInfos[i] = new EnumType(typeIds[i], default, values, EnumTypeFlags.None);
 			}
 			foreach (var def in defs) {
 				var info = def;
@@ -350,8 +329,8 @@ namespace Generator.InstructionInfo {
 				var opInfos = enumOpInfos[i];
 				uint maxValue = (uint)opInfos.Values.Length - 1;
 				var (mask, bits) = GetMaskAndBits(maxValue);
-				var shiftValue = new EnumValue(shift, $"OpInfo{i}Shift", null);
-				var maskValue = new EnumValue(mask, $"OpInfo{i}Mask", null);
+				var shiftValue = new EnumValue(shift, $"OpInfo{i}Shift", default);
+				var maskValue = new EnumValue(mask, $"OpInfo{i}Mask", default);
 				values1.Insert(i * 2, shiftValue);
 				values1.Insert(i * 2 + 1, maskValue);
 				shift += bits;
@@ -373,8 +352,8 @@ namespace Generator.InstructionInfo {
 			if ((uint)enumCpuidFeatureInternal.Values.Length - 1 > (uint)InfoFlags2.CpuidFeatureInternalMask)
 				throw new InvalidOperationException();
 
-			EnumInfoFlags1 = new EnumType(TypeIds.InfoFlags1, null, values1.ToArray(), EnumTypeFlags.Flags | EnumTypeFlags.NoInitialize);
-			EnumInfoFlags2 = new EnumType(TypeIds.InfoFlags2, null, values2, EnumTypeFlags.Flags | EnumTypeFlags.NoInitialize);
+			EnumInfoFlags1 = new EnumType(TypeIds.InfoFlags1, default, values1.ToArray(), EnumTypeFlags.Flags | EnumTypeFlags.NoInitialize);
+			EnumInfoFlags2 = new EnumType(TypeIds.InfoFlags2, default, values2, EnumTypeFlags.Flags | EnumTypeFlags.NoInitialize);
 		}
 
 		static (uint mask, uint bits) GetMaskAndBits(uint maxValue) {
@@ -399,7 +378,7 @@ namespace Generator.InstructionInfo {
 			constants.Add(new Constant(ConstantKind.Index, "DefaultUsedRegisterCollCapacity", 10, ConstantsTypeFlags.None));
 			constants.Add(new Constant(ConstantKind.Index, "DefaultUsedMemoryCollCapacity", 8, ConstantsTypeFlags.None));
 
-			InstrInfoConstants = new ConstantsType(TypeIds.InstrInfoConstants, ConstantsTypeFlags.None, null, constants.ToArray());
+			InstrInfoConstants = new ConstantsType(TypeIds.InstrInfoConstants, ConstantsTypeFlags.None, default, constants.ToArray());
 		}
 	}
 }

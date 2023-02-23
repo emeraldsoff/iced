@@ -1,27 +1,7 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-const { Decoder, DecoderOptions, Encoder } = require("iced-x86");
+const { Decoder, DecoderOptions, Encoder, getIcedFeatures } = require("iced-x86");
 
 test("Creating an Encoder with an invalid bitness throws", () => {
 	expect(() => new Encoder(63)).toThrow();
@@ -55,21 +35,27 @@ test("Encoder options", () => {
 	encoder.EVEX_LIG = 3;
 	expect(encoder.EVEX_LIG).toBe(3);
 
+	// Check if MVEX support
+	if ((getIcedFeatures() & 0x10) != 0) {
+		expect(encoder.MVEX_WIG).toBe(0);
+		encoder.MVEX_WIG = 1;
+		expect(encoder.MVEX_WIG).toBe(1);
+	}
+
 	encoder.free();
 });
 
 test("16-bit encoder", () => {
 	const bytes = new Uint8Array([0x75, 0x02]);
 	const decoder = new Decoder(16, bytes, DecoderOptions.None);
-	decoder.ipLo = 0x8123;
-	decoder.ipHi = 0;
+	decoder.ip = 0x8123n;
 	const instr = decoder.decode();
 	const encoder = new Encoder(16);
 
 	expect(encoder.bitness).toBe(16);
 
 	encoder.writeU8(0xCC);
-	expect(encoder.encode(instr, 0, 0x8120)).toBe(2);
+	expect(encoder.encode(instr, 0x8120n)).toBe(2);
 	encoder.writeU8(0x90);
 
 	const buffer = encoder.takeBuffer();
@@ -86,15 +72,14 @@ test("16-bit encoder", () => {
 test("32-bit encoder", () => {
 	const bytes = new Uint8Array([0x75, 0x02]);
 	const decoder = new Decoder(32, bytes, DecoderOptions.None);
-	decoder.ipLo = 0x81234567;
-	decoder.ipHi = 0;
+	decoder.ip = 0x81234567n;
 	const instr = decoder.decode();
 	const encoder = new Encoder(32);
 
 	expect(encoder.bitness).toBe(32);
 
 	encoder.writeU8(0x90);
-	expect(encoder.encode(instr, 0, 0x81234563)).toBe(2);
+	expect(encoder.encode(instr, 0x81234563n)).toBe(2);
 	encoder.writeU8(0xCC);
 
 	const buffer = encoder.takeBuffer();
@@ -111,15 +96,14 @@ test("32-bit encoder", () => {
 test("64-bit encoder", () => {
 	const bytes = new Uint8Array([0x75, 0x02]);
 	const decoder = new Decoder(64, bytes, DecoderOptions.None);
-	decoder.ipLo = 0xABCDEF01;
-	decoder.ipHi = 0x81234567;
+	decoder.ip = 0x81234567ABCDEF01n;
 	const instr = decoder.decode();
 	const encoder = new Encoder(64);
 
 	expect(encoder.bitness).toBe(64);
 
 	encoder.writeU8(0xCD);
-	expect(encoder.encode(instr, 0x81234567, 0xABCDEEFF)).toBe(2);
+	expect(encoder.encode(instr, 0x81234567ABCDEEFFn)).toBe(2);
 	encoder.writeU8(0x91);
 
 	const buffer = encoder.takeBuffer();
@@ -140,7 +124,7 @@ test("Encoder constant offsets", () => {
 	const instr2 = decoder.decode();
 	const encoder = Encoder.withCapacity(64, 100);
 
-	encoder.encode(instr1);
+	encoder.encode(instr1, 0n);
 	const co1 = encoder.getConstantOffsets();
 	expect(co1.hasDisplacement).toBe(false);
 	expect(co1.displacementOffset).toBe(0);
@@ -152,7 +136,7 @@ test("Encoder constant offsets", () => {
 	expect(co1.immediateOffset2).toBe(0);
 	expect(co1.immediateSize2).toBe(0);
 
-	encoder.encode(instr2);
+	encoder.encode(instr2, 0n);
 	const co2 = encoder.getConstantOffsets();
 	expect(co2.hasDisplacement).toBe(true);
 	expect(co2.displacementOffset).toBe(2);

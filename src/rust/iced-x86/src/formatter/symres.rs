@@ -1,30 +1,8 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::*;
-#[cfg(not(feature = "std"))]
+use crate::*;
 use alloc::string::String;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 
 /// Used by a [`Formatter`] to resolve symbols
@@ -42,25 +20,25 @@ pub trait SymbolResolver {
 	/// - `address_size`: Size of `address` in bytes (eg. 1, 2, 4 or 8)
 	fn symbol(
 		&mut self, instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, address: u64, address_size: u32,
-	) -> Option<SymbolResult>;
+	) -> Option<SymbolResult<'_>>;
 }
 
 /// Contains a `&'a str` or a `String`
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum SymResString<'a> {
 	/// Contains a `&'a str`
-	Str(&'a str),
+	Str(#[doc = "The str"] &'a str),
 	/// Contains a `String`
-	String(String),
+	String(#[doc = "The string"] String),
 }
-impl<'a> Default for SymResString<'a> {
+impl Default for SymResString<'_> {
 	#[must_use]
 	#[inline]
 	fn default() -> Self {
 		SymResString::Str("")
 	}
 }
-impl<'a> SymResString<'a> {
+impl SymResString<'_> {
 	pub(super) fn to_owned<'b>(self) -> SymResString<'b> {
 		match self {
 			SymResString::Str(s) => SymResString::String(String::from(s)),
@@ -71,7 +49,7 @@ impl<'a> SymResString<'a> {
 	pub(super) fn to_owned2<'b>(&self) -> SymResString<'b> {
 		match self {
 			&SymResString::Str(s) => SymResString::String(String::from(s)),
-			&SymResString::String(ref s) => SymResString::String(s.clone()),
+			SymResString::String(s) => SymResString::String(s.clone()),
 		}
 	}
 }
@@ -94,7 +72,7 @@ impl<'a> SymResTextPart<'a> {
 	/// - `color`: Color
 	#[must_use]
 	#[inline]
-	pub fn new(text: &'a str, color: FormatterTextKind) -> Self {
+	pub const fn new(text: &'a str, color: FormatterTextKind) -> Self {
 		Self { text: SymResString::Str(text), color }
 	}
 
@@ -106,7 +84,7 @@ impl<'a> SymResTextPart<'a> {
 	/// - `color`: Color
 	#[must_use]
 	#[inline]
-	pub fn with_string(text: String, color: FormatterTextKind) -> Self {
+	pub const fn with_string(text: String, color: FormatterTextKind) -> Self {
 		Self { text: SymResString::String(text), color }
 	}
 
@@ -125,9 +103,9 @@ impl<'a> SymResTextPart<'a> {
 #[derive(Debug, Clone, Eq, PartialEq, Hash)]
 pub enum SymResTextInfo<'a> {
 	/// Text and color
-	Text(SymResTextPart<'a>),
+	Text(#[doc = "Text and color"] SymResTextPart<'a>),
 	/// Text and color (vector)
-	TextVec(&'a [SymResTextPart<'a>]),
+	TextVec(#[doc = "Text and color"] &'a [SymResTextPart<'a>]),
 }
 
 impl<'a> SymResTextInfo<'a> {
@@ -139,7 +117,7 @@ impl<'a> SymResTextInfo<'a> {
 	/// - `color`: Color
 	#[must_use]
 	#[inline]
-	pub fn new(text: &'a str, color: FormatterTextKind) -> Self {
+	pub const fn new(text: &'a str, color: FormatterTextKind) -> Self {
 		SymResTextInfo::Text(SymResTextPart::new(text, color))
 	}
 
@@ -151,7 +129,7 @@ impl<'a> SymResTextInfo<'a> {
 	/// - `color`: Color
 	#[must_use]
 	#[inline]
-	pub fn with_string(text: String, color: FormatterTextKind) -> Self {
+	pub const fn with_string(text: String, color: FormatterTextKind) -> Self {
 		SymResTextInfo::Text(SymResTextPart::with_string(text, color))
 	}
 
@@ -162,7 +140,7 @@ impl<'a> SymResTextInfo<'a> {
 	/// - `text`: Text
 	#[must_use]
 	#[inline]
-	pub fn with_text(text: SymResTextPart<'a>) -> Self {
+	pub const fn with_text(text: SymResTextPart<'a>) -> Self {
 		SymResTextInfo::Text(text)
 	}
 
@@ -173,7 +151,7 @@ impl<'a> SymResTextInfo<'a> {
 	/// - `text`: Text
 	#[must_use]
 	#[inline]
-	pub fn with_vec(text: &'a [SymResTextPart<'a>]) -> Self {
+	pub const fn with_vec(text: &'a [SymResTextPart<'a>]) -> Self {
 		SymResTextInfo::TextVec(text)
 	}
 
@@ -220,7 +198,7 @@ impl<'a> SymbolResult<'a> {
 	/// - `text`: Symbol
 	#[must_use]
 	#[inline]
-	pub fn with_str(address: u64, text: &'a str) -> Self {
+	pub const fn with_str(address: u64, text: &'a str) -> Self {
 		Self { address, text: SymResTextInfo::new(text, SymbolResult::DEFAULT_KIND), flags: SymbolFlags::NONE, symbol_size: None }
 	}
 
@@ -233,7 +211,7 @@ impl<'a> SymbolResult<'a> {
 	/// - `size`: Symbol size
 	#[must_use]
 	#[inline]
-	pub fn with_str_size(address: u64, text: &'a str, size: MemorySize) -> Self {
+	pub const fn with_str_size(address: u64, text: &'a str, size: MemorySize) -> Self {
 		Self { address, text: SymResTextInfo::new(text, SymbolResult::DEFAULT_KIND), flags: SymbolFlags::NONE, symbol_size: Some(size) }
 	}
 
@@ -246,7 +224,7 @@ impl<'a> SymbolResult<'a> {
 	/// - `color`: Color
 	#[must_use]
 	#[inline]
-	pub fn with_str_kind(address: u64, text: &'a str, color: FormatterTextKind) -> Self {
+	pub const fn with_str_kind(address: u64, text: &'a str, color: FormatterTextKind) -> Self {
 		Self { address, text: SymResTextInfo::new(text, color), flags: SymbolFlags::NONE, symbol_size: None }
 	}
 
@@ -262,7 +240,7 @@ impl<'a> SymbolResult<'a> {
 	/// [`SymbolFlags`]: struct.SymbolFlags.html
 	#[must_use]
 	#[inline]
-	pub fn with_str_kind_flags(address: u64, text: &'a str, color: FormatterTextKind, flags: u32) -> Self {
+	pub const fn with_str_kind_flags(address: u64, text: &'a str, color: FormatterTextKind, flags: u32) -> Self {
 		Self { address, text: SymResTextInfo::new(text, color), flags, symbol_size: None }
 	}
 
@@ -274,7 +252,7 @@ impl<'a> SymbolResult<'a> {
 	/// - `text`: Symbol
 	#[must_use]
 	#[inline]
-	pub fn with_string(address: u64, text: String) -> Self {
+	pub const fn with_string(address: u64, text: String) -> Self {
 		Self { address, text: SymResTextInfo::with_string(text, SymbolResult::DEFAULT_KIND), flags: SymbolFlags::NONE, symbol_size: None }
 	}
 
@@ -287,7 +265,7 @@ impl<'a> SymbolResult<'a> {
 	/// - `size`: Symbol size
 	#[must_use]
 	#[inline]
-	pub fn with_string_size(address: u64, text: String, size: MemorySize) -> Self {
+	pub const fn with_string_size(address: u64, text: String, size: MemorySize) -> Self {
 		Self { address, text: SymResTextInfo::with_string(text, SymbolResult::DEFAULT_KIND), flags: SymbolFlags::NONE, symbol_size: Some(size) }
 	}
 
@@ -300,7 +278,7 @@ impl<'a> SymbolResult<'a> {
 	/// - `color`: Color
 	#[must_use]
 	#[inline]
-	pub fn with_string_kind(address: u64, text: String, color: FormatterTextKind) -> Self {
+	pub const fn with_string_kind(address: u64, text: String, color: FormatterTextKind) -> Self {
 		Self { address, text: SymResTextInfo::with_string(text, color), flags: SymbolFlags::NONE, symbol_size: None }
 	}
 
@@ -316,7 +294,7 @@ impl<'a> SymbolResult<'a> {
 	/// [`SymbolFlags`]: struct.SymbolFlags.html
 	#[must_use]
 	#[inline]
-	pub fn with_string_kind_flags(address: u64, text: String, color: FormatterTextKind, flags: u32) -> Self {
+	pub const fn with_string_kind_flags(address: u64, text: String, color: FormatterTextKind, flags: u32) -> Self {
 		Self { address, text: SymResTextInfo::with_string(text, color), flags, symbol_size: None }
 	}
 
@@ -328,7 +306,7 @@ impl<'a> SymbolResult<'a> {
 	/// - `text`: Symbol
 	#[must_use]
 	#[inline]
-	pub fn with_text(address: u64, text: SymResTextInfo<'a>) -> Self {
+	pub const fn with_text(address: u64, text: SymResTextInfo<'a>) -> Self {
 		Self { address, text, flags: SymbolFlags::NONE, symbol_size: None }
 	}
 
@@ -341,7 +319,7 @@ impl<'a> SymbolResult<'a> {
 	/// - `size`: Symbol size
 	#[must_use]
 	#[inline]
-	pub fn with_text_size(address: u64, text: SymResTextInfo<'a>, size: MemorySize) -> Self {
+	pub const fn with_text_size(address: u64, text: SymResTextInfo<'a>, size: MemorySize) -> Self {
 		Self { address, text, flags: SymbolFlags::NONE, symbol_size: Some(size) }
 	}
 
@@ -356,7 +334,7 @@ impl<'a> SymbolResult<'a> {
 	/// [`SymbolFlags`]: struct.SymbolFlags.html
 	#[must_use]
 	#[inline]
-	pub fn with_text_flags(address: u64, text: SymResTextInfo<'a>, flags: u32) -> Self {
+	pub const fn with_text_flags(address: u64, text: SymResTextInfo<'a>, flags: u32) -> Self {
 		Self { address, text, flags, symbol_size: None }
 	}
 
@@ -372,7 +350,7 @@ impl<'a> SymbolResult<'a> {
 	/// [`SymbolFlags`]: struct.SymbolFlags.html
 	#[must_use]
 	#[inline]
-	pub fn with_text_flags_size(address: u64, text: SymResTextInfo<'a>, flags: u32, size: MemorySize) -> Self {
+	pub const fn with_text_flags_size(address: u64, text: SymResTextInfo<'a>, flags: u32, size: MemorySize) -> Self {
 		Self { address, text, flags, symbol_size: Some(size) }
 	}
 

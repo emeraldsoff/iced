@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && OPCODE_INFO
 using System;
@@ -124,6 +104,20 @@ namespace Iced.UnitTests.Intel.EncoderTests {
 					case OpCodeInfoKeys.DecoderOption:
 						tc.DecoderOption = ToDecoderOptions(value.Trim());
 						break;
+
+					case OpCodeInfoKeys.MVEX:
+#if MVEX
+						var mvexParts = value.Split(opseps);
+						if (mvexParts.Length != 4)
+							throw new InvalidOperationException($"Invalid number of semicolons. Expected 3, found {mvexParts.Length - 1}");
+						tc.Mvex.TupleTypeLutKind = ToMvexTupleTypeLutKind(mvexParts[0].Trim());
+						tc.Mvex.ConversionFunc = ToMvexConvFn(mvexParts[1].Trim());
+						tc.Mvex.ValidConversionFuncsMask = NumberConverter.ToUInt8(mvexParts[2].Trim());
+						tc.Mvex.ValidSwizzleFuncsMask = NumberConverter.ToUInt8(mvexParts[3].Trim());
+						break;
+#else
+						throw new InvalidOperationException();
+#endif
 
 					default:
 						throw new InvalidOperationException($"Invalid key: '{key}'");
@@ -520,6 +514,58 @@ namespace Iced.UnitTests.Intel.EncoderTests {
 						tc.AmdDecoder64 = true;
 						break;
 
+					case OpCodeInfoFlags.RequiresUniqueDestRegNum:
+						tc.RequiresUniqueDestRegNum = true;
+						break;
+
+					case OpCodeInfoFlags.EH0:
+#if MVEX
+						tc.Mvex.EHBit = MvexEHBit.EH0;
+						break;
+#else
+						throw new InvalidOperationException();
+#endif
+
+					case OpCodeInfoFlags.EH1:
+#if MVEX
+						tc.Mvex.EHBit = MvexEHBit.EH1;
+						break;
+#else
+						throw new InvalidOperationException();
+#endif
+
+					case OpCodeInfoFlags.EvictionHint:
+#if MVEX
+						tc.Mvex.CanUseEvictionHint = true;
+						break;
+#else
+						throw new InvalidOperationException();
+#endif
+
+					case OpCodeInfoFlags.ImmRoundingControl:
+#if MVEX
+						tc.Mvex.CanUseImmRoundingControl = true;
+						break;
+#else
+						throw new InvalidOperationException();
+#endif
+
+					case OpCodeInfoFlags.IgnoresOpMaskRegister:
+#if MVEX
+						tc.Mvex.IgnoresOpMaskRegister = true;
+						break;
+#else
+						throw new InvalidOperationException();
+#endif
+
+					case OpCodeInfoFlags.NoSaeRoundingControl:
+#if MVEX
+						tc.Mvex.NoSaeRc = true;
+						break;
+#else
+						throw new InvalidOperationException();
+#endif
+
 					default:
 						throw new InvalidOperationException($"Invalid key: '{key}'");
 					}
@@ -532,6 +578,7 @@ namespace Iced.UnitTests.Intel.EncoderTests {
 			case EncodingKind.VEX:
 			case EncodingKind.EVEX:
 			case EncodingKind.XOP:
+			case EncodingKind.MVEX:
 				if (!gotVectorLength)
 					throw new InvalidOperationException("Missing vector length: L0/L1/L128/L256/L512/LIG");
 				if (!gotW)
@@ -579,6 +626,22 @@ namespace Iced.UnitTests.Intel.EncoderTests {
 				throw new InvalidOperationException($"Invalid OpCodeOperandKind value: '{value}'");
 			return code;
 		}
+
+#if MVEX
+		static MvexTupleTypeLutKind ToMvexTupleTypeLutKind(string value) {
+			if (!ToEnumConverter.TryMvexTupleTypeLutKind(value, out var result))
+				throw new InvalidOperationException($"Invalid MvexTupleTypeLutKind value: '{value}'");
+			return result;
+		}
+#endif
+
+#if MVEX
+		static MvexConvFn ToMvexConvFn(string value) {
+			if (!ToEnumConverter.TryMvexConvFn(value, out var mvexConvFn))
+				throw new InvalidOperationException($"Invalid MvexConvFn value: '{value}'");
+			return mvexConvFn;
+		}
+#endif
 
 		static EncodingKind ToEncoding(string value) {
 			if (OpCodeInfoDicts.ToEncodingKind.TryGetValue(value, out var kind))

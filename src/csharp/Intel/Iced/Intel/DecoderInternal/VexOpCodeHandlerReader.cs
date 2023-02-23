@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if DECODER && (!NO_VEX || !NO_XOP)
 using System;
@@ -121,6 +101,11 @@ namespace Iced.Intel.DecoderInternal {
 			case VexOpCodeHandlerKind.Gv_Ev_Gv:
 				code = deserializer.ReadCode();
 				elem = new OpCodeHandler_VEX_Gv_Ev_Gv(code, code + 1);
+				return 1;
+
+			case VexOpCodeHandlerKind.Ev_Gv_Gv:
+				code = deserializer.ReadCode();
+				elem = new OpCodeHandler_VEX_Ev_Gv_Gv(code, code + 1);
 				return 1;
 
 			case VexOpCodeHandlerKind.Gv_Ev_Ib:
@@ -324,6 +309,36 @@ namespace Iced.Intel.DecoderInternal {
 
 			case VexOpCodeHandlerKind.VT_RT_HT:
 				elem = new OpCodeHandler_VEX_VT_RT_HT(deserializer.ReadCode());
+				return 1;
+
+			case VexOpCodeHandlerKind.Options_DontReadModRM:
+				elem = new OpCodeHandler_Options_DontReadModRM(deserializer.ReadHandler(), deserializer.ReadHandler(), deserializer.ReadDecoderOptions());
+				return 1;
+
+			case VexOpCodeHandlerKind.Gq_HK_RK:
+				elem = new OpCodeHandler_VEX_Gq_HK_RK(deserializer.ReadCode());
+				return 1;
+
+			case VexOpCodeHandlerKind.VK_R_Ib:
+				elem = new OpCodeHandler_VEX_VK_R_Ib(deserializer.ReadCode(), deserializer.ReadRegister());
+				return 1;
+
+			case VexOpCodeHandlerKind.Gv_Ev:
+				code = deserializer.ReadCode();
+				elem = new OpCodeHandler_VEX_Gv_Ev(code, code + 1);
+				return 1;
+
+			case VexOpCodeHandlerKind.Ev:
+				code = deserializer.ReadCode();
+				elem = new OpCodeHandler_VEX_Ev(code, code + 1);
+				return 1;
+
+			case VexOpCodeHandlerKind.K_Jb:
+				elem = new OpCodeHandler_VEX_K_Jb(deserializer.ReadCode());
+				return 1;
+
+			case VexOpCodeHandlerKind.K_Jz:
+				elem = new OpCodeHandler_VEX_K_Jz(deserializer.ReadCode());
 				return 1;
 
 			default:

@@ -1,29 +1,9 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::*;
-#[cfg(not(feature = "std"))]
+use crate::encoder::*;
 use alloc::vec::Vec;
+use lazy_static::lazy_static;
 
 pub(crate) fn get_tests() -> Vec<(u32, &'static str, Instruction)> {
 	let mut v = Vec::with_capacity(INFOS16.len() + INFOS32.len() + INFOS64.len());
@@ -42,9 +22,9 @@ pub(crate) fn get_tests() -> Vec<(u32, &'static str, Instruction)> {
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 pub(crate) fn get_infos(bitness: u32) -> &'static Vec<(&'static str, Instruction)> {
 	match bitness {
-		16 => &*INFOS16,
-		32 => &*INFOS32,
-		64 => &*INFOS64,
+		16 => &INFOS16,
+		32 => &INFOS32,
+		64 => &INFOS64,
 		_ => unreachable!(),
 	}
 }
@@ -68,31 +48,29 @@ lazy_static! {
 	static ref INFOS16: Vec<(&'static str, Instruction)> = {
 		#[rustfmt::skip]
 		let array = [
-			("0F", c16(Instruction::with_reg(Code::Popw_CS, Register::CS))),
-			("9B D9 30", c16(Instruction::with_mem(Code::Fstenv_m14byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)))),
-			("9B 64 D9 30", c16(Instruction::with_mem(Code::Fstenv_m14byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)))),
-			("9B 66 D9 30", c16(Instruction::with_mem(Code::Fstenv_m28byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)))),
-			("9B 64 66 D9 30", c16(Instruction::with_mem(Code::Fstenv_m28byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)))),
-			("9B D9 38", c16(Instruction::with_mem(Code::Fstcw_m2byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)))),
-			("9B 64 D9 38", c16(Instruction::with_mem(Code::Fstcw_m2byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)))),
+			("0F", c16(Instruction::with1(Code::Popw_CS, Register::CS).unwrap())),
+			("9B D9 30", c16(Instruction::with1(Code::Fstenv_m14byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 D9 30", c16(Instruction::with1(Code::Fstenv_m14byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B 66 D9 30", c16(Instruction::with1(Code::Fstenv_m28byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 66 D9 30", c16(Instruction::with1(Code::Fstenv_m28byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B D9 38", c16(Instruction::with1(Code::Fstcw_m2byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 D9 38", c16(Instruction::with1(Code::Fstcw_m2byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)).unwrap())),
 			("9B DB E0", c16(Instruction::with(Code::Feni))),
 			("9B DB E1", c16(Instruction::with(Code::Fdisi))),
 			("9B DB E2", c16(Instruction::with(Code::Fclex))),
 			("9B DB E3", c16(Instruction::with(Code::Finit))),
 			("9B DB E4", c16(Instruction::with(Code::Fsetpm))),
-			("9B DD 30", c16(Instruction::with_mem(Code::Fsave_m94byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)))),
-			("9B 64 DD 30", c16(Instruction::with_mem(Code::Fsave_m94byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)))),
-			("9B 66 DD 30", c16(Instruction::with_mem(Code::Fsave_m108byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)))),
-			("9B 64 66 DD 30", c16(Instruction::with_mem(Code::Fsave_m108byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)))),
-			("9B DD 38", c16(Instruction::with_mem(Code::Fstsw_m2byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)))),
-			("9B 64 DD 38", c16(Instruction::with_mem(Code::Fstsw_m2byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)))),
-			("9B DF E0", c16(Instruction::with_reg(Code::Fstsw_AX, Register::AX))),
-			("9B DF E1", c16(Instruction::with_reg(Code::Fstdw_AX, Register::AX))),
-			("9B DF E2", c16(Instruction::with_reg(Code::Fstsg_AX, Register::AX))),
+			("9B DD 30", c16(Instruction::with1(Code::Fsave_m94byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 DD 30", c16(Instruction::with1(Code::Fsave_m94byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B 66 DD 30", c16(Instruction::with1(Code::Fsave_m108byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 66 DD 30", c16(Instruction::with1(Code::Fsave_m108byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B DD 38", c16(Instruction::with1(Code::Fstsw_m2byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 DD 38", c16(Instruction::with1(Code::Fstsw_m2byte, MemoryOperand::new(Register::BX, Register::SI, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B DF E0", c16(Instruction::with1(Code::Fstsw_AX, Register::AX).unwrap())),
+			("9B DF E1", c16(Instruction::with1(Code::Fstdw_AX, Register::AX).unwrap())),
+			("9B DF E2", c16(Instruction::with1(Code::Fstsg_AX, Register::AX).unwrap())),
+			("", c16(Instruction::with(Code::Zero_bytes))),
 		];
-		#[cfg(not(feature = "db"))]
-		let array_db: [(&'static str, Instruction); 0] = [];
-		#[cfg(feature = "db")]
 		#[rustfmt::skip]
 		let array_db = [
 			("77", c16(Instruction::try_with_declare_byte_1(0x77).unwrap())),
@@ -126,7 +104,7 @@ lazy_static! {
 			("6C4205559DCEA977", c16(Instruction::try_with_declare_qword_1(0x77A9_CE9D_5505_426C).unwrap())),
 			("6C4205559DCEA977 08AA27344FFE3286", c16(Instruction::try_with_declare_qword_2(0x77A9_CE9D_5505_426C, 0x8632_FE4F_3427_AA08).unwrap())),
 		];
-		array.iter().cloned().chain(array_db.iter().cloned()).collect()
+		array.iter().copied().chain(array_db.iter().copied()).collect()
 	};
 }
 
@@ -134,31 +112,29 @@ lazy_static! {
 	static ref INFOS32: Vec<(&'static str, Instruction)> = {
 		#[rustfmt::skip]
 		let array = [
-			("66 0F", c32(Instruction::with_reg(Code::Popw_CS, Register::CS))),
-			("9B 66 D9 30", c32(Instruction::with_mem(Code::Fstenv_m14byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 66 D9 30", c32(Instruction::with_mem(Code::Fstenv_m14byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B D9 30", c32(Instruction::with_mem(Code::Fstenv_m28byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 D9 30", c32(Instruction::with_mem(Code::Fstenv_m28byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B D9 38", c32(Instruction::with_mem(Code::Fstcw_m2byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 D9 38", c32(Instruction::with_mem(Code::Fstcw_m2byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)))),
+			("66 0F", c32(Instruction::with1(Code::Popw_CS, Register::CS).unwrap())),
+			("9B 66 D9 30", c32(Instruction::with1(Code::Fstenv_m14byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 66 D9 30", c32(Instruction::with1(Code::Fstenv_m14byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B D9 30", c32(Instruction::with1(Code::Fstenv_m28byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 D9 30", c32(Instruction::with1(Code::Fstenv_m28byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B D9 38", c32(Instruction::with1(Code::Fstcw_m2byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 D9 38", c32(Instruction::with1(Code::Fstcw_m2byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
 			("9B DB E0", c32(Instruction::with(Code::Feni))),
 			("9B DB E1", c32(Instruction::with(Code::Fdisi))),
 			("9B DB E2", c32(Instruction::with(Code::Fclex))),
 			("9B DB E3", c32(Instruction::with(Code::Finit))),
 			("9B DB E4", c32(Instruction::with(Code::Fsetpm))),
-			("9B 66 DD 30", c32(Instruction::with_mem(Code::Fsave_m94byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 66 DD 30", c32(Instruction::with_mem(Code::Fsave_m94byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B DD 30", c32(Instruction::with_mem(Code::Fsave_m108byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 DD 30", c32(Instruction::with_mem(Code::Fsave_m108byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B DD 38", c32(Instruction::with_mem(Code::Fstsw_m2byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 DD 38", c32(Instruction::with_mem(Code::Fstsw_m2byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B DF E0", c32(Instruction::with_reg(Code::Fstsw_AX, Register::AX))),
-			("9B DF E1", c32(Instruction::with_reg(Code::Fstdw_AX, Register::AX))),
-			("9B DF E2", c32(Instruction::with_reg(Code::Fstsg_AX, Register::AX))),
+			("9B 66 DD 30", c32(Instruction::with1(Code::Fsave_m94byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 66 DD 30", c32(Instruction::with1(Code::Fsave_m94byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B DD 30", c32(Instruction::with1(Code::Fsave_m108byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 DD 30", c32(Instruction::with1(Code::Fsave_m108byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B DD 38", c32(Instruction::with1(Code::Fstsw_m2byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 DD 38", c32(Instruction::with1(Code::Fstsw_m2byte, MemoryOperand::new(Register::EAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B DF E0", c32(Instruction::with1(Code::Fstsw_AX, Register::AX).unwrap())),
+			("9B DF E1", c32(Instruction::with1(Code::Fstdw_AX, Register::AX).unwrap())),
+			("9B DF E2", c32(Instruction::with1(Code::Fstsg_AX, Register::AX).unwrap())),
+			("", c32(Instruction::with(Code::Zero_bytes))),
 		];
-		#[cfg(not(feature = "db"))]
-		let array_db: [(&'static str, Instruction); 0] = [];
-		#[cfg(feature = "db")]
 		#[rustfmt::skip]
 		let array_db = [
 			("77", c32(Instruction::try_with_declare_byte_1(0x77).unwrap())),
@@ -192,7 +168,7 @@ lazy_static! {
 			("6C4205559DCEA977", c32(Instruction::try_with_declare_qword_1(0x77A9_CE9D_5505_426C).unwrap())),
 			("6C4205559DCEA977 08AA27344FFE3286", c32(Instruction::try_with_declare_qword_2(0x77A9_CE9D_5505_426C, 0x8632_FE4F_3427_AA08).unwrap())),
 		];
-		array.iter().cloned().chain(array_db.iter().cloned()).collect()
+		array.iter().copied().chain(array_db.iter().copied()).collect()
 	};
 }
 
@@ -200,28 +176,26 @@ lazy_static! {
 	static ref INFOS64: Vec<(&'static str, Instruction)> = {
 		#[rustfmt::skip]
 		let array = [
-			("9B 66 D9 30", c64(Instruction::with_mem(Code::Fstenv_m14byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 66 D9 30", c64(Instruction::with_mem(Code::Fstenv_m14byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B D9 30", c64(Instruction::with_mem(Code::Fstenv_m28byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 D9 30", c64(Instruction::with_mem(Code::Fstenv_m28byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B D9 38", c64(Instruction::with_mem(Code::Fstcw_m2byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 D9 38", c64(Instruction::with_mem(Code::Fstcw_m2byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)))),
+			("9B 66 D9 30", c64(Instruction::with1(Code::Fstenv_m14byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 66 D9 30", c64(Instruction::with1(Code::Fstenv_m14byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B D9 30", c64(Instruction::with1(Code::Fstenv_m28byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 D9 30", c64(Instruction::with1(Code::Fstenv_m28byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B D9 38", c64(Instruction::with1(Code::Fstcw_m2byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 D9 38", c64(Instruction::with1(Code::Fstcw_m2byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
 			("9B DB E0", c64(Instruction::with(Code::Feni))),
 			("9B DB E1", c64(Instruction::with(Code::Fdisi))),
 			("9B DB E2", c64(Instruction::with(Code::Fclex))),
 			("9B DB E3", c64(Instruction::with(Code::Finit))),
 			("9B DB E4", c64(Instruction::with(Code::Fsetpm))),
-			("9B 66 DD 30", c64(Instruction::with_mem(Code::Fsave_m94byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 66 DD 30", c64(Instruction::with_mem(Code::Fsave_m94byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B DD 30", c64(Instruction::with_mem(Code::Fsave_m108byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 DD 30", c64(Instruction::with_mem(Code::Fsave_m108byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B DD 38", c64(Instruction::with_mem(Code::Fstsw_m2byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)))),
-			("9B 64 DD 38", c64(Instruction::with_mem(Code::Fstsw_m2byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)))),
-			("9B DF E0", c64(Instruction::with_reg(Code::Fstsw_AX, Register::AX))),
+			("9B 66 DD 30", c64(Instruction::with1(Code::Fsave_m94byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 66 DD 30", c64(Instruction::with1(Code::Fsave_m94byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B DD 30", c64(Instruction::with1(Code::Fsave_m108byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 DD 30", c64(Instruction::with1(Code::Fsave_m108byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B DD 38", c64(Instruction::with1(Code::Fstsw_m2byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::None)).unwrap())),
+			("9B 64 DD 38", c64(Instruction::with1(Code::Fstsw_m2byte, MemoryOperand::new(Register::RAX, Register::None, 1, 0, 0, false, Register::FS)).unwrap())),
+			("9B DF E0", c64(Instruction::with1(Code::Fstsw_AX, Register::AX).unwrap())),
+			("", c64(Instruction::with(Code::Zero_bytes))),
 		];
-		#[cfg(not(feature = "db"))]
-		let array_db: [(&'static str, Instruction); 0] = [];
-		#[cfg(feature = "db")]
 		#[rustfmt::skip]
 		let array_db = [
 			("77", c64(Instruction::try_with_declare_byte_1(0x77).unwrap())),
@@ -255,6 +229,6 @@ lazy_static! {
 			("6C4205559DCEA977", c64(Instruction::try_with_declare_qword_1(0x77A9_CE9D_5505_426C).unwrap())),
 			("6C4205559DCEA977 08AA27344FFE3286", c64(Instruction::try_with_declare_qword_2(0x77A9_CE9D_5505_426C, 0x8632_FE4F_3427_AA08).unwrap())),
 		];
-		array.iter().cloned().chain(array_db.iter().cloned()).collect()
+		array.iter().copied().chain(array_db.iter().copied()).collect()
 	};
 }

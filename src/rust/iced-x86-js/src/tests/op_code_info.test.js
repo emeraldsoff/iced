@@ -1,28 +1,8 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 const {
-	Code, CodeExt, Decoder, DecoderOptions, EncodingKind, MandatoryPrefix, MemorySize,
+	Code, CodeExt, Decoder, DecoderOptions, EncodingKind, getIcedFeatures, MandatoryPrefix, MemorySize,
 	Mnemonic, OpCodeOperandKind, OpCodeTableKind, TupleType
 } = require("iced-x86");
 
@@ -51,6 +31,19 @@ test("OpCodeInfo", () => {
 	expect(info1.isWIG).toBe(false);
 	expect(info1.isWIG32).toBe(false);
 	expect(info1.tupleType).toBe(TupleType.N1);
+	// Check if MVEX support
+	if ((getIcedFeatures() & 0x10) != 0) {
+		const { MvexConvFn, MvexEHBit, MvexTupleTypeLutKind } = require("iced-x86");
+		expect(info1.mvexEHBit).toBe(MvexEHBit.None);
+		expect(info1.mvexCanUseEvictionHint).toBe(false);
+		expect(info1.mvexCanUseImmRoundingControl).toBe(false);
+		expect(info1.mvexIgnoresOpMaskRegister).toBe(false);
+		expect(info1.mvexNoSaeRc).toBe(false);
+		expect(info1.mvexTupleTypeLutKind).toBe(MvexTupleTypeLutKind.Int32);
+		expect(info1.mvexConversionFunc).toBe(MvexConvFn.None);
+		expect(info1.mvexValidConversionFuncsMask).toBe(0);
+		expect(info1.mvexValidSwizzleFuncsMask).toBe(0);
+	}
 	expect(info1.memorySize).toBe(MemorySize.UInt64);
 	expect(info1.broadcastMemorySize).toBe(MemorySize.Unknown);
 	expect(info1.canBroadcast).toBe(false);
@@ -90,6 +83,7 @@ test("OpCodeInfo", () => {
 	expect(info1.no66).toBe(false);
 	expect(info1.nfx).toBe(false);
 	expect(info1.requiresUniqueRegNums).toBe(false);
+	expect(info1.requiresUniqueDestRegNum).toBe(false);
 	expect(info1.isPrivileged).toBe(false);
 	expect(info1.isSaveRestore).toBe(false);
 	expect(info1.isStackInstruction).toBe(false);

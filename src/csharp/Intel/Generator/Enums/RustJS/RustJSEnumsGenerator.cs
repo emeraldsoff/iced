@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System.Collections.Generic;
 using Generator.Documentation;
@@ -50,11 +30,11 @@ namespace Generator.Enums.RustJS {
 		public RustJSEnumsGenerator(GeneratorContext generatorContext)
 			: base(generatorContext.Types) {
 			idConverter = RustJSIdentifierConverter.Create();
-			docWriter = new RustDocCommentWriter(idConverter, ".");
+			docWriter = new RustDocCommentWriter(idConverter, ".", ".", ".", ".");
 			deprecatedWriter = new RustJSDeprecatedWriter(idConverter);
 
 			var dirs = generatorContext.Types.Dirs;
-			toPartialFileInfo = new Dictionary<TypeId, PartialEnumFileInfo?>();
+			toPartialFileInfo = new();
 			toPartialFileInfo.Add(TypeIds.BlockEncoderOptions, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("block_encoder_options.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
 			toPartialFileInfo.Add(TypeIds.CC_a, new PartialEnumFileInfo("CC_a", dirs.GetRustJSFilename("cc.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
 			toPartialFileInfo.Add(TypeIds.CC_ae, new PartialEnumFileInfo("CC_ae", dirs.GetRustJSFilename("cc.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
@@ -83,6 +63,7 @@ namespace Generator.Enums.RustJS {
 			toPartialFileInfo.Add(TypeIds.Mnemonic, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("mnemonic.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
 			toPartialFileInfo.Add(TypeIds.OpAccess, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("op_access.rs"), new[] { RustConstants.AttributeCopyClone }));
 			toPartialFileInfo.Add(TypeIds.OpCodeOperandKind, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("op_code_operand_kind.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
+			toPartialFileInfo.Add(TypeIds.MvexEHBit, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("mvex_eh_bit.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
 			toPartialFileInfo.Add(TypeIds.OpCodeTableKind, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("op_code_table_kind.rs"), new[] { RustConstants.AttributeCopyClone }));
 			toPartialFileInfo.Add(TypeIds.OpKind, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("op_kind.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
 			toPartialFileInfo.Add(TypeIds.Register, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("register.rs"), new[] { RustConstants.AttributeCopyClone }));
@@ -91,6 +72,9 @@ namespace Generator.Enums.RustJS {
 			toPartialFileInfo.Add(TypeIds.RoundingControl, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("rounding_control.rs"), RustConstants.AttributeCopyClone));
 			toPartialFileInfo.Add(TypeIds.TupleType, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("tuple_type.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
 			toPartialFileInfo.Add(TypeIds.FormatterSyntax, new PartialEnumFileInfo("FormatterSyntax", dirs.GetRustJSFilename("formatter.rs")));
+			toPartialFileInfo.Add(TypeIds.MvexConvFn, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("mvex_cvt_fn.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
+			toPartialFileInfo.Add(TypeIds.MvexRegMemConv, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("mvex_rm_conv.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
+			toPartialFileInfo.Add(TypeIds.MvexTupleTypeLutKind, new PartialEnumFileInfo("Enum", dirs.GetRustJSFilename("mvex_tt_lut.rs"), new[] { RustConstants.AttributeCopyClone, RustConstants.AttributeAllowNonCamelCaseTypes }));
 		}
 
 		public override void Generate(EnumType enumType) {
@@ -106,7 +90,7 @@ namespace Generator.Enums.RustJS {
 		void WriteEnumCore(FileWriter writer, PartialEnumFileInfo info, EnumType enumType) {
 			// Don't add the Code comments since they're generated (less useful comments) and will generate bigger ts/js files
 			bool writeComments = enumType.TypeId != TypeIds.Code;
-			docWriter.WriteSummary(writer, enumType.Documentation, enumType.RawName);
+			docWriter.WriteSummary(writer, enumType.Documentation.GetComment(TargetLanguage.RustJS), enumType.RawName);
 			var enumTypeName = enumType.Name(idConverter);
 			if (enumType.IsPublic)
 				writer.WriteLine(RustConstants.AttributeWasmBindgen);
@@ -121,11 +105,11 @@ namespace Generator.Enums.RustJS {
 			using (writer.Indent()) {
 				uint expectedValue = 0;
 				foreach (var value in enumType.Values) {
-					// Identical enum values aren't allowed so just remove it
+					// Identical enum values aren't allowed so just remove them
 					if (value.DeprecatedInfo.IsDeprecatedAndRenamed)
 						continue;
 					if (writeComments)
-						docWriter.WriteSummary(writer, value.Documentation, enumType.RawName);
+						docWriter.WriteSummary(writer, value.Documentation.GetComment(TargetLanguage.RustJS), enumType.RawName);
 					deprecatedWriter.WriteDeprecated(writer, value);
 					if (enumType.IsFlags)
 						writer.WriteLine($"{value.Name(idConverter)} = {NumberFormatter.FormatHexUInt32WithSep(value.Value)},");

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && BLOCK_ENCODER && CODE_ASSEMBLER
 using System;
@@ -37,15 +17,15 @@ namespace Iced.Intel {
 		/// Creates a new instance.
 		/// </summary>
 		/// <param name="size">Size of the operand.</param>
-		/// <param name="prefix">Register prefix.</param>
+		/// <param name="segment">Segment register.</param>
 		/// <param name="base">Base register.</param>
 		/// <param name="index">Index register.</param>
 		/// <param name="scale">Scale of the index.</param>
 		/// <param name="displacement">Displacement.</param>
 		/// <param name="flags">Flags attached to this operand.</param>
-		internal AssemblerMemoryOperand(MemoryOperandSize size, Register prefix, Register @base, Register index, int scale, long displacement, AssemblerOperandFlags flags) {
+		internal AssemblerMemoryOperand(MemoryOperandSize size, Register segment, Register @base, Register index, int scale, long displacement, AssemblerOperandFlags flags) {
 			Size = size;
-			Prefix = prefix;
+			Segment = segment;
 			Base = @base;
 			Index = index;
 			Scale = scale;
@@ -59,9 +39,9 @@ namespace Iced.Intel {
 		internal readonly MemoryOperandSize Size;
 
 		/// <summary>
-		/// Gets the register used as a prefix.
+		/// Gets the segment register.
 		/// </summary>
-		public readonly Register Prefix;
+		public readonly Register Segment;
 
 		/// <summary>
 		/// Gets the register used as a base.
@@ -101,37 +81,37 @@ namespace Iced.Intel {
 		/// <summary>
 		/// Apply mask Register K1.
 		/// </summary>
-		public AssemblerMemoryOperand k1 => new AssemblerMemoryOperand(Size, Prefix, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K1);
+		public AssemblerMemoryOperand k1 => new AssemblerMemoryOperand(Size, Segment, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K1);
 
 		/// <summary>
 		/// Apply mask Register K2.
 		/// </summary>
-		public AssemblerMemoryOperand k2 => new AssemblerMemoryOperand(Size, Prefix, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K2);
+		public AssemblerMemoryOperand k2 => new AssemblerMemoryOperand(Size, Segment, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K2);
 
 		/// <summary>
 		/// Apply mask Register K3.
 		/// </summary>
-		public AssemblerMemoryOperand k3 => new AssemblerMemoryOperand(Size, Prefix, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K3);
+		public AssemblerMemoryOperand k3 => new AssemblerMemoryOperand(Size, Segment, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K3);
 
 		/// <summary>
 		/// Apply mask Register K4.
 		/// </summary>
-		public AssemblerMemoryOperand k4 => new AssemblerMemoryOperand(Size, Prefix, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K4);
+		public AssemblerMemoryOperand k4 => new AssemblerMemoryOperand(Size, Segment, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K4);
 
 		/// <summary>
 		/// Apply mask Register K5.
 		/// </summary>
-		public AssemblerMemoryOperand k5 => new AssemblerMemoryOperand(Size, Prefix, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K5);
+		public AssemblerMemoryOperand k5 => new AssemblerMemoryOperand(Size, Segment, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K5);
 
 		/// <summary>
 		/// Apply mask Register K6.
 		/// </summary>
-		public AssemblerMemoryOperand k6 => new AssemblerMemoryOperand(Size, Prefix, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K6);
+		public AssemblerMemoryOperand k6 => new AssemblerMemoryOperand(Size, Segment, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K6);
 
 		/// <summary>
 		/// Apply mask Register K7.
 		/// </summary>
-		public AssemblerMemoryOperand k7 => new AssemblerMemoryOperand(Size, Prefix, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K7);
+		public AssemblerMemoryOperand k7 => new AssemblerMemoryOperand(Size, Segment, Base, Index, Scale, Displacement, (Flags & ~AssemblerOperandFlags.RegisterMask) | AssemblerOperandFlags.K7);
 
 		/// <summary>
 		/// Adds a 16-bit memory operand with an new base or index.
@@ -172,16 +152,16 @@ namespace Iced.Intel {
 		/// <param name="left">The memory operand.</param>
 		/// <param name="displacement">displacement.</param>
 		/// <returns></returns>
-		public static AssemblerMemoryOperand operator +(AssemblerMemoryOperand left, int displacement) =>
+		public static AssemblerMemoryOperand operator +(AssemblerMemoryOperand left, long displacement) =>
 			new AssemblerMemoryOperand(left.Size, Register.None, left.Base, left.Index, left.Scale, left.Displacement + displacement, left.Flags);
 
 		/// <summary>
-		/// Subtracts a displacement to a memory operand.
+		/// Subtracts a displacement from a memory operand.
 		/// </summary>
 		/// <param name="left">The memory operand.</param>
 		/// <param name="displacement">displacement.</param>
 		/// <returns></returns>
-		public static AssemblerMemoryOperand operator -(AssemblerMemoryOperand left, int displacement) =>
+		public static AssemblerMemoryOperand operator -(AssemblerMemoryOperand left, long displacement) =>
 			new AssemblerMemoryOperand(left.Size, Register.None, left.Base, left.Index, left.Scale, left.Displacement - displacement, left.Flags);
 
 		/// <summary>
@@ -196,11 +176,11 @@ namespace Iced.Intel {
 			else if (Displacement == 0) {
 				dispSize = 0;
 			}
-			return new MemoryOperand(Base, Index, Scale, (int)Displacement, dispSize, (Flags & AssemblerOperandFlags.Broadcast) != 0, Prefix);
+			return new MemoryOperand(Base, Index, Scale, Displacement, dispSize, (Flags & AssemblerOperandFlags.Broadcast) != 0, Segment);
 		}
 
 		/// <inheritdoc />
-		public bool Equals(AssemblerMemoryOperand other) => Size == other.Size && Prefix == other.Prefix && Base == other.Base && Index == other.Index && Scale == other.Scale && Displacement == other.Displacement && Flags == other.Flags;
+		public bool Equals(AssemblerMemoryOperand other) => Size == other.Size && Segment == other.Segment && Base == other.Base && Index == other.Index && Scale == other.Scale && Displacement == other.Displacement && Flags == other.Flags;
 
 		/// <inheritdoc />
 		public override bool Equals(object? obj) => obj is AssemblerMemoryOperand other && Equals(other);
@@ -209,7 +189,7 @@ namespace Iced.Intel {
 		public override int GetHashCode() {
 			unchecked {
 				var hashCode = (int)Size;
-				hashCode = (hashCode * 397) ^ (int)Prefix;
+				hashCode = (hashCode * 397) ^ (int)Segment;
 				hashCode = (hashCode * 397) ^ (int)Base;
 				hashCode = (hashCode * 397) ^ (int)Index;
 				hashCode = (hashCode * 397) ^ Scale;

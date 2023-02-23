@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Diagnostics;
@@ -176,11 +156,6 @@ namespace Iced.Intel {
 				}
 				break;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-			case OpKind.Memory64:
-#pragma warning restore CS0618 // Type or member is obsolete
-				break;
-
 			case OpKind.Memory:
 				var baseReg = MemoryBase;
 				var indexReg = MemoryIndex;
@@ -220,6 +195,17 @@ namespace Iced.Intel {
 						offset += @base << InternalMemoryIndexScale;
 					}
 				}
+#if MVEX
+				Static.Assert(Code.MVEX_Vloadunpackhd_zmm_k1_mt + 1 == Code.MVEX_Vloadunpackhq_zmm_k1_mt ? 0 : -1);
+				Static.Assert(Code.MVEX_Vloadunpackhd_zmm_k1_mt + 2 == Code.MVEX_Vpackstorehd_mt_k1_zmm ? 0 : -1);
+				Static.Assert(Code.MVEX_Vloadunpackhd_zmm_k1_mt + 3 == Code.MVEX_Vpackstorehq_mt_k1_zmm ? 0 : -1);
+				Static.Assert(Code.MVEX_Vloadunpackhd_zmm_k1_mt + 4 == Code.MVEX_Vloadunpackhps_zmm_k1_mt ? 0 : -1);
+				Static.Assert(Code.MVEX_Vloadunpackhd_zmm_k1_mt + 5 == Code.MVEX_Vloadunpackhpd_zmm_k1_mt ? 0 : -1);
+				Static.Assert(Code.MVEX_Vloadunpackhd_zmm_k1_mt + 6 == Code.MVEX_Vpackstorehps_mt_k1_zmm ? 0 : -1);
+				Static.Assert(Code.MVEX_Vloadunpackhd_zmm_k1_mt + 7 == Code.MVEX_Vpackstorehpd_mt_k1_zmm ? 0 : -1);
+				if (code >= Code.MVEX_Vloadunpackhd_zmm_k1_mt && code <= Code.MVEX_Vpackstorehpd_mt_k1_zmm)
+					offset -= 0x40;
+#endif
 				offset &= offsetMask;
 				if (!code.IgnoresSegment()) {
 					if (!registerValueProvider.TryGetRegisterValue(MemorySegment, 0, 0, out seg))

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -136,9 +116,9 @@ namespace Generator.InstructionInfo.CSharp {
 					writer.WriteLine("static partial class CpuidFeatureInternalData {");
 					using (writer.Indent()) {
 						writer.WriteLineNoIndent($"#if {CSharpConstants.HasSpanDefine}");
-						writer.WriteLine("static System.ReadOnlySpan<byte> GetGetCpuidFeaturesData() =>");
+						writer.WriteLine("internal static System.ReadOnlySpan<byte> GetCpuidFeaturesData() =>");
 						writer.WriteLineNoIndent("#else");
-						writer.WriteLine("static byte[] GetGetCpuidFeaturesData() =>");
+						writer.WriteLine("internal static byte[] GetCpuidFeaturesData() =>");
 						writer.WriteLineNoIndent("#endif");
 						using (writer.Indent()) {
 							writer.WriteLine("new byte[] {");
@@ -189,7 +169,7 @@ namespace Generator.InstructionInfo.CSharp {
 				using (writer.Indent()) {
 					foreach (var value in opInfo.Values) {
 						var v = ToOpAccess(value);
-						writer.WriteLine($"{opAccessTypeStr}.{v.Name(idConverter)},");
+						writer.WriteLine($"{idConverter.ToDeclTypeAndValue(v)},");
 					}
 				}
 				writer.WriteLine("};");
@@ -275,11 +255,10 @@ namespace Generator.InstructionInfo.CSharp {
 					break;
 				case ImplAccStatementKind.ShiftMask:
 					arg1 = (IntArgImplAccStatement)stmt;
-					writer.WriteLine($"CommandShiftMask(instruction, 0x{arg1.Arg:X});");
 					break;
 				case ImplAccStatementKind.ShiftMask1FMod:
 					arg1 = (IntArgImplAccStatement)stmt;
-					writer.WriteLine($"CommandShiftMaskMod(instruction, {Verify_9_or_17(arg1.Arg)});");
+					Verify_9_or_17(arg1.Arg);
 					break;
 				case ImplAccStatementKind.ZeroRegRflags:
 					writer.WriteLine("CommandClearRflags(instruction, flags);");
@@ -364,6 +343,10 @@ namespace Generator.InstructionInfo.CSharp {
 					arg1 = (IntArgImplAccStatement)stmt;
 					writer.WriteLine($"CommandXstore(instruction, flags, {Verify_2_4_or_8(arg1.Arg)});");
 					break;
+				case ImplAccStatementKind.MemDispl:
+					arg1 = (IntArgImplAccStatement)stmt;
+					writer.WriteLine($"CommandMemDispl(flags, {(int)arg1.Arg});");
+					break;
 				default:
 					throw new InvalidOperationException();
 				}
@@ -407,7 +390,7 @@ namespace Generator.InstructionInfo.CSharp {
 		string GetOpAccessString(OpAccess access) => GetEnumName(opAccessType[access.ToString()]);
 		string GetCodeSizeString(CodeSize codeSize) => GetEnumName(codeSizeType[codeSize.ToString()]);
 
-		string GetEnumName(EnumValue value) => value.DeclaringType.Name(idConverter) + "." + value.Name(idConverter);
+		string GetEnumName(EnumValue value) => idConverter.ToDeclTypeAndValue(value);
 
 		void GenerateTable((EncodingKind encoding, InstructionDef[] defs)[] tdefs, string id, string filename) {
 			new FileUpdater(TargetLanguage.CSharp, id, filename).Generate(writer => {
@@ -416,7 +399,7 @@ namespace Generator.InstructionInfo.CSharp {
 					if (feature is not null)
 						writer.WriteLineNoIndent($"#if {feature}");
 					foreach (var def in defs)
-						writer.WriteLine($"case {def.Code.DeclaringType.Name(idConverter)}.{def.Code.Name(idConverter)}:");
+						writer.WriteLine($"case {idConverter.ToDeclTypeAndValue(def.Code)}:");
 					using (writer.Indent())
 						writer.WriteLine("return true;");
 					if (feature is not null)
@@ -440,12 +423,17 @@ namespace Generator.InstructionInfo.CSharp {
 			GenerateTable(defs, "TileStrideIndexTable", filename);
 		}
 
+		protected override void GenerateIsStringOpTable((EncodingKind encoding, InstructionDef[] defs)[] defs) {
+			var filename = CSharpConstants.GetFilename(genTypes, CSharpConstants.IcedNamespace, "InstructionInfoExtensions.1.cs");
+			GenerateTable(defs, "IsStringOpTable", filename);
+		}
+
 		protected override void GenerateFpuStackIncrementInfoTable((FpuStackInfo info, InstructionDef[] defs)[] tdefs) {
 			var filename = CSharpConstants.GetFilename(genTypes, CSharpConstants.IcedNamespace, "Instruction.Info.cs");
 			new FileUpdater(TargetLanguage.CSharp, "FpuStackIncrementInfoTable", filename).Generate(writer => {
 				foreach (var (info, defs) in tdefs) {
 					foreach (var def in defs)
-						writer.WriteLine($"case {def.Code.DeclaringType.Name(idConverter)}.{def.Code.Name(idConverter)}:");
+						writer.WriteLine($"case {idConverter.ToDeclTypeAndValue(def.Code)}:");
 					using (writer.Indent()) {
 						var conditionalStr = info.Conditional ? "true" : "false";
 						var writesTopStr = info.WritesTop ? "true" : "false";
@@ -463,7 +451,7 @@ namespace Generator.InstructionInfo.CSharp {
 					if (feature is not null)
 						writer.WriteLineNoIndent($"#if {feature}");
 					foreach (var def in defs)
-						writer.WriteLine($"case {def.Code.DeclaringType.Name(idConverter)}.{def.Code.Name(idConverter)}:");
+						writer.WriteLine($"case {idConverter.ToDeclTypeAndValue(def.Code)}:");
 					using (writer.Indent()) {
 						switch (info.Kind) {
 						case StackInfoKind.Increment:

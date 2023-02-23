@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use crate::enum_utils::to_memory_size;
 use pyo3::prelude::*;
@@ -35,10 +15,10 @@ use pyo3::prelude::*;
 ///
 ///     from iced_x86 import *
 ///
-///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16);
+///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16)
 ///     assert info.size == 32
-#[pyclass(module = "_iced_x86_py")]
-#[text_signature = "(memory_size, /)"]
+#[pyclass(module = "iced_x86._iced_x86_py")]
+#[pyo3(text_signature = "(memory_size, /)")]
 pub(crate) struct MemorySizeInfo {
 	pub(crate) info: &'static iced_x86::MemorySizeInfo,
 }
@@ -58,7 +38,7 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16);
+	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16)
 	///     assert info.memory_size == MemorySize.PACKED256_UINT16
 	#[getter]
 	fn memory_size(&self) -> u32 {
@@ -73,11 +53,11 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.UINT32);
+	///     info = MemorySizeInfo(MemorySize.UINT32)
 	///     assert info.size == 4
-	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16);
+	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16)
 	///     assert info.size == 32
-	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64);
+	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64)
 	///     assert info.size == 8
 	#[getter]
 	fn size(&self) -> u32 {
@@ -92,11 +72,11 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.UINT32);
+	///     info = MemorySizeInfo(MemorySize.UINT32)
 	///     assert info.element_size == 4
-	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16);
+	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16)
 	///     assert info.element_size == 2
-	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64);
+	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64)
 	///     assert info.element_size == 8
 	#[getter]
 	fn element_size(&self) -> u32 {
@@ -111,11 +91,11 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.UINT32);
+	///     info = MemorySizeInfo(MemorySize.UINT32)
 	///     assert info.element_type == MemorySize.UINT32
-	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16);
+	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16)
 	///     assert info.element_type == MemorySize.UINT16
-	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64);
+	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64)
 	///     assert info.element_type == MemorySize.UINT64
 	#[getter]
 	fn element_type(&self) -> u32 {
@@ -130,11 +110,11 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.UINT32).element_type_info;
+	///     info = MemorySizeInfo(MemorySize.UINT32).element_type_info
 	///     assert info.memory_size == MemorySize.UINT32
-	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16).element_type_info;
+	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16).element_type_info
 	///     assert info.memory_size == MemorySize.UINT16
-	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64).element_type_info;
+	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64).element_type_info
 	///     assert info.memory_size == MemorySize.UINT64
 	#[getter]
 	fn element_type_info(&self) -> Self {
@@ -149,11 +129,11 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.UINT32);
+	///     info = MemorySizeInfo(MemorySize.UINT32)
 	///     assert not info.is_signed
-	///     info = MemorySizeInfo(MemorySize.INT32);
+	///     info = MemorySizeInfo(MemorySize.INT32)
 	///     assert info.is_signed
-	///     info = MemorySizeInfo(MemorySize.FLOAT64);
+	///     info = MemorySizeInfo(MemorySize.FLOAT64)
 	///     assert info.is_signed
 	#[getter]
 	fn is_signed(&self) -> bool {
@@ -168,11 +148,11 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.UINT32);
+	///     info = MemorySizeInfo(MemorySize.UINT32)
 	///     assert not info.is_broadcast
-	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16);
+	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16)
 	///     assert not info.is_broadcast
-	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64);
+	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64)
 	///     assert info.is_broadcast
 	#[getter]
 	fn is_broadcast(&self) -> bool {
@@ -187,11 +167,11 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.UINT32);
+	///     info = MemorySizeInfo(MemorySize.UINT32)
 	///     assert not info.is_packed
-	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16);
+	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16)
 	///     assert info.is_packed
-	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64);
+	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64)
 	///     assert not info.is_packed
 	#[getter]
 	fn is_packed(&self) -> bool {
@@ -206,11 +186,11 @@ impl MemorySizeInfo {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeInfo(MemorySize.UINT32);
+	///     info = MemorySizeInfo(MemorySize.UINT32)
 	///     assert info.element_count == 1
-	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16);
+	///     info = MemorySizeInfo(MemorySize.PACKED256_UINT16)
 	///     assert info.element_count == 16
-	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64);
+	///     info = MemorySizeInfo(MemorySize.BROADCAST512_UINT64)
 	///     assert info.element_count == 1
 	#[getter]
 	fn element_count(&self) -> u32 {

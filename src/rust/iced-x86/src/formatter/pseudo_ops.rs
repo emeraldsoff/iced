@@ -1,32 +1,13 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
+// Keep this file in sync with pseudo_ops_fast.rs
 
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::enums_shared::PseudoOpsKind;
-use super::FormatterString;
-#[cfg(not(feature = "std"))]
+use crate::formatter::enums_shared::PseudoOpsKind;
+use crate::formatter::FormatterString;
 use alloc::string::String;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
+use lazy_static::lazy_static;
 
 pub(super) fn get_pseudo_ops(kind: PseudoOpsKind) -> &'static Vec<FormatterString> {
 	let pseudo_ops = &*PSEUDO_OPS;
@@ -49,6 +30,20 @@ pub(super) fn get_pseudo_ops(kind: PseudoOpsKind) -> &'static Vec<FormatterStrin
 		PseudoOpsKind::vpcomuw => &pseudo_ops.vpcomuw,
 		PseudoOpsKind::vpcomud => &pseudo_ops.vpcomud,
 		PseudoOpsKind::vpcomuq => &pseudo_ops.vpcomuq,
+		PseudoOpsKind::vpcmpb => &pseudo_ops.vpcmpb,
+		PseudoOpsKind::vpcmpw => &pseudo_ops.vpcmpw,
+		PseudoOpsKind::vpcmpd => &pseudo_ops.vpcmpd,
+		PseudoOpsKind::vpcmpq => &pseudo_ops.vpcmpq,
+		PseudoOpsKind::vpcmpub => &pseudo_ops.vpcmpub,
+		PseudoOpsKind::vpcmpuw => &pseudo_ops.vpcmpuw,
+		PseudoOpsKind::vpcmpud => &pseudo_ops.vpcmpud,
+		PseudoOpsKind::vpcmpuq => &pseudo_ops.vpcmpuq,
+		PseudoOpsKind::vcmpph => &pseudo_ops.vcmpph,
+		PseudoOpsKind::vcmpsh => &pseudo_ops.vcmpsh,
+		PseudoOpsKind::vcmpps8 => &pseudo_ops.vcmpps8,
+		PseudoOpsKind::vcmppd8 => &pseudo_ops.vcmppd8,
+		PseudoOpsKind::vpcmpd6 => &pseudo_ops.vpcmpd6,
+		PseudoOpsKind::vpcmpud6 => &pseudo_ops.vpcmpud6,
 	}
 }
 
@@ -71,6 +66,20 @@ struct PseudoOps {
 	vpcomuw: Vec<FormatterString>,
 	vpcomud: Vec<FormatterString>,
 	vpcomuq: Vec<FormatterString>,
+	vpcmpb: Vec<FormatterString>,
+	vpcmpw: Vec<FormatterString>,
+	vpcmpd: Vec<FormatterString>,
+	vpcmpq: Vec<FormatterString>,
+	vpcmpub: Vec<FormatterString>,
+	vpcmpuw: Vec<FormatterString>,
+	vpcmpud: Vec<FormatterString>,
+	vpcmpuq: Vec<FormatterString>,
+	vcmpph: Vec<FormatterString>,
+	vcmpsh: Vec<FormatterString>,
+	vcmpps8: Vec<FormatterString>,
+	vcmppd8: Vec<FormatterString>,
+	vpcmpd6: Vec<FormatterString>,
+	vpcmpud6: Vec<FormatterString>,
 }
 
 lazy_static! {
@@ -120,6 +129,24 @@ lazy_static! {
 		let vcmpss = create(&mut sb, &cc, 32, "vcmp", "ss");
 		let cmpsd = create(&mut sb, &cc, 8, "cmp", "sd");
 		let vcmpsd = create(&mut sb, &cc, 32, "vcmp", "sd");
+		let vcmpph = create(&mut sb, &cc, 32, "vcmp", "ph");
+		let vcmpsh = create(&mut sb, &cc, 32, "vcmp", "sh");
+		let vcmpps8 = create(&mut sb, &cc, 8, "vcmp", "ps");
+		let vcmppd8 = create(&mut sb, &cc, 8, "vcmp", "pd");
+
+		#[rustfmt::skip]
+		let cc6: [&'static str; 8] = [
+			"eq",
+			"lt",
+			"le",
+			"??",
+			"neq",
+			"nlt",
+			"nle",
+			"???",
+		];
+		let vpcmpd6 = create(&mut sb, &cc6, 8, "vpcmp", "d");
+		let vpcmpud6 = create(&mut sb, &cc6, 8, "vpcmp", "ud");
 
 		#[rustfmt::skip]
 		let xopcc: [&'static str; 8] = [
@@ -142,6 +169,26 @@ lazy_static! {
 		let vpcomuq = create(&mut sb, &xopcc, 8, "vpcom", "uq");
 
 		#[rustfmt::skip]
+		let pcmpcc: [&'static str; 8] = [
+			"eq",
+			"lt",
+			"le",
+			"false",
+			"neq",
+			"nlt",
+			"nle",
+			"true",
+		];
+		let vpcmpb = create(&mut sb, &pcmpcc, 8, "vpcmp", "b");
+		let vpcmpw = create(&mut sb, &pcmpcc, 8, "vpcmp", "w");
+		let vpcmpd = create(&mut sb, &pcmpcc, 8, "vpcmp", "d");
+		let vpcmpq = create(&mut sb, &pcmpcc, 8, "vpcmp", "q");
+		let vpcmpub = create(&mut sb, &pcmpcc, 8, "vpcmp", "ub");
+		let vpcmpuw = create(&mut sb, &pcmpcc, 8, "vpcmp", "uw");
+		let vpcmpud = create(&mut sb, &pcmpcc, 8, "vpcmp", "ud");
+		let vpcmpuq = create(&mut sb, &pcmpcc, 8, "vpcmp", "uq");
+
+		#[rustfmt::skip]
 		let pclmulqdq = vec![
 			FormatterString::new_str("pclmullqlqdq"),
 			FormatterString::new_str("pclmulhqlqdq"),
@@ -156,7 +203,7 @@ lazy_static! {
 			FormatterString::new_str("vpclmulhqhqdq"),
 		];
 
-		debug_assert_eq!(CAP, sb.capacity());
+		debug_assert_eq!(sb.capacity(), CAP);
 		PseudoOps {
 			cmpps,
 			vcmpps,
@@ -176,6 +223,20 @@ lazy_static! {
 			vpcomuw,
 			vpcomud,
 			vpcomuq,
+			vpcmpb,
+			vpcmpw,
+			vpcmpd,
+			vpcmpq,
+			vpcmpub,
+			vpcmpuw,
+			vpcmpud,
+			vpcmpuq,
+			vcmpph,
+			vcmpsh,
+			vcmpps8,
+			vcmppd8,
+			vpcmpd6,
+			vpcmpud6,
 		}
 	};
 }

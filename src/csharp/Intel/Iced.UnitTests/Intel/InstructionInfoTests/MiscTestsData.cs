@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if INSTR_INFO
 using System;
@@ -46,12 +26,18 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 		internal const string Loop = "loop";
 		internal const string Jrcxz = "jrcxz";
 		internal const string Xbegin = "xbegin";
+		internal const string JkccShort = "jkcc-short";
+		internal const string JkccNear = "jkcc-near";
 		internal const string JmpInfo = "jmp-info";
 		internal const string JccShortInfo = "jcc-short-info";
 		internal const string JccNearInfo = "jcc-near-info";
 		internal const string SetccInfo = "setcc-info";
 		internal const string CmovccInfo = "cmovcc-info";
+		internal const string CmpccxaddInfo = "cmpccxadd-info";
 		internal const string LoopccInfo = "loopcc-info";
+		internal const string JkccShortInfo = "jkcc-short-info";
+		internal const string JkccNearInfo = "jkcc-near-info";
+		internal const string StringInstruction = "string";
 	}
 	// GENERATOR-END: MiscSectionNames
 
@@ -72,11 +58,17 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 		public static readonly HashSet<Code> Loop;
 		public static readonly HashSet<Code> Jrcxz;
 		public static readonly HashSet<Code> Xbegin;
+		public static readonly HashSet<Code> StringInstr;
+		public static readonly HashSet<Code> JkccShort;
+		public static readonly HashSet<Code> JkccNear;
 		public static readonly (Code jmpShort, Code jmpNear)[] JmpInfos;
 		public static readonly (Code jcc, Code negated, Code jccNear, ConditionCode cc)[] JccShortInfos;
 		public static readonly (Code jcc, Code negated, Code jccShort, ConditionCode cc)[] JccNearInfos;
+		public static readonly (Code jkcc, Code negated, Code jkccNear, ConditionCode cc)[] JkccShortInfos;
+		public static readonly (Code jkcc, Code negated, Code jkccShort, ConditionCode cc)[] JkccNearInfos;
 		public static readonly (Code setcc, Code negated, ConditionCode cc)[] SetccInfos;
 		public static readonly (Code cmovcc, Code negated, ConditionCode cc)[] CmovccInfos;
+		public static readonly (Code cmpccxadd, Code negated, ConditionCode cc)[] CmpccxaddInfos;
 		public static readonly (Code loopcc, Code negated, ConditionCode cc)[] LoopccInfos;
 
 		static MiscTestsData() {
@@ -96,11 +88,17 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 			var loop = new HashSet<Code>();
 			var jrcxz = new HashSet<Code>();
 			var xbegin = new HashSet<Code>();
+			var stringInstr = new HashSet<Code>();
+			var jkccShort = new HashSet<Code>();
+			var jkccNear = new HashSet<Code>();
 			var jmpInfos = new List<(Code jmpShort, Code jmpNear)>();
 			var jccShortInfos = new List<(Code jcc, Code negated, Code jccNear, ConditionCode cc)>();
 			var jccNearInfos = new List<(Code jcc, Code negated, Code jccShort, ConditionCode cc)>();
+			var jkccShortInfos = new List<(Code jkcc, Code negated, Code jkccNear, ConditionCode cc)>();
+			var jkccNearInfos = new List<(Code jkcc, Code negated, Code jkccShort, ConditionCode cc)>();
 			var setccInfos = new List<(Code setcc, Code negated, ConditionCode cc)>();
 			var cmovccInfos = new List<(Code cmovcc, Code negated, ConditionCode cc)>();
+			var cmpccxaddInfos = new List<(Code cmpccxadd, Code negated, ConditionCode cc)>();
 			var loopccInfos = new List<(Code loopcc, Code negated, ConditionCode cc)>();
 
 			var sectionInfos = new (string sectionName, Action<string, string> handler)[] {
@@ -120,11 +118,17 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 				(MiscSectionNames.Loop, (_, line) => AddCode(loop, line)),
 				(MiscSectionNames.Jrcxz, (_, line) => AddCode(jrcxz, line)),
 				(MiscSectionNames.Xbegin, (_, line) => AddCode(xbegin, line)),
+				(MiscSectionNames.StringInstruction, (_, line) => AddCode(stringInstr, line)),
+				(MiscSectionNames.JkccShort, (_, line) => AddCode(jkccShort, line)),
+				(MiscSectionNames.JkccNear, (_, line) => AddCode(jkccNear, line)),
 				(MiscSectionNames.JmpInfo, (_, line) => AddJmpInfo(jmpInfos, line)),
 				(MiscSectionNames.JccShortInfo, (_, line) => AddJccInfo(jccShortInfos, line)),
 				(MiscSectionNames.JccNearInfo, (_, line) => AddJccInfo(jccNearInfos, line)),
+				(MiscSectionNames.JkccShortInfo, (_, line) => AddJccInfo(jkccShortInfos, line)),
+				(MiscSectionNames.JkccNearInfo, (_, line) => AddJccInfo(jkccNearInfos, line)),
 				(MiscSectionNames.SetccInfo, (_, line) => AddInstrCcInfo(setccInfos, line)),
 				(MiscSectionNames.CmovccInfo, (_, line) => AddInstrCcInfo(cmovccInfos, line)),
+				(MiscSectionNames.CmpccxaddInfo, (_, line) => AddInstrCcInfo(cmpccxaddInfos, line)),
 				(MiscSectionNames.LoopccInfo, (_, line) => AddInstrCcInfo(loopccInfos, line)),
 			};
 			var filename = PathUtils.GetTestTextFilename("Misc.txt", "InstructionInfo");
@@ -146,11 +150,17 @@ namespace Iced.UnitTests.Intel.InstructionInfoTests {
 			Loop = loop;
 			Jrcxz = jrcxz;
 			Xbegin = xbegin;
+			StringInstr = stringInstr;
+			JkccShort = jkccShort;
+			JkccNear = jkccNear;
 			JmpInfos = jmpInfos.ToArray();
 			JccShortInfos = jccShortInfos.ToArray();
 			JccNearInfos = jccNearInfos.ToArray();
+			JkccShortInfos = jkccShortInfos.ToArray();
+			JkccNearInfos = jkccNearInfos.ToArray();
 			SetccInfos = setccInfos.ToArray();
 			CmovccInfos = cmovccInfos.ToArray();
+			CmpccxaddInfos = cmpccxaddInfos.ToArray();
 			LoopccInfos = loopccInfos.ToArray();
 		}
 

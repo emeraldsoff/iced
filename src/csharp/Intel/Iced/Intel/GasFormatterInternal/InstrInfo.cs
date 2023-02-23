@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if GAS
 using System;
@@ -54,13 +34,16 @@ namespace Iced.Intel.GasFormatterInternal {
 		MemoryESDI,
 		MemoryESEDI,
 		MemoryESRDI,
-		Memory64,
 		Memory,
 		Sae,
 		RnSae,
 		RdSae,
 		RuSae,
 		RzSae,
+		Rn,
+		Rd,
+		Ru,
+		Rz,
 		DeclareByte,
 		DeclareWord,
 		DeclareDword,
@@ -90,13 +73,13 @@ namespace Iced.Intel.GasFormatterInternal {
 		public sbyte Op3Index;
 		public sbyte Op4Index;
 
-		public readonly int GetOpRegister(int operand) =>
+		public readonly Register GetOpRegister(int operand) =>
 			operand switch {
-				0 => Op0Register,
-				1 => Op1Register,
-				2 => Op2Register,
-				3 => Op3Register,
-				4 => Op4Register,
+				0 => (Register)Op0Register,
+				1 => (Register)Op1Register,
+				2 => (Register)Op2Register,
+				3 => (Register)Op3Register,
+				4 => (Register)Op4Register,
 				_ => throw new ArgumentOutOfRangeException(nameof(operand)),
 			};
 
@@ -981,20 +964,51 @@ namespace Iced.Intel.GasFormatterInternal {
 
 		public override void GetOpInfo(FormatterOptions options, in Instruction instruction, out InstrOpInfo info) {
 			info = new InstrOpInfo(GetMnemonic(options, instruction, mnemonic, mnemonic_suffix, flags), instruction, flags);
-			var rc = instruction.RoundingControl;
-			if (rc != RoundingControl.None) {
-				if (!FormatterUtils.CanShowRoundingControl(instruction, options))
-					return;
-				InstrOpKind rcOpKind;
-				switch (rc) {
-				case RoundingControl.RoundToNearest:	rcOpKind = InstrOpKind.RnSae; break;
-				case RoundingControl.RoundDown:			rcOpKind = InstrOpKind.RdSae; break;
-				case RoundingControl.RoundUp:			rcOpKind = InstrOpKind.RuSae; break;
-				case RoundingControl.RoundTowardZero:	rcOpKind = InstrOpKind.RzSae; break;
-				default:
-					return;
+			if (IcedConstants.IsMvex(instruction.Code)) {
+				var rc = instruction.RoundingControl;
+				if (rc != RoundingControl.None) {
+					InstrOpKind rcOpKind;
+					if (instruction.SuppressAllExceptions) {
+						switch (rc) {
+						case RoundingControl.RoundToNearest:	rcOpKind = InstrOpKind.RnSae; break;
+						case RoundingControl.RoundDown:			rcOpKind = InstrOpKind.RdSae; break;
+						case RoundingControl.RoundUp:			rcOpKind = InstrOpKind.RuSae; break;
+						case RoundingControl.RoundTowardZero:	rcOpKind = InstrOpKind.RzSae; break;
+						default:
+							return;
+						}
+					}
+					else {
+						switch (rc) {
+						case RoundingControl.RoundToNearest:	rcOpKind = InstrOpKind.Rn; break;
+						case RoundingControl.RoundDown:			rcOpKind = InstrOpKind.Rd; break;
+						case RoundingControl.RoundUp:			rcOpKind = InstrOpKind.Ru; break;
+						case RoundingControl.RoundTowardZero:	rcOpKind = InstrOpKind.Rz; break;
+						default:
+							return;
+						}
+					}
+					MoveOperands(ref info, erIndex, rcOpKind);
 				}
-				MoveOperands(ref info, erIndex, rcOpKind);
+				else if (instruction.SuppressAllExceptions)
+					SimpleInstrInfo_er.MoveOperands(ref info, erIndex, InstrOpKind.Sae);
+			}
+			else {
+				var rc = instruction.RoundingControl;
+				if (rc != RoundingControl.None) {
+					if (!FormatterUtils.CanShowRoundingControl(instruction, options))
+						return;
+					InstrOpKind rcOpKind;
+					switch (rc) {
+					case RoundingControl.RoundToNearest:	rcOpKind = InstrOpKind.RnSae; break;
+					case RoundingControl.RoundDown:			rcOpKind = InstrOpKind.RdSae; break;
+					case RoundingControl.RoundUp:			rcOpKind = InstrOpKind.RuSae; break;
+					case RoundingControl.RoundTowardZero:	rcOpKind = InstrOpKind.RzSae; break;
+					default:
+						return;
+					}
+					MoveOperands(ref info, erIndex, rcOpKind);
+				}
 			}
 		}
 

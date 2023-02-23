@@ -1,30 +1,11 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
+from typing import Callable
 import pytest
 from iced_x86 import *
 
-def test_memory_size_ext():
+def test_memory_size_ext() -> None:
 	assert MemorySizeExt.size(MemorySize.UINT128) == 16
 	assert MemorySizeExt.element_size(MemorySize.UINT128) == 16
 	assert MemorySizeExt.element_type(MemorySize.UINT128) == MemorySize.UINT128
@@ -52,7 +33,7 @@ def test_memory_size_ext():
 	lambda memory_size: MemorySizeExt.info(memory_size),
 	lambda memory_size: MemorySizeInfo(memory_size),
 ])
-def test_memory_size_info(create):
+def test_memory_size_info(create: Callable[[MemorySize_], MemorySizeInfo]) -> None:
 	info = create(MemorySize.UINT128)
 	assert info.memory_size == MemorySize.UINT128
 	assert info.size == 16
@@ -80,38 +61,38 @@ def test_memory_size_info(create):
 	lambda memory_size: MemorySizeExt.info(memory_size),
 	lambda memory_size: MemorySizeInfo(memory_size),
 ])
-def test_memory_size_info_invalid_arg(create):
+def test_memory_size_info_invalid_arg(create: Callable[[MemorySize_], MemorySizeInfo]) -> None:
 	with pytest.raises(ValueError):
-		create(1234)
+		create(1234) # type: ignore
 
-def test_ext_size_invalid_arg():
+def test_ext_size_invalid_arg() -> None:
 	with pytest.raises(ValueError):
-		MemorySizeExt.size(1234)
+		MemorySizeExt.size(1234) # type: ignore
 
-def test_ext_element_size_invalid_arg():
+def test_ext_element_size_invalid_arg() -> None:
 	with pytest.raises(ValueError):
-		MemorySizeExt.element_size(1234)
+		MemorySizeExt.element_size(1234) # type: ignore
 
-def test_ext_element_type_invalid_arg():
+def test_ext_element_type_invalid_arg() -> None:
 	with pytest.raises(ValueError):
-		MemorySizeExt.element_type(1234)
+		MemorySizeExt.element_type(1234) # type: ignore
 
-def test_ext_element_type_info_invalid_arg():
+def test_ext_element_type_info_invalid_arg() -> None:
 	with pytest.raises(ValueError):
-		MemorySizeExt.element_type_info(1234)
+		MemorySizeExt.element_type_info(1234) # type: ignore
 
-def test_ext_is_signed_invalid_arg():
+def test_ext_is_signed_invalid_arg() -> None:
 	with pytest.raises(ValueError):
-		MemorySizeExt.is_signed(1234)
+		MemorySizeExt.is_signed(1234) # type: ignore
 
-def test_ext_is_packed_invalid_arg():
+def test_ext_is_packed_invalid_arg() -> None:
 	with pytest.raises(ValueError):
-		MemorySizeExt.is_packed(1234)
+		MemorySizeExt.is_packed(1234) # type: ignore
 
-def test_ext_element_count_invalid_arg():
+def test_ext_element_count_invalid_arg() -> None:
 	with pytest.raises(ValueError):
-		MemorySizeExt.element_count(1234)
+		MemorySizeExt.element_count(1234) # type: ignore
 
-def test_ext_is_broadcast_invalid_arg():
+def test_ext_is_broadcast_invalid_arg() -> None:
 	with pytest.raises(ValueError):
-		MemorySizeExt.is_broadcast(1234)
+		MemorySizeExt.is_broadcast(1234) # type: ignore

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.IO;
@@ -47,17 +27,20 @@ namespace Generator {
 		public const string VexDefine = "!NO_VEX";
 		public const string XopDefine = "!NO_XOP";
 		public const string EvexDefine = "!NO_EVEX";
+		public const string MvexDefine = "MVEX";
 		public const string D3nowDefine = "!NO_D3NOW";
 		public const string DecoderVexDefine = "DECODER && !NO_VEX";
 		public const string DecoderXopDefine = "DECODER && !NO_XOP";
 		public const string DecoderVexOrXopDefine = "DECODER && (!NO_VEX || !NO_XOP)";
 		public const string DecoderEvexDefine = "DECODER && !NO_EVEX";
+		public const string DecoderMvexDefine = "DECODER && MVEX";
 		public const string EncoderDefine = "ENCODER";
 		public const string CodeAssemblerDefine = "ENCODER && BLOCK_ENCODER && CODE_ASSEMBLER";
 		public const string OpCodeInfoDefine = "ENCODER && OPCODE_INFO";
 		public const string InstructionInfoDefine = "INSTR_INFO";
 		public const string DecoderOrEncoderDefine = "DECODER || ENCODER";
-		public const string DecoderOrEncoderOrInstrInfoDefine = "DECODER || ENCODER || INSTR_INFO";
+		public const string DecoderOrEncoderOrOpCodeInfoDefine = "DECODER || ENCODER || (ENCODER && OPCODE_INFO)";
+		public const string DecoderOrEncoderOrInstrInfoOrOpCodeInfoDefine = "DECODER || ENCODER || INSTR_INFO || (ENCODER && OPCODE_INFO)";
 		public const string AnyFormatterDefine = "GAS || INTEL || MASM || NASM || FAST_FMT";
 		public const string GasIntelNasmFormatterDefine = "GAS || INTEL || NASM";
 		public const string GasFormatterDefine = "GAS";
@@ -79,6 +62,7 @@ namespace Generator {
 				EncodingKind.EVEX => EvexDefine,
 				EncodingKind.XOP => XopDefine,
 				EncodingKind.D3NOW => D3nowDefine,
+				EncodingKind.MVEX => MvexDefine,
 				_ => throw new InvalidOperationException(),
 			};
 	}

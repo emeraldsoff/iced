@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if INSTR_INFO
 using System;
@@ -52,9 +32,6 @@ namespace Iced.Intel {
 
 	/// <summary>
 	/// Creates <see cref="InstructionInfo"/>s.
-	/// <br/>
-	/// If you don't need memory and register usage, it's faster to call <see cref="Instruction"/> and <see cref="Code"/>
-	/// methods/properties, eg. <see cref="Instruction.FlowControl"/>, etc instead of getting that info from this class.
 	/// </summary>
 	public sealed class InstructionInfoFactory {
 		const int defaultRegisterArrayCount = 2;
@@ -258,11 +235,6 @@ namespace Iced.Intel {
 					}
 					break;
 
-#pragma warning disable CS0618 // Type or member is obsolete
-				case OpKind.Memory64:
-#pragma warning restore CS0618 // Type or member is obsolete
-					break;
-
 				case OpKind.Memory:
 					Static.Assert((uint)InfoFlags1.IgnoresSegment == (1U << 31) ? 0 : -1);
 					Static.Assert(Register.None == 0 ? 0 : -1);
@@ -325,27 +297,13 @@ namespace Iced.Intel {
 				}
 			}
 
-			info.rflagsInfo = (byte)((flags1 >> (int)InfoFlags1.RflagsInfoShift) & (uint)InfoFlags1.RflagsInfoMask);
 			var impliedAccess = (ImpliedAccess)((flags1 >> (int)InfoFlags1.ImpliedAccessShift) & (uint)InfoFlags1.ImpliedAccessMask);
 			if (impliedAccess != ImpliedAccess.None)
 				AddImpliedAccesses(impliedAccess, instruction, flags);
-			Debug.Assert((uint)info.rflagsInfo < (uint)InstrInfoConstants.RflagsInfo_Count);
 
 			if (instruction.HasOpMask && (flags & Flags.NoRegisterUsage) == 0)
 				AddRegister(flags, instruction.OpMask, (flags1 & (uint)InfoFlags1.OpMaskReadWrite) != 0 ? OpAccess.ReadWrite : OpAccess.Read);
 
-			Debug.Assert(((flags2 >> (int)InfoFlags2.CpuidFeatureInternalShift) & (uint)InfoFlags2.CpuidFeatureInternalMask) <= byte.MaxValue);
-			info.cpuidFeatureInternal = (byte)((flags2 >> (int)InfoFlags2.CpuidFeatureInternalShift) & (uint)InfoFlags2.CpuidFeatureInternalMask);
-			Debug.Assert(((flags2 >> (int)InfoFlags2.FlowControlShift) & (uint)InfoFlags2.FlowControlMask) <= byte.MaxValue);
-			info.flowControl = (byte)((flags2 >> (int)InfoFlags2.FlowControlShift) & (uint)InfoFlags2.FlowControlMask);
-			Debug.Assert(((flags2 >> (int)InfoFlags2.EncodingShift) & (uint)InfoFlags2.EncodingMask) <= byte.MaxValue);
-			info.encoding = (byte)((flags2 >> (int)InfoFlags2.EncodingShift) & (uint)InfoFlags2.EncodingMask);
-
-			const int FlagsShift = 12;
-			Static.Assert((uint)InfoFlags2.SaveRestore >> FlagsShift == (uint)InstructionInfo.Flags1.SaveRestore ? 0 : -1);
-			Static.Assert((uint)InfoFlags2.StackInstruction >> FlagsShift == (uint)InstructionInfo.Flags1.StackInstruction ? 0 : -1);
-			Static.Assert((uint)InfoFlags2.Privileged >> FlagsShift == (uint)InstructionInfo.Flags1.Privileged ? 0 : -1);
-			info.flags = (byte)(flags2 >> FlagsShift);
 			return ref info;
 		}
 
@@ -374,16 +332,12 @@ namespace Iced.Intel {
 			case ImpliedAccess.None:
 				break;
 			case ImpliedAccess.Shift_Ib_MASK1FMOD9:
-				CommandShiftMaskMod(instruction, 9);
 				break;
 			case ImpliedAccess.Shift_Ib_MASK1FMOD11:
-				CommandShiftMaskMod(instruction, 17);
 				break;
 			case ImpliedAccess.Shift_Ib_MASK1F:
-				CommandShiftMask(instruction, 0x1F);
 				break;
 			case ImpliedAccess.Shift_Ib_MASK3F:
-				CommandShiftMask(instruction, 0x3F);
 				break;
 			case ImpliedAccess.Clear_rflags:
 				CommandClearRflags(instruction, flags);
@@ -759,8 +713,11 @@ namespace Iced.Intel {
 					}
 				}
 				break;
-			case ImpliedAccess.t_RWeax_b64_t_CRrcx_CRrdx_CRrbx_f_CRecx_CRedx_CRebx_CRds:
+			case ImpliedAccess.t_CWecx_CWedx_CWebx_RWeax_b64_t_CRrcx_CRrdx_CRrbx_f_CRecx_CRedx_CRebx_CRds:
 				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.ECX, OpAccess.CondWrite);
+					AddRegister(flags, Register.EDX, OpAccess.CondWrite);
+					AddRegister(flags, Register.EBX, OpAccess.CondWrite);
 					AddRegister(flags, Register.EAX, OpAccess.ReadWrite);
 				}
 				if ((flags & Flags.Is64Bit) != 0) {
@@ -1624,14 +1581,16 @@ namespace Iced.Intel {
 					AddRegister(flags, Register.RCX, OpAccess.ReadCondWrite);
 				}
 				break;
-			case ImpliedAccess.t_CRmem_CRmem_CWmem_CRax_CRbx_CRsi_CRdi_CRes_CWsi_CWdi_RCWcx:
+			case ImpliedAccess.t_CRmem_CRmem_CRmem_CWmem_CRax_CRdx_CRbx_CRsi_CRdi_CRes_CWsi_CWdi_RCWcx:
 				if ((flags & Flags.NoMemoryUsage) == 0) {
+					AddMemory(Register.ES, Register.DX, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code16, 0);
 					AddMemory(Register.ES, Register.BX, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code16, 0);
 					AddMemory(Register.ES, Register.SI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code16, 0);
 					AddMemory(Register.ES, Register.DI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondWrite, CodeSize.Code16, 0);
 				}
 				if ((flags & Flags.NoRegisterUsage) == 0) {
 					AddRegister(flags, Register.AX, OpAccess.CondRead);
+					AddRegister(flags, Register.DX, OpAccess.CondRead);
 					AddRegister(flags, Register.BX, OpAccess.CondRead);
 					AddRegister(flags, Register.SI, OpAccess.CondRead);
 					AddRegister(flags, Register.DI, OpAccess.CondRead);
@@ -1642,14 +1601,16 @@ namespace Iced.Intel {
 					AddRegister(flags, Register.CX, OpAccess.ReadCondWrite);
 				}
 				break;
-			case ImpliedAccess.t_CRmem_CRmem_CWmem_CReax_CRebx_CResi_CRedi_CRes_CWesi_CWedi_RCWecx:
+			case ImpliedAccess.t_CRmem_CRmem_CRmem_CWmem_CReax_CRedx_CRebx_CResi_CRedi_CRes_CWesi_CWedi_RCWecx:
 				if ((flags & Flags.NoMemoryUsage) == 0) {
+					AddMemory(Register.ES, Register.EDX, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code32, 0);
 					AddMemory(Register.ES, Register.EBX, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code32, 0);
 					AddMemory(Register.ES, Register.ESI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code32, 0);
 					AddMemory(Register.ES, Register.EDI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondWrite, CodeSize.Code32, 0);
 				}
 				if ((flags & Flags.NoRegisterUsage) == 0) {
 					AddRegister(flags, Register.EAX, OpAccess.CondRead);
+					AddRegister(flags, Register.EDX, OpAccess.CondRead);
 					AddRegister(flags, Register.EBX, OpAccess.CondRead);
 					AddRegister(flags, Register.ESI, OpAccess.CondRead);
 					AddRegister(flags, Register.EDI, OpAccess.CondRead);
@@ -1660,14 +1621,16 @@ namespace Iced.Intel {
 					AddRegister(flags, Register.ECX, OpAccess.ReadCondWrite);
 				}
 				break;
-			case ImpliedAccess.t_CRmem_CRmem_CWmem_CRrax_CRrbx_CRrsi_CRrdi_CRes_CWrsi_CWrdi_RCWrcx:
+			case ImpliedAccess.t_CRmem_CRmem_CRmem_CWmem_CRrax_CRrdx_CRrbx_CRrsi_CRrdi_CRes_CWrsi_CWrdi_RCWrcx:
 				if ((flags & Flags.NoMemoryUsage) == 0) {
+					AddMemory(Register.ES, Register.RDX, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code64, 0);
 					AddMemory(Register.ES, Register.RBX, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code64, 0);
 					AddMemory(Register.ES, Register.RSI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code64, 0);
 					AddMemory(Register.ES, Register.RDI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondWrite, CodeSize.Code64, 0);
 				}
 				if ((flags & Flags.NoRegisterUsage) == 0) {
 					AddRegister(flags, Register.RAX, OpAccess.CondRead);
+					AddRegister(flags, Register.RDX, OpAccess.CondRead);
 					AddRegister(flags, Register.RBX, OpAccess.CondRead);
 					AddRegister(flags, Register.RSI, OpAccess.CondRead);
 					AddRegister(flags, Register.RDI, OpAccess.CondRead);
@@ -1676,6 +1639,135 @@ namespace Iced.Intel {
 					AddRegister(flags, Register.RSI, OpAccess.CondWrite);
 					AddRegister(flags, Register.RDI, OpAccess.CondWrite);
 					AddRegister(flags, Register.RCX, OpAccess.ReadCondWrite);
+				}
+				break;
+			case ImpliedAccess.t_gpr16_Wgs:
+				CommandLastGpr(instruction, flags, Register.AX);
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.GS, OpAccess.Write);
+				}
+				break;
+			case ImpliedAccess.t_Wrsp_Wcs_Wss_pop5x8:
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.RSP, OpAccess.Write);
+					AddRegister(flags, Register.CS, OpAccess.Write);
+					AddRegister(flags, Register.SS, OpAccess.Write);
+				}
+				CommandPop(instruction, flags, 5, 8);
+				break;
+			case ImpliedAccess.t_Rcs_Rss_Wrsp_pop5x8:
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.CS, OpAccess.Read);
+					AddRegister(flags, Register.SS, OpAccess.Read);
+					AddRegister(flags, Register.RSP, OpAccess.Write);
+				}
+				CommandPop(instruction, flags, 5, 8);
+				break;
+			case ImpliedAccess.t_Reax_Recx_Wedx_Webx:
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.EAX, OpAccess.Read);
+					AddRegister(flags, Register.ECX, OpAccess.Read);
+					AddRegister(flags, Register.EDX, OpAccess.Write);
+					AddRegister(flags, Register.EBX, OpAccess.Write);
+				}
+				break;
+			case ImpliedAccess.t_Reax_Recx_Redx_CRebx_CWedx_CWebx:
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.EAX, OpAccess.Read);
+					AddRegister(flags, Register.ECX, OpAccess.Read);
+					AddRegister(flags, Register.EDX, OpAccess.Read);
+					AddRegister(flags, Register.EBX, OpAccess.CondRead);
+					AddRegister(flags, Register.EDX, OpAccess.CondWrite);
+					AddRegister(flags, Register.EBX, OpAccess.CondWrite);
+				}
+				break;
+			case ImpliedAccess.t_memdisplm64:
+				CommandMemDispl(flags, -64);
+				break;
+			case ImpliedAccess.t_CRmem_CRmem_CWmem_CRsi_CRdi_CRes_CWsi_RCWcx:
+				if ((flags & Flags.NoMemoryUsage) == 0) {
+					AddMemory(Register.ES, Register.SI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code16, 0);
+					AddMemory(Register.ES, Register.DI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code16, 0);
+					AddMemory(Register.ES, Register.DI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondWrite, CodeSize.Code16, 0);
+				}
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.SI, OpAccess.CondRead);
+					AddRegister(flags, Register.DI, OpAccess.CondRead);
+					if ((flags & Flags.Is64Bit) == 0)
+						AddRegister(flags, Register.ES, OpAccess.CondRead);
+					AddRegister(flags, Register.SI, OpAccess.CondWrite);
+					AddRegister(flags, Register.CX, OpAccess.ReadCondWrite);
+				}
+				break;
+			case ImpliedAccess.t_CRmem_CRmem_CWmem_CResi_CRedi_CRes_CWesi_RCWecx:
+				if ((flags & Flags.NoMemoryUsage) == 0) {
+					AddMemory(Register.ES, Register.ESI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code32, 0);
+					AddMemory(Register.ES, Register.EDI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code32, 0);
+					AddMemory(Register.ES, Register.EDI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondWrite, CodeSize.Code32, 0);
+				}
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.ESI, OpAccess.CondRead);
+					AddRegister(flags, Register.EDI, OpAccess.CondRead);
+					if ((flags & Flags.Is64Bit) == 0)
+						AddRegister(flags, Register.ES, OpAccess.CondRead);
+					AddRegister(flags, Register.ESI, OpAccess.CondWrite);
+					AddRegister(flags, Register.ECX, OpAccess.ReadCondWrite);
+				}
+				break;
+			case ImpliedAccess.t_CRmem_CRmem_CWmem_CRrsi_CRrdi_CRes_CWrsi_RCWrcx:
+				if ((flags & Flags.NoMemoryUsage) == 0) {
+					AddMemory(Register.ES, Register.RSI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code64, 0);
+					AddMemory(Register.ES, Register.RDI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code64, 0);
+					AddMemory(Register.ES, Register.RDI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondWrite, CodeSize.Code64, 0);
+				}
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.RSI, OpAccess.CondRead);
+					AddRegister(flags, Register.RDI, OpAccess.CondRead);
+					if ((flags & Flags.Is64Bit) == 0)
+						AddRegister(flags, Register.ES, OpAccess.CondRead);
+					AddRegister(flags, Register.RSI, OpAccess.CondWrite);
+					AddRegister(flags, Register.RCX, OpAccess.ReadCondWrite);
+				}
+				break;
+			case ImpliedAccess.t_CRmem_CRmem_Rrcx_CRrsi_CRrdi_CRes_CRds_CWrcx:
+				if ((flags & Flags.NoMemoryUsage) == 0) {
+					AddMemory(Register.ES, Register.RDI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code64, 0);
+					AddMemory(Register.DS, Register.RSI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code64, 0);
+				}
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.RCX, OpAccess.Read);
+					AddRegister(flags, Register.RSI, OpAccess.CondRead);
+					AddRegister(flags, Register.RDI, OpAccess.CondRead);
+					if ((flags & Flags.Is64Bit) == 0)
+						AddRegister(flags, Register.ES, OpAccess.CondRead);
+					if ((flags & Flags.Is64Bit) == 0)
+						AddRegister(flags, Register.DS, OpAccess.CondRead);
+					AddRegister(flags, Register.RCX, OpAccess.CondWrite);
+				}
+				break;
+			case ImpliedAccess.t_CRmem_CWmem_Rrcx_CRrsi_CRrdi_CRes_CRds_CWrcx:
+				if ((flags & Flags.NoMemoryUsage) == 0) {
+					AddMemory(Register.DS, Register.RSI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondRead, CodeSize.Code64, 0);
+					AddMemory(Register.ES, Register.RDI, Register.None, 1, 0x0, MemorySize.Unknown, OpAccess.CondWrite, CodeSize.Code64, 0);
+				}
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.RCX, OpAccess.Read);
+					AddRegister(flags, Register.RSI, OpAccess.CondRead);
+					AddRegister(flags, Register.RDI, OpAccess.CondRead);
+					if ((flags & Flags.Is64Bit) == 0)
+						AddRegister(flags, Register.ES, OpAccess.CondRead);
+					if ((flags & Flags.Is64Bit) == 0)
+						AddRegister(flags, Register.DS, OpAccess.CondRead);
+					AddRegister(flags, Register.RCX, OpAccess.CondWrite);
+				}
+				break;
+			case ImpliedAccess.t_Rdl_Rrax_Weax_Wrcx_Wrdx:
+				if ((flags & Flags.NoRegisterUsage) == 0) {
+					AddRegister(flags, Register.DL, OpAccess.Read);
+					AddRegister(flags, Register.RAX, OpAccess.Read);
+					AddRegister(flags, Register.EAX, OpAccess.Write);
+					AddRegister(flags, Register.RCX, OpAccess.Write);
+					AddRegister(flags, Register.RDX, OpAccess.Write);
 				}
 				break;
 			// GENERATOR-END: ImpliedAccessHandler
@@ -1829,7 +1921,7 @@ namespace Iced.Intel {
 					if ((flags & Flags.NoRegisterUsage) == 0)
 						AddRegister(flags, baseReg + 7 - i, OpAccess.Write);
 					if ((flags & Flags.NoMemoryUsage) == 0)
-						AddMemory(Register.SS, xsp, Register.None, 1, opSize * (uint)i & xspMask, memSize, OpAccess.Read, addressSize, 0);
+						AddMemory(Register.SS, xsp, Register.None, 1, (opSize * (uint)i) & xspMask, memSize, OpAccess.Read, addressSize, 0);
 				}
 			}
 		}
@@ -2218,35 +2310,6 @@ namespace Iced.Intel {
 			}
 		}
 
-		void CommandShiftMaskMod(in Instruction instruction, uint modulus) {
-			switch ((instruction.Immediate8 & 0x1F) % modulus) {
-			case 0:
-				info.rflagsInfo = (byte)RflagsInfo.None;
-				break;
-			case 1:
-				info.rflagsInfo = (byte)RflagsInfo.R_c_W_co;
-				break;
-			}
-		}
-
-		void CommandShiftMask(in Instruction instruction, uint mask) {
-			switch (instruction.Immediate8 & mask) {
-			case 0:
-				info.rflagsInfo = (byte)RflagsInfo.None;
-				break;
-			case 1:
-				if (info.rflagsInfo == (byte)RflagsInfo.W_c_U_o)
-					info.rflagsInfo = (byte)RflagsInfo.W_co;
-				else if (info.rflagsInfo == (byte)RflagsInfo.R_c_W_c_U_o)
-					info.rflagsInfo = (byte)RflagsInfo.R_c_W_co;
-				else {
-					Debug.Assert(info.rflagsInfo == (byte)RflagsInfo.W_cpsz_U_ao);
-					info.rflagsInfo = (byte)RflagsInfo.W_copsz_U_a;
-				}
-				break;
-			}
-		}
-
 		void CommandClearRflags(in Instruction instruction, Flags flags) {
 			if (instruction.Op0Register != instruction.Op1Register)
 				return;
@@ -2254,10 +2317,6 @@ namespace Iced.Intel {
 				return;
 			unsafe { info.opAccesses[0] = (byte)OpAccess.Write; }
 			unsafe { info.opAccesses[1] = (byte)OpAccess.None; }
-			if (instruction.Code.Mnemonic() == Mnemonic.Xor)
-				info.rflagsInfo = (byte)RflagsInfo.C_cos_S_pz_U_a;
-			else
-				info.rflagsInfo = (byte)RflagsInfo.C_acos_S_pz;
 			if ((flags & Flags.NoRegisterUsage) == 0) {
 				Debug.Assert(info.usedRegisters.ValidLength == 2 || info.usedRegisters.ValidLength == 3);
 				info.usedRegisters.ValidLength = 0;
@@ -2265,10 +2324,27 @@ namespace Iced.Intel {
 			}
 		}
 
+		[MethodImpl(MethodImplOptions.AggressiveInlining)]
+		static bool IsClearInstr(in Instruction instruction) {
+#if MVEX
+			switch (instruction.MvexRegMemConv) {
+			case MvexRegMemConv.None:
+			case MvexRegMemConv.RegSwizzleNone:
+				return true;
+			default:
+				return false;
+			}
+#else
+			return true;
+#endif
+		}
+
 		void CommandClearRegRegmem(in Instruction instruction, Flags flags) {
 			if (instruction.Op0Register != instruction.Op1Register)
 				return;
 			if (instruction.Op1Kind != OpKind.Register)
+				return;
+			if (!IsClearInstr(instruction))
 				return;
 			unsafe { info.opAccesses[0] = (byte)OpAccess.Write; }
 			unsafe { info.opAccesses[1] = (byte)OpAccess.None; }
@@ -2283,6 +2359,8 @@ namespace Iced.Intel {
 			if (instruction.Op1Register != instruction.Op2Register)
 				return;
 			if (instruction.Op2Kind != OpKind.Register)
+				return;
+			if (!IsClearInstr(instruction))
 				return;
 			unsafe { info.opAccesses[1] = (byte)OpAccess.None; }
 			unsafe { info.opAccesses[2] = (byte)OpAccess.None; }
@@ -2368,6 +2446,23 @@ namespace Iced.Intel {
 						AddRegister(flags, reg, opAccess);
 					}
 				}
+			}
+		}
+
+		void CommandMemDispl(Flags flags, int extraDispl) {
+			if ((flags & Flags.NoMemoryUsage) == 0) {
+				if (info.usedMemoryLocations.ValidLength == 1) {
+					ref var mem = ref info.usedMemoryLocations.Array[0];
+					ulong mask = mem.AddressSize switch {
+						CodeSize.Code16 => ushort.MaxValue,
+						CodeSize.Code32 => uint.MaxValue,
+						_ => ulong.MaxValue,
+					};
+					var displ = (mem.Displacement + (ulong)extraDispl) & mask;
+					info.usedMemoryLocations.Array[0] = new UsedMemory(mem.Segment, mem.Base, mem.Index, mem.Scale, displ, mem.MemorySize, mem.Access, mem.AddressSize, mem.VsibSize);
+				}
+				else
+					Debug.Assert(false);
 			}
 		}
 

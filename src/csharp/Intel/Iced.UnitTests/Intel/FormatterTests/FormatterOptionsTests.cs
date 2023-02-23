@@ -1,36 +1,16 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-#if GAS || INTEL || MASM || NASM
+#if GAS || INTEL || MASM || NASM || FAST_FMT
 using System.Collections.Generic;
 using System.Linq;
 
 namespace Iced.UnitTests.Intel.FormatterTests {
 	static class FormatterOptionsTests {
-		public static readonly (OptionsInstructionInfo[] testCases, HashSet<int> ignored) CommonInfos = ReadAllInfos("Options.Common.txt", "Formatter");
-		public static readonly (OptionsInstructionInfo[] testCases, HashSet<int> ignored) AllInfos = ReadAllInfos("Options.txt", "Formatter");
+		public static readonly (OptionsTestCase[] testCases, HashSet<int> ignored) CommonTests = ReadAllTests("Options.Common.txt", "Formatter");
+		public static readonly (OptionsTestCase[] testCases, HashSet<int> ignored) AllTests = ReadAllTests("Options.txt", "Formatter");
 
-		static (OptionsInstructionInfo[] testCases, HashSet<int> ignored) ReadAllInfos(string filename, params string[] directories) {
+		static (OptionsTestCase[] testCases, HashSet<int> ignored) ReadAllTests(string filename, params string[] directories) {
 			var optionsFilename = PathUtils.GetTestTextFilename(filename, directories);
 			var ignored = new HashSet<int>();
 			return (OptionsTestsReader.ReadFile(optionsFilename, ignored).ToArray(), ignored);

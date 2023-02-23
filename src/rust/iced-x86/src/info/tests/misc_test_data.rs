@@ -1,37 +1,13 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::super::test_utils::from_str_conv::*;
-use super::super::super::test_utils::section_file_reader::*;
-use super::super::super::*;
-use super::super::test_utils::*;
-#[cfg(not(feature = "std"))]
+use crate::info::test_utils::*;
+use crate::test_utils::from_str_conv::*;
+use crate::test_utils::section_file_reader::*;
+use crate::*;
 use alloc::string::String;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-#[cfg(not(feature = "std"))]
-use hashbrown::HashSet;
-#[cfg(feature = "std")]
+use lazy_static::lazy_static;
 use std::collections::HashSet;
 
 // GENERATOR-BEGIN: MiscSectionNames
@@ -55,12 +31,18 @@ impl MiscSectionNames {
 	pub(crate) const LOOP: &'static str = "loop";
 	pub(crate) const JRCXZ: &'static str = "jrcxz";
 	pub(crate) const XBEGIN: &'static str = "xbegin";
+	pub(crate) const JKCC_SHORT: &'static str = "jkcc-short";
+	pub(crate) const JKCC_NEAR: &'static str = "jkcc-near";
 	pub(crate) const JMP_INFO: &'static str = "jmp-info";
 	pub(crate) const JCC_SHORT_INFO: &'static str = "jcc-short-info";
 	pub(crate) const JCC_NEAR_INFO: &'static str = "jcc-near-info";
 	pub(crate) const SETCC_INFO: &'static str = "setcc-info";
 	pub(crate) const CMOVCC_INFO: &'static str = "cmovcc-info";
+	pub(crate) const CMPCCXADD_INFO: &'static str = "cmpccxadd-info";
 	pub(crate) const LOOPCC_INFO: &'static str = "loopcc-info";
+	pub(crate) const JKCC_SHORT_INFO: &'static str = "jkcc-short-info";
+	pub(crate) const JKCC_NEAR_INFO: &'static str = "jkcc-near-info";
+	pub(crate) const STRING_INSTRUCTION: &'static str = "string";
 }
 // GENERATOR-END: MiscSectionNames
 
@@ -87,7 +69,13 @@ impl MiscSectionNameIds {
 	const JCC_NEAR_INFO: u32 = 18;
 	const SETCC_INFO: u32 = 19;
 	const CMOVCC_INFO: u32 = 20;
-	const LOOPCC_INFO: u32 = 21;
+	const CMPCCXADD_INFO: u32 = 21;
+	const LOOPCC_INFO: u32 = 22;
+	const STRING_INSTRUCTION: u32 = 23;
+	const JKCC_SHORT: u32 = 24;
+	const JKCC_NEAR: u32 = 25;
+	const JKCC_SHORT_INFO: u32 = 26;
+	const JKCC_NEAR_INFO: u32 = 27;
 }
 
 pub(super) struct MiscTestsData {
@@ -107,11 +95,17 @@ pub(super) struct MiscTestsData {
 	pub(super) loop_: HashSet<Code>,
 	pub(super) jrcxz: HashSet<Code>,
 	pub(super) xbegin: HashSet<Code>,
+	pub(super) string: HashSet<Code>,
+	pub(super) jkcc_short: HashSet<Code>,
+	pub(super) jkcc_near: HashSet<Code>,
 	pub(super) jmp_infos: Vec<(Code, Code)>,
 	pub(super) jcc_short_infos: Vec<(Code, Code, Code, ConditionCode)>,
 	pub(super) jcc_near_infos: Vec<(Code, Code, Code, ConditionCode)>,
+	pub(super) jkcc_short_infos: Vec<(Code, Code, Code, ConditionCode)>,
+	pub(super) jkcc_near_infos: Vec<(Code, Code, Code, ConditionCode)>,
 	pub(super) setcc_infos: Vec<(Code, Code, ConditionCode)>,
 	pub(super) cmovcc_infos: Vec<(Code, Code, ConditionCode)>,
+	pub(super) cmpccxadd_infos: Vec<(Code, Code, ConditionCode)>,
 	pub(super) loopcc_infos: Vec<(Code, Code, ConditionCode)>,
 }
 
@@ -147,11 +141,17 @@ impl MiscTestsDataReader {
 				loop_: HashSet::new(),
 				jrcxz: HashSet::new(),
 				xbegin: HashSet::new(),
+				string: HashSet::new(),
+				jkcc_short: HashSet::new(),
+				jkcc_near: HashSet::new(),
 				jmp_infos: Vec::new(),
 				jcc_short_infos: Vec::new(),
 				jcc_near_infos: Vec::new(),
+				jkcc_short_infos: Vec::new(),
+				jkcc_near_infos: Vec::new(),
 				setcc_infos: Vec::new(),
 				cmovcc_infos: Vec::new(),
+				cmpccxadd_infos: Vec::new(),
 				loopcc_infos: Vec::new(),
 			},
 		}
@@ -180,7 +180,13 @@ impl MiscTestsDataReader {
 			(MiscSectionNames::JCC_NEAR_INFO, MiscSectionNameIds::JCC_NEAR_INFO),
 			(MiscSectionNames::SETCC_INFO, MiscSectionNameIds::SETCC_INFO),
 			(MiscSectionNames::CMOVCC_INFO, MiscSectionNameIds::CMOVCC_INFO),
+			(MiscSectionNames::CMPCCXADD_INFO, MiscSectionNameIds::CMPCCXADD_INFO),
 			(MiscSectionNames::LOOPCC_INFO, MiscSectionNameIds::LOOPCC_INFO),
+			(MiscSectionNames::STRING_INSTRUCTION, MiscSectionNameIds::STRING_INSTRUCTION),
+			(MiscSectionNames::JKCC_SHORT, MiscSectionNameIds::JKCC_SHORT),
+			(MiscSectionNames::JKCC_NEAR, MiscSectionNameIds::JKCC_NEAR),
+			(MiscSectionNames::JKCC_SHORT_INFO, MiscSectionNameIds::JKCC_SHORT_INFO),
+			(MiscSectionNames::JKCC_NEAR_INFO, MiscSectionNameIds::JKCC_NEAR_INFO),
 		];
 		let mut reader = SectionFileReader::new(infos);
 		let mut path = get_instr_info_unit_tests_dir();
@@ -256,7 +262,13 @@ impl SectionFileLineHandler for MiscTestsDataReader {
 			MiscSectionNameIds::JCC_NEAR_INFO => Self::add_jcc_info(&mut self.data.jcc_near_infos, line),
 			MiscSectionNameIds::SETCC_INFO => Self::add_instr_cc_info(&mut self.data.setcc_infos, line),
 			MiscSectionNameIds::CMOVCC_INFO => Self::add_instr_cc_info(&mut self.data.cmovcc_infos, line),
+			MiscSectionNameIds::CMPCCXADD_INFO => Self::add_instr_cc_info(&mut self.data.cmpccxadd_infos, line),
 			MiscSectionNameIds::LOOPCC_INFO => Self::add_instr_cc_info(&mut self.data.loopcc_infos, line),
+			MiscSectionNameIds::STRING_INSTRUCTION => Self::add_code(&mut self.data.string, line),
+			MiscSectionNameIds::JKCC_SHORT => Self::add_code(&mut self.data.jkcc_short, line),
+			MiscSectionNameIds::JKCC_NEAR => Self::add_code(&mut self.data.jkcc_near, line),
+			MiscSectionNameIds::JKCC_SHORT_INFO => Self::add_jcc_info(&mut self.data.jkcc_short_infos, line),
+			MiscSectionNameIds::JKCC_NEAR_INFO => Self::add_jcc_info(&mut self.data.jkcc_near_infos, line),
 			_ => unreachable!(),
 		}
 	}

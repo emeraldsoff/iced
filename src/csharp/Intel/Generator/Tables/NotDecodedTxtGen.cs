@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System.Collections.Generic;
 using Generator.Enums;
@@ -42,7 +22,7 @@ namespace Generator.Tables {
 			var notDecoded32 = new List<InstructionDef>();
 			var notDecoded64 = new List<InstructionDef>();
 			foreach (var def in defs) {
-				if ((def.Flags1 & InstructionDefFlags1.Fwait) != 0 || (Code)def.Code.Value == Code.Popw_CS) {
+				if ((def.Flags1 & InstructionDefFlags1.Fwait) != 0 || def.Code.RawName == nameof(Code.Popw_CS)) {
 					int bits = 0;
 					if ((def.Flags2 & (InstructionDefFlags2.IntelDecoder16 | InstructionDefFlags2.AmdDecoder16 | InstructionDefFlags2.IntelDecoder32 | InstructionDefFlags2.AmdDecoder32)) == 0)
 						bits |= 16 | 32;

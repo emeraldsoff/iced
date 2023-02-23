@@ -1,31 +1,67 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 # one byte too long
 26 26 26 26 26 26 26 26 26 26 26 26 26 26 01 CE, INVALID, INVALID, 0, code=Add_rm32_r32
 
 # max length
 26 26 26 26 26 26 26 26 26 26 26 26 26 01 CE, Add_rm32_r32, Add, 2, op0=r;esi op1=r;ecx es: enc=2601CE
+
+26 26 26 26 26 26 26 26 26 26 26 26 26 26 26 01 CE, INVALID, INVALID, 0, code=Add_rm32_r32
+26 26 26 26 26 26 26 26 26 26 26 26 26 26 26 01, INVALID, INVALID, 0, code=Add_rm32_r32
+26 26 26 26 26 26 26 26 26 26 26 26 26 26 26 26, INVALID, INVALID, 0, code=INVALID
+26 26 26 26 26 26 26 26 26 26 26 26 26 26 26, INVALID, INVALID, 0, code=INVALID
+26 26 26 26 26 26 26 26 26 26 26 26 26 26, INVALID, INVALID, 0, code=INVALID err=NoMoreBytes
+
+26 26 26 26 26 26 26 26 26 26 26 26 26 26 B0 5A, INVALID, INVALID, 0, code=Mov_r8_imm8
+26 26 26 26 26 26 26 26 26 26 26 26 26 26 B0, INVALID, INVALID, 0, code=Mov_r8_imm8
+
+26 26 26 26 26 26 26 26 26 26 26 26 26 66 B8 5AA5, INVALID, INVALID, 0, code=Mov_r16_imm16
+26 26 26 26 26 26 26 26 26 26 26 26 66 B8 5AA5, INVALID, INVALID, 0, code=Mov_r16_imm16
+26 26 26 26 26 26 26 26 26 26 26 26 66 B8 5A, INVALID, INVALID, 0, code=Mov_r16_imm16
+26 26 26 26 26 26 26 26 26 26 26 26 66 B8, INVALID, INVALID, 0, code=Mov_r16_imm16 err=NoMoreBytes
+
+26 26 26 26 26 26 26 26 26 26 26 26 26 26 B8 5AA51234, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 26 26 B8 5AA51234, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 26 B8 5AA51234, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 B8 5AA51234, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 B8 5AA512, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 B8 5AA5, INVALID, INVALID, 0, code=Mov_r32_imm32 err=NoMoreBytes
+26 26 26 26 26 26 26 26 26 26 26 B8 5A, INVALID, INVALID, 0, code=Mov_r32_imm32 err=NoMoreBytes
+26 26 26 26 26 26 26 26 26 26 26 B8, INVALID, INVALID, 0, code=Mov_r32_imm32 err=NoMoreBytes
+#
+26 26 26 26 26 26 26 26 26 26 26 26 26 B8 5AA51234, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 26 26 B8 5AA512, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 26 26 B8 5AA5, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 26 26 B8 5A, INVALID, INVALID, 0, code=Mov_r32_imm32
+26 26 26 26 26 26 26 26 26 26 26 26 26 B8, INVALID, INVALID, 0, code=Mov_r32_imm32 err=NoMoreBytes
+
+26 26 26 26 26 26 26 26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 48 B8 041526375AA512, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 48 B8 041526375AA5, INVALID, INVALID, 0, code=Mov_r64_imm64 err=NoMoreBytes
+26 26 26 26 26 26 48 B8 041526375A, INVALID, INVALID, 0, code=Mov_r64_imm64 err=NoMoreBytes
+26 26 26 26 26 26 48 B8 04152637, INVALID, INVALID, 0, code=Mov_r64_imm64 err=NoMoreBytes
+26 26 26 26 26 26 48 B8 041526, INVALID, INVALID, 0, code=Mov_r64_imm64 err=NoMoreBytes
+26 26 26 26 26 26 48 B8 0415, INVALID, INVALID, 0, code=Mov_r64_imm64 err=NoMoreBytes
+26 26 26 26 26 26 48 B8 04, INVALID, INVALID, 0, code=Mov_r64_imm64 err=NoMoreBytes
+26 26 26 26 26 26 48 B8, INVALID, INVALID, 0, code=Mov_r64_imm64 err=NoMoreBytes
+#
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 041526375AA51234, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 041526375AA512, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 041526375AA5, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 041526375A, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 04152637, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 041526, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 0415, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8 04, INVALID, INVALID, 0, code=Mov_r64_imm64
+26 26 26 26 26 26 26 26 26 26 26 26 48 B8, INVALID, INVALID, 0, code=Mov_r64_imm64 err=NoMoreBytes
 
 # not enough bytes
 , INVALID, INVALID, 0, code=INVALID err=NoMoreBytes
@@ -182,10 +218,16 @@ F2 F2 F2 64 0F10 08, Movsd_xmm_xmmm64, Movsd, 2, op0=r;xmm1 op1=m;fs;rax;;1;0;0;
 65 64 01 18, Add_rm32_r32, Add, 2, op0=m;fs;rax;;1;0;0;UInt32 op1=r;ebx fs: enc=640118
 65 65 01 18, Add_rm32_r32, Add, 2, op0=m;gs;rax;;1;0;0;UInt32 op1=r;ebx gs: enc=650118
 
+# prefix: REX without W + 66
+66 40 01 CE, Add_rm16_r16, Add, 2, op0=r;si op1=r;cx enc=6601CE
+66 47 40 01 CE, Add_rm16_r16, Add, 2, op0=r;si op1=r;cx enc=6601CE
+66 4F 40 01 CE, Add_rm16_r16, Add, 2, op0=r;si op1=r;cx enc=6601CE
+
 # prefix: REX.W overrides 66
 66 48 01 CE, Add_rm64_r64, Add, 2, op0=r;rsi op1=r;rcx enc=4801CE
 
 # prefix: double REX prefixes
+4F 40 01 CE, Add_rm32_r32, Add, 2, op0=r;esi op1=r;ecx enc=01CE
 4F 48 01 CE, Add_rm64_r64, Add, 2, op0=r;rsi op1=r;rcx enc=4801CE
 4F 4C 01 C5, Add_rm64_r64, Add, 2, op0=r;rbp op1=r;r8 enc=4C01C5
 4F 49 01 D6, Add_rm64_r64, Add, 2, op0=r;r14 op1=r;rdx enc=4901D6
@@ -216,3 +258,31 @@ F2 F2 F2 64 0F10 08, Movsd_xmm_xmmm64, Movsd, 2, op0=r;xmm1 op1=m;fs;rax;;1;0;0;
 4B 3E 01 18, Add_rm32_r32, Add, 2, op0=m;ds;rax;;1;0;0;UInt32 op1=r;ebx ds: enc=3E0118
 4C 64 01 18, Add_rm32_r32, Add, 2, op0=m;fs;rax;;1;0;0;UInt32 op1=r;ebx fs: enc=640118
 4F 65 01 18, Add_rm32_r32, Add, 2, op0=m;gs;rax;;1;0;0;UInt32 op1=r;ebx gs: enc=650118
+
+# eip/rip
+01 0D 34125AA5, Add_rm32_r32, Add, 2, op0=m;ds;rip;;1;0xFFFFFFFFA55A123A;8;UInt32 op1=r;ecx co=0;0;0;0;2;4 ip=0
+01 0D 12345678, Add_rm32_r32, Add, 2, op0=m;ds;rip;;1;0x78563408;8;UInt32 op1=r;ecx co=0;0;0;0;2;4 ip=0xFFFFFFFFFFFFFFF0
+67 01 0D 34125AA5, Add_rm32_r32, Add, 2, op0=m;ds;eip;;1;0xA55A123B;4;UInt32 op1=r;ecx co=0;0;0;0;3;4 ip=0
+67 01 0D 12345678, Add_rm32_r32, Add, 2, op0=m;ds;eip;;1;0x78563409;4;UInt32 op1=r;ecx co=0;0;0;0;3;4 ip=0xFFFFFFFFFFFFFFF0
+67 01 0D 12345678, Add_rm32_r32, Add, 2, op0=m;ds;eip;;1;0x78563409;4;UInt32 op1=r;ecx co=0;0;0;0;3;4 ip=0xFFFFFFF0
+
+# lock sub [rip-5AA5EDCCh],eax
+F0 29 05 34125AA5, Sub_rm32_r32, Sub, 2, op0=m;ds;rip;;1;0x7FFFFFFFA55A122B;8;UInt32 op1=r;eax lock co=0;0;0;0;3;4
+# lock cmp [rip-5AA5EDCCh],eax
+F0 39 05 34125AA5, INVALID, INVALID, 0, code=Cmp_rm32_r32
+# lock add dword ptr [rip-5AA5EDCCh],??BCDEF0h
+F0 81 05 34125AA5 F0DEBC, INVALID, INVALID, 0, code=Add_rm32_imm32 err=NoMoreBytes
+# add dword ptr [rip-5AA5EDCCh],??BCDEF0h
+81 05 34125AA5 F0DEBC, INVALID, INVALID, 0, code=Add_rm32_imm32 err=NoMoreBytes
+# lock mov cs,[rip-5AA5EDCCh]
+F0 8E 0D 34125AA5, INVALID, INVALID, 0, code=Mov_Sreg_r32m16
+# mov cs,[rip-5AA5EDCCh]
+8E 0D 34125AA5, INVALID, INVALID, 0, code=Mov_Sreg_r32m16
+
+# Decoder/encoder ip overflow test
+01 CE, Add_rm32_r32, Add, 2, op0=r;esi op1=r;ecx ip=0xFFFFFFFFFFFFFFFE
+01 CE, Add_rm32_r32, Add, 2, op0=r;esi op1=r;ecx ip=0xFFFFFFFFFFFFFFFF
+
+# Verify that the decoder clears extra_index_register_base_vsib in decode(). The order of these two test cases is important!
+62 D27D43 C6 4C 8E 01, EVEX_Vgatherpf0dps_vm32z_k1, Vgatherpf0dps, 1, op0=m;ds;r14;zmm17;4;4;1;Float32 k3 vsib32 co=0;0;0;0;7;1
+C4E209 90 4C A1 01, VEX_Vpgatherdd_xmm_vm32x_xmm, Vpgatherdd, 3, op0=r;xmm1 op1=m;ds;rcx;xmm4;4;1;1;Int32 op2=r;xmm14 vsib32 co=0;0;0;0;6;1

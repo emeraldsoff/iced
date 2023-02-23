@@ -1,34 +1,14 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
-using Generator.InstructionInfo;
-using Generator.Enums;
-using Generator.Enums.InstructionInfo;
-using Generator.Enums.Encoder;
 using System.Diagnostics;
-using Generator.Formatters;
+using Generator.Enums;
+using Generator.Enums.Encoder;
 using Generator.Enums.Formatter;
+using Generator.Enums.InstructionInfo;
+using Generator.Formatters;
+using Generator.InstructionInfo;
 
 namespace Generator.Tables {
 	[Flags]
@@ -75,7 +55,7 @@ namespace Generator.Tables {
 		/// </summary>
 		IgnoresSegment			= 0x00000200,
 		/// <summary>
-		/// The op mask register is read and written (instead of just read). This also implies that it can't be <c>K0</c>.
+		/// The opmask register is read and written (instead of just read). This also implies that it can't be <c>K0</c>.
 		/// </summary>
 		OpMaskReadWrite			= 0x00000400,
 		/// <summary>
@@ -135,7 +115,7 @@ namespace Generator.Tables {
 		/// </summary>
 		SuppressAllExceptions	= 0x01000000,
 		/// <summary>
-		/// Op mask register is supported
+		/// Opmask register is supported
 		/// </summary>
 		OpMaskRegister			= 0x02000000,
 		/// <summary>
@@ -143,7 +123,7 @@ namespace Generator.Tables {
 		/// </summary>
 		ZeroingMasking			= 0x04000000,
 		/// <summary>
-		/// Op mask can't be <c>K0</c>
+		/// Opmask can't be <c>K0</c>
 		/// </summary>
 		RequireOpMaskRegister	= 0x08000000,
 		/// <summary>
@@ -366,7 +346,7 @@ namespace Generator.Tables {
 		/// </summary>
 		ImpliedZeroingMasking	= 0x00008000,//TODO: Add to OpCodeInfo
 		/// <summary>
-		/// The op mask register is an element selector and not a write mask
+		/// The opmask register is an element selector and not a write mask
 		/// </summary>
 		OpMaskIsElementSelector	= 0x00010000,//TODO: Add to OpCodeInfo
 		/// <summary>
@@ -389,6 +369,39 @@ namespace Generator.Tables {
 		/// Set if it's a conditional write to FPU <c>TOP</c> bits
 		/// </summary>
 		IsFpuCondWriteTop		= 0x00200000,
+		/// <summary>
+		/// The destination register's reg-num must not be present in any other operand, eg. <c>MNEMONIC XMM1,YMM1,[RAX+ZMM1*2]</c>
+		/// is invalid. Registers = <c>XMM</c>/<c>YMM</c>/<c>ZMM</c>/<c>TMM</c>.
+		/// </summary>
+		RequiresUniqueDestRegNum= 0x00400000,
+		/// <summary>
+		/// Set if the instruction is in the "string instructions" family, e.g. <c>LODS</c>, <c>STOS</c>
+		/// </summary>
+		IsStringOp				= 0x00800000,
+		/// <summary>
+		/// Code assembler ignores this instruction, eg. because it's a dupe
+		/// </summary>
+		AsmIgnore				= 0x01000000,
+		/// <summary>
+		/// Code assembler ignores it when generating memory operand methods
+		/// </summary>
+		AsmIgnoreMemory			= 0x02000000,
+		/// <summary>
+		/// Address size must be 32 or #UD
+		/// </summary>
+		RequiresAddressSize32	= 0x04000000,//TODO: Add to OpCodeInfo
+		/// <summary>
+		/// The low 3 bits of the modrm byte is ignored
+		/// </summary>
+		IgnoresModrmLow3Bits	= 0x08000000,//TODO: Add to OpCodeInfo
+		/// <summary>
+		/// Atomic instruction (no lock needed) if the operand is a memory location, eg. <c>XCHG mem,r</c>, <c>AADD mem,r</c>
+		/// </summary>
+		Atomic					= 0x10000000,//TODO: Add to OpCodeInfo
+		/// <summary>
+		/// The memory operand must be aligned (eg. 4-byte or 8-byte aligned depending on the size of the memory operand)
+		/// </summary>
+		AlignedMemory			= 0x20000000,//TODO: Add to OpCodeInfo
 	}
 
 	enum VmxMode {
@@ -417,7 +430,7 @@ namespace Generator.Tables {
 		/// </summary>
 		None,
 		/// <summary>
-		/// Used if the op mask is `{k1}` even if the first operand is also a `k` reg, eg. `xxx k2 {k1}, xmm3`
+		/// Used if the opmask is `{k1}` even if the first operand is also a `k` reg, eg. `xxx k2 {k1}, xmm3`
 		/// or
 		/// Don't print the GPR suffix (a, b, etc), eg. `xxx r32, r32` instead of `xxx r32a, r32b`
 		/// </summary>
@@ -438,6 +451,10 @@ namespace Generator.Tables {
 		/// Don't print the first operand
 		/// </summary>
 		SkipOp0,
+		/// <summary>
+		/// Vector index is the same as the op index (1 based), eg. `zmm1, k2, zmm3`
+		/// </summary>
+		VecIndexSameAsOpIndex,
 	}
 
 	[Flags]
@@ -467,6 +484,8 @@ namespace Generator.Tables {
 		Loop,
 		Jrcxz,
 		Xbegin,
+		JkccShort,
+		JkccNear,
 	}
 
 	readonly struct InstrStrImpliedOp {
@@ -503,6 +522,45 @@ namespace Generator.Tables {
 		}
 	}
 
+	enum OpCodeW : byte {
+		None,
+		W0,
+		W1,
+		WIG,
+		WIG32,
+	}
+
+	enum OpCodeL : byte {
+		None,
+		L0,
+		L1,
+		LIG,
+		LZ,
+		L128,
+		L256,
+		L512,
+	}
+
+	struct MvexInstructionInfo {
+		public EnumValue TupleTypeLutKind;
+		public MvexEHBit EHBit;
+		public MvexConvFn ConvFn;
+		public byte ValidConvFns;
+		public byte ValidSwizzleFns;
+		public MvexInfoFlags1 Flags1;
+		public MvexInfoFlags2 Flags2;
+
+		public MvexInstructionInfo(EnumValue tupleType, MvexEHBit ehBit, MvexConvFn convFn, byte validConvFns, byte validSwizzleFns) {
+			TupleTypeLutKind = tupleType;
+			EHBit = ehBit;
+			ConvFn = convFn;
+			ValidConvFns = validConvFns;
+			ValidSwizzleFns = validSwizzleFns;
+			Flags1 = MvexInfoFlags1.None;
+			Flags2 = MvexInfoFlags2.None;
+		}
+	}
+
 	[DebuggerDisplay("{OpCodeString,nq} | {InstructionString,nq}")]
 	sealed class InstructionDef {
 		public readonly string OpCodeString;
@@ -521,6 +579,7 @@ namespace Generator.Tables {
 		public readonly InstrStrFmtOption InstrStrFmtOption;
 		public readonly InstructionStringFlags InstrStrFlags;
 		public readonly InstrStrImpliedOp[] InstrStrImpliedOps;
+		public readonly MvexInstructionInfo Mvex;
 
 		public readonly CodeSize OperandSize;
 		public readonly CodeSize AddressSize;
@@ -528,6 +587,7 @@ namespace Generator.Tables {
 		public readonly OpCodeTableKind Table;
 		public readonly OpCodeL LBit;
 		public readonly OpCodeW WBit;
+		public readonly NonDestructiveOpKind NDKind;
 		public readonly uint OpCode;
 		public readonly int OpCodeLength;
 		public readonly int GroupIndex;
@@ -540,6 +600,8 @@ namespace Generator.Tables {
 		public readonly PseudoOpsKind? PseudoOp;
 		public readonly EnumValue ControlFlow;
 		public readonly ConditionCode ConditionCode;
+		public readonly string MnemonicCcPrefix;
+		public readonly string MnemonicCcSuffix;
 		public readonly BranchKind BranchKind;//TODO: Add to OpCodeInfo
 		public readonly StackInfo StackInfo;
 		public readonly int FpuStackIncrement;
@@ -550,6 +612,7 @@ namespace Generator.Tables {
 		public readonly RflagsBits RflagsSet;
 		public EnumValue? RflagsInfo { get; internal set; }
 		public readonly EnumValue[] Cpuid;
+		public readonly string[] CpuidFeatureStrings;
 		public EnumValue? CpuidInternal { get; internal set; }
 		public readonly OpInfo[] OpInfo;
 		public readonly EnumValue[] OpInfoEnum;
@@ -560,17 +623,22 @@ namespace Generator.Tables {
 		public readonly FmtInstructionDef Masm;
 		public readonly FmtInstructionDef Nasm;
 
+		public readonly string? AsmMnemonic;
+
 		public InstructionDef(EnumValue code, string opCodeString, string instructionString, EnumValue mnemonic,
 			EnumValue mem, EnumValue bcst, EnumValue decoderOption, InstructionDefFlags1 flags1, InstructionDefFlags2 flags2,
 			InstructionDefFlags3 flags3, InstrStrFmtOption instrStrFmtOption, InstructionStringFlags instrStrFlags,
-			InstrStrImpliedOp[] instrStrImpliedOps,
-			MandatoryPrefix mandatoryPrefix, OpCodeTableKind table, OpCodeL lBit, OpCodeW wBit, uint opCode, int opCodeLength,
+			InstrStrImpliedOp[] instrStrImpliedOps, MvexInstructionInfo mvex,
+			MandatoryPrefix mandatoryPrefix, OpCodeTableKind table, OpCodeL lBit, OpCodeW wBit, NonDestructiveOpKind ndKind,
+			uint opCode, int opCodeLength,
 			int groupIndex, int rmGroupIndex, CodeSize operandSize, CodeSize addressSize, TupleType tupleType, OpCodeOperandKindDef[] opKinds,
-			PseudoOpsKind? pseudoOp, EnumValue encoding, EnumValue flowControl, ConditionCode conditionCode,
+			PseudoOpsKind? pseudoOp, EnumValue encoding, EnumValue flowControl, ConditionCode conditionCode, string? mnemonicCcPrefix,
+			string? mnemonicCcSuffix,
 			BranchKind branchKind, StackInfo stackInfo, int fpuStackIncrement,
 			RflagsBits read, RflagsBits undefined, RflagsBits written, RflagsBits cleared, RflagsBits set,
-			EnumValue[] cpuid, OpInfo[] opInfo,
-			FastFmtInstructionDef fast, FmtInstructionDef gas, FmtInstructionDef intel, FmtInstructionDef masm, FmtInstructionDef nasm) {
+			EnumValue[] cpuid, string[] cpuidFeatureStrings, OpInfo[] opInfo,
+			FastFmtInstructionDef fast, FmtInstructionDef gas, FmtInstructionDef intel, FmtInstructionDef masm, FmtInstructionDef nasm,
+			string? asmMnemonic) {
 			Code = code;
 			OpCodeString = opCodeString;
 			InstructionString = instructionString;
@@ -585,11 +653,13 @@ namespace Generator.Tables {
 			InstrStrFmtOption = instrStrFmtOption;
 			InstrStrFlags = instrStrFlags;
 			InstrStrImpliedOps = instrStrImpliedOps;
+			Mvex = mvex;
 
 			MandatoryPrefix = mandatoryPrefix;
 			Table = table;
 			LBit = lBit;
 			WBit = wBit;
+			NDKind = ndKind;
 			OpCode = opCode;
 			OpCodeLength = opCodeLength;
 			GroupIndex = groupIndex;
@@ -602,6 +672,8 @@ namespace Generator.Tables {
 			PseudoOp = pseudoOp;
 			ControlFlow = flowControl;
 			ConditionCode = conditionCode;
+			MnemonicCcPrefix = mnemonicCcPrefix ?? string.Empty;
+			MnemonicCcSuffix = mnemonicCcSuffix ?? string.Empty;
 			BranchKind = branchKind;
 			StackInfo = stackInfo;
 			FpuStackIncrement = fpuStackIncrement;
@@ -612,6 +684,7 @@ namespace Generator.Tables {
 			RflagsSet = set;
 			RflagsInfo = null;
 			Cpuid = cpuid;
+			CpuidFeatureStrings = cpuidFeatureStrings;
 			CpuidInternal = null;
 			OpInfo = opInfo;
 			OpInfoEnum = new EnumValue[opInfo.Length];
@@ -621,6 +694,8 @@ namespace Generator.Tables {
 			Intel = intel;
 			Masm = masm;
 			Nasm = nasm;
+
+			AsmMnemonic = asmMnemonic;
 		}
 
 		internal void SetImpliedAccess(ImpliedAccessesDef value) {

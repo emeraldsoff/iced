@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if DECODER
 using System;
@@ -54,13 +34,13 @@ namespace Iced.Intel.DecoderInternal {
 	sealed class OpCodeHandler_Simple : OpCodeHandler {
 		readonly Code code;
 		public OpCodeHandler_Simple(Code code) => this.code = code;
-		public override void Decode(Decoder decoder, ref Instruction instruction) => instruction.InternalCode = code;
+		public override void Decode(Decoder decoder, ref Instruction instruction) => instruction.InternalSetCodeNoCheck(code);
 	}
 
 	sealed class OpCodeHandler_Simple_ModRM : OpCodeHandlerModRM {
 		readonly Code code;
 		public OpCodeHandler_Simple_ModRM(Code code) => this.code = code;
-		public override void Decode(Decoder decoder, ref Instruction instruction) => instruction.InternalCode = code;
+		public override void Decode(Decoder decoder, ref Instruction instruction) => instruction.InternalSetCodeNoCheck(code);
 	}
 
 	sealed class OpCodeHandler_Group8x8 : OpCodeHandlerModRM {
@@ -77,12 +57,11 @@ namespace Iced.Intel.DecoderInternal {
 		}
 
 		public override void Decode(Decoder decoder, ref Instruction instruction) {
-			ref var state = ref decoder.state;
 			OpCodeHandler handler;
-			if (state.mod == 3)
-				handler = tableHigh[state.reg];
+			if (decoder.state.mod == 3)
+				handler = tableHigh[decoder.state.reg];
 			else
-				handler = tableLow[state.reg];
+				handler = tableLow[decoder.state.reg];
 			handler.Decode(decoder, ref instruction);
 		}
 	}
@@ -101,14 +80,13 @@ namespace Iced.Intel.DecoderInternal {
 		}
 
 		public override void Decode(Decoder decoder, ref Instruction instruction) {
-			ref var state = ref decoder.state;
 			OpCodeHandler handler;
-			if (state.mod == 3) {
+			if (decoder.state.mod == 3) {
 				// A handler can be null in tableHigh, useful in 0F01 table and similar tables
-				handler = tableHigh[state.modrm & 0x3F] ?? tableLow[state.reg];
+				handler = tableHigh[decoder.state.modrm & 0x3F] ?? tableLow[decoder.state.reg];
 			}
 			else
-				handler = tableLow[state.reg];
+				handler = tableLow[decoder.state.reg];
 			handler.Decode(decoder, ref instruction);
 		}
 	}
@@ -152,8 +130,9 @@ namespace Iced.Intel.DecoderInternal {
 			Debug.Assert(
 				decoder.state.Encoding == EncodingKind.VEX ||
 				decoder.state.Encoding == EncodingKind.EVEX ||
-				decoder.state.Encoding == EncodingKind.XOP);
-			handlers[(int)decoder.state.mandatoryPrefix].Decode(decoder, ref instruction);
+				decoder.state.Encoding == EncodingKind.XOP ||
+				decoder.state.Encoding == EncodingKind.MVEX);
+			handlers[(int)decoder.state.zs.mandatoryPrefix].Decode(decoder, ref instruction);
 		}
 	}
 
@@ -181,8 +160,9 @@ namespace Iced.Intel.DecoderInternal {
 			Debug.Assert(
 				decoder.state.Encoding == EncodingKind.VEX ||
 				decoder.state.Encoding == EncodingKind.EVEX ||
-				decoder.state.Encoding == EncodingKind.XOP);
-			handlers[(int)decoder.state.mandatoryPrefix].Decode(decoder, ref instruction);
+				decoder.state.Encoding == EncodingKind.XOP ||
+				decoder.state.Encoding == EncodingKind.MVEX);
+			handlers[(int)decoder.state.zs.mandatoryPrefix].Decode(decoder, ref instruction);
 		}
 	}
 
@@ -201,8 +181,9 @@ namespace Iced.Intel.DecoderInternal {
 			Debug.Assert(
 				decoder.state.Encoding == EncodingKind.VEX ||
 				decoder.state.Encoding == EncodingKind.EVEX ||
-				decoder.state.Encoding == EncodingKind.XOP);
-			((decoder.state.flags & StateFlags.W) != 0 ? handlerW1 : handlerW0).Decode(decoder, ref instruction);
+				decoder.state.Encoding == EncodingKind.XOP ||
+				decoder.state.Encoding == EncodingKind.MVEX);
+			((decoder.state.zs.flags & StateFlags.W) != 0 ? handlerW1 : handlerW0).Decode(decoder, ref instruction);
 		}
 	}
 
@@ -217,7 +198,7 @@ namespace Iced.Intel.DecoderInternal {
 
 		public override void Decode(Decoder decoder, ref Instruction instruction) {
 			OpCodeHandler handler;
-			if (decoder.is64Mode)
+			if (decoder.is64bMode)
 				handler = handler64;
 			else
 				handler = handler1632;
@@ -238,7 +219,7 @@ namespace Iced.Intel.DecoderInternal {
 
 		public override void Decode(Decoder decoder, ref Instruction instruction) {
 			OpCodeHandler handler;
-			if (decoder.is64Mode)
+			if (decoder.is64bMode)
 				handler = handler64;
 			else
 				handler = handler1632;
@@ -292,7 +273,7 @@ namespace Iced.Intel.DecoderInternal {
 		public override void Decode(Decoder decoder, ref Instruction instruction) {
 			var handler = defaultHandler;
 			var options = decoder.options;
-			if (!decoder.is64Mode && (decoder.options & infoOptions) != 0) {
+			if (!decoder.is64bMode && (decoder.options & infoOptions) != 0) {
 				foreach (var info in infos) {
 					if ((options & info.options) != 0) {
 						handler = info.handler;

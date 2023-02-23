@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -33,8 +13,8 @@ using Generator.Tables;
 namespace Generator.Encoder {
 	abstract class EncoderGenerator {
 		protected abstract void Generate(EnumType enumType);
-		protected abstract void Generate((EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] legacy, (EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] vex, (EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] xop, (EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] evex);
-		protected abstract void GenerateOpCodeInfo(InstructionDef[] defs);
+		protected abstract void Generate(OpCodeHandlers handlers);
+		protected abstract void GenerateOpCodeInfo(InstructionDef[] defs, (MvexTupleTypeLutKind ttLutKind, EnumValue[] tupleTypes)[] mvexTupleTypeData, (MvexTupleTypeLutKind ttLutKind, EnumValue[] tupleTypes)[] mvexMemorySizeData);
 		protected abstract void Generate((EnumValue value, uint size)[] immSizes);
 		protected abstract void GenerateInstructionFormatter((EnumValue code, string result)[] notInstrStrings);
 		protected abstract void GenerateOpCodeFormatter((EnumValue code, string result)[] notInstrStrings, EnumValue[] hasModRM, EnumValue[] hasVsib);
@@ -43,6 +23,26 @@ namespace Generator.Encoder {
 		protected abstract void GenerateVsib(EnumValue[] vsib32, EnumValue[] vsib64);
 		protected abstract void GenerateDecoderOptionsTable((EnumValue decOptionValue, EnumValue decoderOptions)[] values);
 		protected abstract void GenerateImpliedOps((EncodingKind Encoding, InstrStrImpliedOp[] Ops, InstructionDef[] defs)[] impliedOpsInfo);
+
+		protected readonly struct OpCodeHandlers {
+			public readonly (EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] Legacy;
+			public readonly (EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] Vex;
+			public readonly (EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] Xop;
+			public readonly (EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] Evex;
+			public readonly (EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] Mvex;
+
+			public OpCodeHandlers((EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] legacy,
+				(EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] vex,
+				(EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] xop,
+				(EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] evex,
+				(EnumValue opCodeOperandKind, OpHandlerKind opHandlerKind, object[] args)[] mvex) {
+				Legacy = legacy;
+				Vex = vex;
+				Xop = xop;
+				Evex = evex;
+				Mvex = mvex;
+			}
+		}
 
 		protected readonly GenTypes genTypes;
 		readonly EncoderTypes encoderTypes;
@@ -93,12 +93,18 @@ namespace Generator.Encoder {
 			foreach (var enumType in enumTypes)
 				Generate(enumType);
 
-			Generate(encoderTypes.LegacyOpHandlers, encoderTypes.VexOpHandlers, encoderTypes.XopOpHandlers, encoderTypes.EvexOpHandlers);
+			Generate(new OpCodeHandlers(encoderTypes.LegacyOpHandlers, encoderTypes.VexOpHandlers, encoderTypes.XopOpHandlers,
+				encoderTypes.EvexOpHandlers, encoderTypes.MvexOpHandlers));
 			var defs = genTypes.GetObject<InstructionDefs>(TypeIds.InstructionDefs).Defs;
 			var impliedOpsInfo = defs.Where(a => a.InstrStrImpliedOps.Length > 0).
 				GroupBy(a => new ImpliedOpsKey(a), (a, b) => (a.Encoding, a.Ops, b.OrderBy(a => a.Code.Value).ToArray())).ToArray();
 			GenerateImpliedOps(impliedOpsInfo);
-			GenerateOpCodeInfo(defs);
+			var tupleTypeType = genTypes[TypeIds.TupleType];
+			var memorySizeType = genTypes[TypeIds.MemorySize];
+			var mvexLutData = MvexLutData.GetLutData();
+			var mvexTupleTypeData = mvexLutData.Select(x => (x.ttLutKind, x.data.Select(x => tupleTypeType[x.TupleType.ToString()]).ToArray())).ToArray();
+			var mvexMemorySizeData = mvexLutData.Select(x => (x.ttLutKind, x.data.Select(x => memorySizeType[x.MemorySize.ToString()]).ToArray())).ToArray();
+			GenerateOpCodeInfo(defs, mvexTupleTypeData, mvexMemorySizeData);
 			Generate(encoderTypes.ImmSizes);
 			var notInstrOpCodeStrs = defs.Where(a => (a.Flags1 & InstructionDefFlags1.NoInstruction) != 0).Select(a => (a.Code, a.OpCodeString)).ToArray();
 			var notInstrInstrStrs = defs.Where(a => (a.Flags1 & InstructionDefFlags1.NoInstruction) != 0).Select(a => (a.Code, a.InstructionString)).ToArray();
@@ -109,7 +115,9 @@ namespace Generator.Encoder {
 			var hasVsib = opDefs.Where(a => a.Vsib).Select(a => a.EnumValue).ToArray();
 			GenerateOpCodeFormatter(notInstrOpCodeStrs, hasModRM, hasVsib);
 			GenerateCore();
-			var jccInstr = defs.Where(a => a.BranchKind == BranchKind.JccShort || a.BranchKind == BranchKind.JccNear).Select(a => a.Code).OrderBy(a => a.Value).ToArray();
+			var jccInstr = defs.Where(a =>
+				a.BranchKind == BranchKind.JccShort || a.BranchKind == BranchKind.JccNear ||
+				a.BranchKind == BranchKind.JkccShort || a.BranchKind == BranchKind.JkccNear).Select(a => a.Code).OrderBy(a => a.Value).ToArray();
 			var simpleBranchInstr = defs.Where(a => a.BranchKind == BranchKind.Loop || a.BranchKind == BranchKind.Jrcxz).Select(a => a.Code).OrderBy(a => a.Value).ToArray();
 			var callInstr = defs.Where(a => a.BranchKind == BranchKind.CallNear).Select(a => a.Code).OrderBy(a => a.Value).ToArray();
 			var jmpInstr = defs.Where(a => a.BranchKind == BranchKind.JmpShort || a.BranchKind == BranchKind.JmpNear).Select(a => a.Code).OrderBy(a => a.Value).ToArray();
@@ -125,7 +133,17 @@ namespace Generator.Encoder {
 			GenerateDecoderOptionsTable(decOptValues);
 		}
 
-		protected IEnumerable<(InstructionDef def, uint encFlags1, uint encFlags2, uint encFlags3, uint opcFlags1, uint opcFlags2)> GetData(InstructionDef[] defs) {
+		protected struct MvexEncInfo {
+			public EnumValue TupleTypeLutKind;
+			public EnumValue EHBit;
+			public EnumValue ConvFn;
+			public byte InvalidConvFns;
+			public byte InvalidSwizzleFns;
+			public MvexInfoFlags1 Flags1;
+			public MvexInfoFlags2 Flags2;
+		}
+
+		protected IEnumerable<(InstructionDef def, uint encFlags1, uint encFlags2, uint encFlags3, uint opcFlags1, uint opcFlags2, MvexEncInfo? mvex)> GetData(InstructionDef[] defs) {
 			var encFlags1Type = genTypes[TypeIds.EncFlags1];
 			var ignoreRoundingControl = encFlags1Type[nameof(InstructionDefFlags3.IgnoresRoundingControl)];
 			var amdLockRegBit = encFlags1Type[nameof(InstructionDefFlags3.AmdLockRegBit)];
@@ -155,7 +173,15 @@ namespace Generator.Encoder {
 				(int)encFlags1Type["EVEX_Op2Shift"].Value,
 				(int)encFlags1Type["EVEX_Op3Shift"].Value,
 			};
+			var mvexOpShifts = new[] {
+				(int)encFlags1Type["MVEX_Op0Shift"].Value,
+				(int)encFlags1Type["MVEX_Op1Shift"].Value,
+				(int)encFlags1Type["MVEX_Op2Shift"].Value,
+				(int)encFlags1Type["MVEX_Op3Shift"].Value,
+			};
 
+			var mvexConvFnType = genTypes[TypeIds.MvexConvFn];
+			var ehBitType = genTypes[TypeIds.MvexEHBit];
 			foreach (var def in defs) {
 				uint encFlags1 = 0;
 
@@ -165,6 +191,8 @@ namespace Generator.Encoder {
 					encFlags1 |= amdLockRegBit.Value;
 
 				var encFlags2 = EncFlags2.None;
+				var encFlags3 = EncFlags3.None;
+				var opcFlags1 = OpCodeInfoFlags1.None;
 				encFlags2 |= (EncFlags2)(def.OpCode << (int)EncFlags2.OpCodeShift);
 				switch (def.OpCodeLength) {
 				case 1:
@@ -208,11 +236,10 @@ namespace Generator.Encoder {
 				else if (def.RmGroupIndex >= 0) {
 					if ((uint)def.RmGroupIndex > (uint)EncFlags2.GroupIndexMask)
 						throw new InvalidOperationException();
-					encFlags2 |= EncFlags2.HasRmGroupIndex;
+					encFlags3 |= EncFlags3.HasRmGroupIndex;
 					encFlags2 |= (EncFlags2)((uint)def.RmGroupIndex << (int)EncFlags2.GroupIndexShift);
 				}
 
-				var encFlags3 = EncFlags3.None;
 				if ((uint)def.Encoding > (uint)EncFlags3.EncodingMask)
 					throw new InvalidOperationException();
 				encFlags3 |= (EncFlags3)((uint)def.Encoding << (int)EncFlags3.EncodingShift);
@@ -230,7 +257,7 @@ namespace Generator.Encoder {
 				encFlags3 |= (EncFlags3)((uint)def.TupleType << (int)EncFlags3.TupleTypeShift);
 
 				if ((def.Flags3 & InstructionDefFlags3.DefaultOpSize64) != 0) encFlags3 |= EncFlags3.DefaultOpSize64;
-				if ((def.Flags3 & InstructionDefFlags3.ForceOpSize64) != 0) encFlags3 |= EncFlags3.ForceOpSize64;
+				if ((def.Flags3 & InstructionDefFlags3.ForceOpSize64) != 0) opcFlags1 |= OpCodeInfoFlags1.ForceOpSize64;
 				if ((def.Flags3 & InstructionDefFlags3.IntelForceOpSize64) != 0) encFlags3 |= EncFlags3.IntelForceOpSize64;
 				if ((def.Flags1 & InstructionDefFlags1.Fwait) != 0) encFlags3 |= EncFlags3.Fwait;
 				if ((def.Flags1 & (InstructionDefFlags1.Bit16 | InstructionDefFlags1.Bit32)) != 0) encFlags3 |= EncFlags3.Bit16or32;
@@ -250,7 +277,6 @@ namespace Generator.Encoder {
 				if ((def.Flags1 & InstructionDefFlags1.ZeroingMasking) != 0) encFlags3 |= EncFlags3.ZeroingMasking;
 				if ((def.Flags1 & InstructionDefFlags1.RequireOpMaskRegister) != 0) encFlags3 |= EncFlags3.RequireOpMaskRegister;
 
-				var opcFlags1 = OpCodeInfoFlags1.None;
 				const InstructionDefFlags1 CplBits =
 					InstructionDefFlags1.Cpl0 | InstructionDefFlags1.Cpl1 | InstructionDefFlags1.Cpl2 | InstructionDefFlags1.Cpl3;
 				opcFlags1 |= (def.Flags1 & CplBits) switch {
@@ -272,6 +298,7 @@ namespace Generator.Encoder {
 				if ((def.Flags1 & InstructionDefFlags1.No66) != 0) opcFlags1 |= OpCodeInfoFlags1.No66;
 				if ((def.Flags1 & InstructionDefFlags1.NFx) != 0) opcFlags1 |= OpCodeInfoFlags1.NFx;
 				if ((def.Flags1 & InstructionDefFlags1.RequiresUniqueRegNums) != 0) opcFlags1 |= OpCodeInfoFlags1.RequiresUniqueRegNums;
+				if ((def.Flags3 & InstructionDefFlags3.RequiresUniqueDestRegNum) != 0) opcFlags1 |= OpCodeInfoFlags1.RequiresUniqueDestRegNum;
 				if ((def.Flags3 & InstructionDefFlags3.Privileged) != 0) opcFlags1 |= OpCodeInfoFlags1.Privileged;
 				if ((def.Flags1 & InstructionDefFlags1.SaveRestore) != 0) opcFlags1 |= OpCodeInfoFlags1.SaveRestore;
 				if ((def.Flags1 & InstructionDefFlags1.StackInstruction) != 0) opcFlags1 |= OpCodeInfoFlags1.StackInstruction;
@@ -350,6 +377,12 @@ namespace Generator.Encoder {
 					tableIndex = 0;
 					break;
 
+				case EncodingKind.MVEX:
+					for (int i = 0; i < def.OpKindDefs.Length; i++)
+						encFlags1 |= encoderTypes.ToMvex(def.OpKindDefs[i]) << mvexOpShifts[i];
+					tableIndex = (uint)GetMvexTable(def.Table);
+					break;
+
 				default:
 					throw new InvalidOperationException();
 				}
@@ -357,7 +390,33 @@ namespace Generator.Encoder {
 					throw new InvalidOperationException();
 				encFlags2 |= (EncFlags2)(tableIndex << (int)EncFlags2.TableShift);
 
-				yield return (def, encFlags1, (uint)encFlags2, (uint)encFlags3, (uint)opcFlags1, (uint)opcFlags2);
+				MvexEncInfo? mvex = null;
+				if (def.Encoding == EncodingKind.MVEX) {
+					var mvexFlags1 = def.Mvex.Flags1;
+					var mvexFlags2 = def.Mvex.Flags2;
+					switch (def.NDKind) {
+					case NonDestructiveOpKind.None: break;
+					case NonDestructiveOpKind.NDD: mvexFlags1 |= MvexInfoFlags1.NDD; break;
+					case NonDestructiveOpKind.NDS: mvexFlags1 |= MvexInfoFlags1.NDS; break;
+					default: throw new InvalidOperationException();
+					}
+					if (def.Mvex.TupleTypeLutKind.Value > byte.MaxValue) throw new InvalidOperationException();
+					if ((uint)def.Mvex.EHBit > byte.MaxValue) throw new InvalidOperationException();
+					if ((uint)def.Mvex.ConvFn > byte.MaxValue) throw new InvalidOperationException();
+					if ((uint)mvexFlags1 > byte.MaxValue) throw new InvalidOperationException();
+					if ((uint)mvexFlags2 > byte.MaxValue) throw new InvalidOperationException();
+					mvex = new MvexEncInfo {
+						TupleTypeLutKind = def.Mvex.TupleTypeLutKind,
+						EHBit = ehBitType[def.Mvex.EHBit.ToString()],
+						ConvFn = mvexConvFnType[def.Mvex.ConvFn.ToString()],
+						InvalidConvFns = (byte)~def.Mvex.ValidConvFns,
+						InvalidSwizzleFns = (byte)~def.Mvex.ValidSwizzleFns,
+						Flags1 = mvexFlags1,
+						Flags2 = mvexFlags2,
+					};
+				}
+
+				yield return (def, encFlags1, (uint)encFlags2, (uint)encFlags3, (uint)opcFlags1, (uint)opcFlags2, mvex);
 			}
 		}
 
@@ -373,34 +432,45 @@ namespace Generator.Encoder {
 
 		static LegacyOpCodeTable GetLegacyTable(OpCodeTableKind table) =>
 			table switch {
-				OpCodeTableKind.Normal => LegacyOpCodeTable.Normal,
-				OpCodeTableKind.T0F => LegacyOpCodeTable.Table0F,
-				OpCodeTableKind.T0F38 => LegacyOpCodeTable.Table0F38,
-				OpCodeTableKind.T0F3A => LegacyOpCodeTable.Table0F3A,
+				OpCodeTableKind.Normal => LegacyOpCodeTable.MAP0,
+				OpCodeTableKind.T0F => LegacyOpCodeTable.MAP0F,
+				OpCodeTableKind.T0F38 => LegacyOpCodeTable.MAP0F38,
+				OpCodeTableKind.T0F3A => LegacyOpCodeTable.MAP0F3A,
 				_ => throw new InvalidOperationException(),
 			};
 
 		static VexOpCodeTable GetVexTable(OpCodeTableKind table) =>
 			table switch {
-				OpCodeTableKind.T0F => VexOpCodeTable.Table0F,
-				OpCodeTableKind.T0F38 => VexOpCodeTable.Table0F38,
-				OpCodeTableKind.T0F3A => VexOpCodeTable.Table0F3A,
+				OpCodeTableKind.Normal => VexOpCodeTable.MAP0,
+				OpCodeTableKind.T0F => VexOpCodeTable.MAP0F,
+				OpCodeTableKind.T0F38 => VexOpCodeTable.MAP0F38,
+				OpCodeTableKind.T0F3A => VexOpCodeTable.MAP0F3A,
 				_ => throw new InvalidOperationException(),
 			};
 
 		static EvexOpCodeTable GetEvexTable(OpCodeTableKind table) =>
 			table switch {
-				OpCodeTableKind.T0F => EvexOpCodeTable.Table0F,
-				OpCodeTableKind.T0F38 => EvexOpCodeTable.Table0F38,
-				OpCodeTableKind.T0F3A => EvexOpCodeTable.Table0F3A,
+				OpCodeTableKind.T0F => EvexOpCodeTable.MAP0F,
+				OpCodeTableKind.T0F38 => EvexOpCodeTable.MAP0F38,
+				OpCodeTableKind.T0F3A => EvexOpCodeTable.MAP0F3A,
+				OpCodeTableKind.MAP5 => EvexOpCodeTable.MAP5,
+				OpCodeTableKind.MAP6 => EvexOpCodeTable.MAP6,
 				_ => throw new InvalidOperationException(),
 			};
 
 		static XopOpCodeTable GetXopTable(OpCodeTableKind table) =>
 			table switch {
-				OpCodeTableKind.XOP8 => XopOpCodeTable.XOP8,
-				OpCodeTableKind.XOP9 => XopOpCodeTable.XOP9,
-				OpCodeTableKind.XOPA => XopOpCodeTable.XOPA,
+				OpCodeTableKind.MAP8 => XopOpCodeTable.MAP8,
+				OpCodeTableKind.MAP9 => XopOpCodeTable.MAP9,
+				OpCodeTableKind.MAP10 => XopOpCodeTable.MAP10,
+				_ => throw new InvalidOperationException(),
+			};
+
+		static MvexOpCodeTable GetMvexTable(OpCodeTableKind table) =>
+			table switch {
+				OpCodeTableKind.T0F => MvexOpCodeTable.MAP0F,
+				OpCodeTableKind.T0F38 => MvexOpCodeTable.MAP0F38,
+				OpCodeTableKind.T0F3A => MvexOpCodeTable.MAP0F3A,
 				_ => throw new InvalidOperationException(),
 			};
 

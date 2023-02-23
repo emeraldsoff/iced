@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -31,17 +11,17 @@ using System.Text;
 namespace Generator.Misc.Python {
 	sealed class PyClassParser {
 		const string selfArgName = "$self";
-		readonly string Filename;
+		readonly string filename;
 		readonly Lines lines;
-		readonly List<string> DocComments;
-		RustAttributes? Attributes;
+		readonly List<string> docComments;
+		RustAttributes? attributes;
 		readonly Dictionary<string, PyClass> pyClasses;
 
 		public PyClassParser(string filename) {
-			Filename = filename;
-			lines = new Lines(File.ReadAllLines(filename));
-			DocComments = new List<string>();
-			pyClasses = new Dictionary<string, PyClass>(StringComparer.Ordinal);
+			this.filename = filename;
+			lines = new(File.ReadAllLines(filename));
+			docComments = new();
+			pyClasses = new(StringComparer.Ordinal);
 		}
 
 		PyClass[] GetClasses() => pyClasses.Values.ToArray();
@@ -56,14 +36,14 @@ namespace Generator.Misc.Python {
 		}
 
 		void ClearTempState() {
-			DocComments.Clear();
-			Attributes = null;
+			docComments.Clear();
+			attributes = null;
 		}
 
-		bool HasTempState => DocComments.Count != 0 || Attributes is not null;
+		bool HasTempState => docComments.Count != 0 || attributes is not null;
 
 		public Exception GetException(string message) =>
-			new InvalidOperationException($"{message}, line: {lines.LineNo}, file: {Filename}");
+			new InvalidOperationException($"{message}, line: {lines.LineNo}, file: {filename}");
 
 		enum LineKind {
 			Eof,
@@ -149,16 +129,16 @@ namespace Generator.Misc.Python {
 					break;
 
 				case LineKind.Impl:
-					if (DocComments.Count != 0)
+					if (docComments.Count != 0)
 						throw GetException("Unexpected doc comments");
 					var implName = GetName(token.line, "impl");
 					if (!TryGetPyClass(implName, out var pyClass) ||
-						Attributes is null ||
-						Attributes.Attributes.Count == 0) {
+						attributes is null ||
+						attributes.Attributes.Count == 0) {
 						SkipBlock(token.line);
 					}
 					else {
-						if (!Attributes.Any(AttributeKind.PyMethods, AttributeKind.PyProto))
+						if (!attributes.Any(AttributeKind.PyMethods))
 							SkipBlock(token.line);
 						else
 							ReadStructImpl(token.line, pyClass);
@@ -178,7 +158,7 @@ namespace Generator.Misc.Python {
 			var classes = GetClasses();
 			foreach (var pyClass in classes) {
 				var pyClassAttr = pyClass.Attributes.Attributes.FirstOrDefault(a => a.Kind == AttributeKind.PyClass);
-				const string expectedPyClassAttr = "#[pyclass(module = \"_iced_x86_py\")]";
+				const string expectedPyClassAttr = "#[pyclass(module = \"iced_x86._iced_x86_py\")]";
 				if (pyClassAttr?.Text != expectedPyClassAttr)
 					throw GetException($"Class {pyClass.Name}: Expected this #[pyclass] attribute: {expectedPyClassAttr}");
 
@@ -191,7 +171,7 @@ namespace Generator.Misc.Python {
 					var expectedTextSig = GetExpectedTextSignature(ctor);
 					var textSigAttr = pyClass.Attributes.Attributes.First(a => a.Kind == AttributeKind.TextSignature);
 					if (textSigAttr.Text != expectedTextSig)
-						throw GetException($"Class {pyClass.Name}: #[text_signature] didn't match the expected value: {expectedTextSig}");
+						throw GetException($"Class {pyClass.Name}: #[pyo3(text_signature ...)] didn't match the expected value: {expectedTextSig}");
 
 					var argsAttr = pyClass.Attributes.Attributes.FirstOrDefault(a => a.Kind == AttributeKind.Args);
 					if (argsAttr is not null)
@@ -206,12 +186,12 @@ namespace Generator.Misc.Python {
 		}
 
 		void ReadStruct(string line) {
-			if (Attributes?.Any(AttributeKind.PyClass) == true) {
+			if (attributes?.Any(AttributeKind.PyClass) == true) {
 				line = RemovePub(line);
 				var name = GetName(line, "struct");
-				if (!TryCreateDocComments(DocComments, out var docComments, out var error))
+				if (!TryCreateDocComments(docComments, out var docComments2, out var error))
 					throw GetException(error);
-				var pyClass = new PyClass(name, docComments, Attributes ?? new RustAttributes());
+				var pyClass = new PyClass(name, docComments2, attributes ?? new RustAttributes());
 				AddPyClass(pyClass);
 			}
 			ClearTempState();
@@ -280,6 +260,29 @@ namespace Generator.Misc.Python {
 			return line.TrimStart();
 		}
 
+		static IEnumerable<string> GetArgs(string argsLine) {
+			var prevValue = string.Empty;
+			foreach (var arg in argsLine.Split(',', StringSplitOptions.RemoveEmptyEntries)) {
+				if (prevValue == string.Empty) {
+					// Check if it's a generic, eg. `PyRef<'_, Instruction>` in which case
+					// arg == `PyRef<'_` and next value is ` Instruction>`
+					if (arg.Contains('<', StringComparison.Ordinal) && !arg.EndsWith('>'))
+						prevValue = arg;
+					else
+						yield return arg;
+				}
+				else {
+					prevValue = prevValue + "," + arg;
+					if (arg.EndsWith('>')) {
+						yield return prevValue;
+						prevValue = string.Empty;
+					}
+				}
+			}
+			if (prevValue != string.Empty)
+				throw new InvalidOperationException($"Invalid arg line: `{argsLine}`, prevValue = `{prevValue}`");
+		}
+
 		string ParseMethodArgsAndRetType(string fullLine, string line, bool isInstanceMethod, bool isSpecial, out List<PyMethodArg> args, out string rustReturnType) {
 			args = new List<PyMethodArg>();
 
@@ -300,7 +303,7 @@ namespace Generator.Misc.Python {
 					argsLine = line;
 					line = string.Empty;
 				}
-				foreach (var tmp in argsLine.Split(',', StringSplitOptions.RemoveEmptyEntries)) {
+				foreach (var tmp in GetArgs(argsLine)) {
 					var argInfo = tmp.Trim();
 					if (argInfo == string.Empty)
 						continue;
@@ -311,9 +314,6 @@ namespace Generator.Misc.Python {
 					switch (argInfo) {
 					case "&mut self":
 					case "&self":
-						if (args.Count != 0)
-							throw GetException("`self` must be the first arg");
-						foundThis = true;
 						arg = new PyMethodArg(selfArgName, argInfo, isSelf: true);
 						break;
 					default:
@@ -333,18 +333,18 @@ namespace Generator.Misc.Python {
 							name = name[1..];
 						}
 						bool isSelf = false;
-						if (rustType == "PyRef<Self>" || rustType == "PyRefMut<Self>") {
-							if (args.Count != 0)
-								throw GetException("`self` must be the first arg");
-							foundThis = true;
+						if (rustType == "PyRef<'_, Self>" || rustType == "PyRefMut<'_, Self>") {
 							name = selfArgName;
 							isSelf = true;
 						}
 						if (name.Contains(' ', StringComparison.Ordinal))
-							throw GetException("Name has a space");
+							throw GetException($"Name has a space: `{name}`");
 						arg = new PyMethodArg(name, rustType, isSelf);
 						break;
 					}
+					if (arg.IsSelf && args.Count != 0)
+						throw GetException("`self` must be the first arg");
+					foundThis |= arg.IsSelf;
 					args.Add(arg);
 				}
 
@@ -380,12 +380,12 @@ namespace Generator.Misc.Python {
 
 		static string GetExpectedTextSignature(PyMethod method) {
 			var sb = new StringBuilder();
-			sb.Append("#[text_signature = \"(");
+			sb.Append("#[pyo3(text_signature = \"(");
 			foreach (var arg in method.Arguments) {
 				sb.Append(arg.Name);
 				sb.Append(", ");
 			}
-			sb.Append("/)\"]");
+			sb.Append("/)\")]");
 			return sb.ToString();
 		}
 
@@ -443,7 +443,6 @@ namespace Generator.Misc.Python {
 		}
 
 		IEnumerable<PyMethod> ReadMethod(PyClass pyClass, string fullLine) {
-			var firstLine = fullLine;
 			var line = RemovePub(fullLine.Trim());
 			const string fnPat = "fn ";
 			if (!line.StartsWith(fnPat, StringComparison.Ordinal))
@@ -459,7 +458,7 @@ namespace Generator.Misc.Python {
 			if (index >= 0)
 				name = name[..index].Trim();
 
-			var attributes = Attributes ?? new RustAttributes();
+			var attributes = this.attributes ?? new RustAttributes();
 			bool isStaticMethod = attributes.Any(AttributeKind.StaticMethod);
 			bool isClassMethod = attributes.Any(AttributeKind.ClassMethod);
 			bool isCtor = attributes.Any(AttributeKind.New);
@@ -469,10 +468,10 @@ namespace Generator.Misc.Python {
 
 			bool isSpecial = name.StartsWith("__", StringComparison.Ordinal) &&
 				name.EndsWith("__", StringComparison.Ordinal) &&
-				name != "__copy__" && name != "__deepcopy__";
+				name != "__copy__" && name != "__deepcopy__" && name != "__getstate__";
 
 			fullLine = ParseMethodArgsAndRetType(fullLine, line, isInstanceMethod, isSpecial || name == "__deepcopy__", out var args, out var rustReturnType);
-			if (!TryCreateDocComments(DocComments, out var docComments, out var error))
+			if (!TryCreateDocComments(docComments, out var docComments2, out var error))
 				throw GetException(error);
 
 			bool isSetter = attributes.Any(AttributeKind.Setter);
@@ -483,7 +482,7 @@ namespace Generator.Misc.Python {
 			if (isGetter && name.StartsWith("get_"))
 				throw GetException($"Getters shouldn't have a `get_` prefix: {name}");
 
-			var method = new PyMethod(name, docComments, attributes, args, rustReturnType);
+			var method = new PyMethod(name, docComments2, attributes, args, rustReturnType);
 
 			var argsAttr = method.Attributes.Attributes.FirstOrDefault(a => a.Kind == AttributeKind.Args);
 			if (isSpecial || isGetter || isSetter) {
@@ -498,11 +497,11 @@ namespace Generator.Misc.Python {
 			if (!(isSpecial || isGetter || isSetter || isCtor)) {
 				int count = method.Attributes.Attributes.Count(a => a.Kind == AttributeKind.TextSignature);
 				if (count != 1)
-					throw GetException("Expected exactly one #[text_signature] attribute");
+					throw GetException("Expected exactly one #[pyo3(text_signature ...)] attribute");
 				var expectedTextSig = GetExpectedTextSignature(method);
 				var textSigAttr = method.Attributes.Attributes.First(a => a.Kind == AttributeKind.TextSignature);
 				if (textSigAttr.Text != expectedTextSig)
-					throw GetException($"#[text_signature] didn't match the expected value: {expectedTextSig}");
+					throw GetException($"#[pyo3(text_signature ...)] didn't match the expected value: {expectedTextSig}");
 			}
 
 			if (isSetter) {
@@ -607,21 +606,25 @@ namespace Generator.Misc.Python {
 			var docComment = line[DocCommentPrefix.Length..];
 			if (docComment.StartsWith(" ", StringComparison.Ordinal))
 				docComment = docComment[1..];
-			DocComments.Add(docComment);
+			docComments.Add(docComment);
 		}
 
 		void ReadAttribute(string line) {
-			Attributes ??= new RustAttributes();
-			Attributes.Attributes.Add(ParseAttribute(line));
+			attributes ??= new RustAttributes();
+			attributes.Attributes.Add(ParseAttribute(line));
 		}
 
 		RustAttribute ParseAttribute(string line) {
 			var attrLine = line.Trim();
 			var fullAttrLine = attrLine;
+			const string pyo3AttrPrefix = "#[pyo3(";
 			const string attrPrefix = "#[";
-			if (!attrLine.StartsWith(attrPrefix, StringComparison.Ordinal))
+			if (attrLine.StartsWith(pyo3AttrPrefix, StringComparison.Ordinal))
+				attrLine = attrLine[pyo3AttrPrefix.Length..];
+			else if (attrLine.StartsWith(attrPrefix, StringComparison.Ordinal))
+				attrLine = attrLine[attrPrefix.Length..];
+			else
 				throw GetException("Expected an attribute");
-			attrLine = attrLine[attrPrefix.Length..];
 			int index = attrLine.IndexOfAny(new[] { '(', ' ', '=', ']' });
 			if (index < 0)
 				throw GetException("Invalid attribute");
@@ -629,7 +632,6 @@ namespace Generator.Misc.Python {
 			var attrKind = attrName switch {
 				"pyclass" => AttributeKind.PyClass,
 				"pymethods" => AttributeKind.PyMethods,
-				"pyproto" => AttributeKind.PyProto,
 				"new" => AttributeKind.New,
 				"getter" => AttributeKind.Getter,
 				"setter" => AttributeKind.Setter,

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && BLOCK_ENCODER
 using System;
@@ -32,11 +12,11 @@ namespace Iced.Intel.BlockEncoderInternal {
 	sealed class IpRelMemOpInstr : Instr {
 		Instruction instruction;
 		InstrKind instrKind;
-		readonly uint eipInstructionSize;
-		readonly uint ripInstructionSize;
+		readonly byte eipInstructionSize;
+		readonly byte ripInstructionSize;
 		TargetInstr targetInstr;
 
-		enum InstrKind {
+		enum InstrKind : byte {
 			Unchanged,
 			Rip,
 			Eip,
@@ -53,25 +33,25 @@ namespace Iced.Intel.BlockEncoderInternal {
 			var instrCopy = instruction;
 			instrCopy.MemoryBase = Register.RIP;
 			instrCopy.MemoryDisplacement64 = 0;
-			ripInstructionSize = blockEncoder.GetInstructionSize(instrCopy, instrCopy.IPRelativeMemoryAddress);
+			ripInstructionSize = (byte)blockEncoder.GetInstructionSize(instrCopy, instrCopy.IPRelativeMemoryAddress);
 
 			instrCopy.MemoryBase = Register.EIP;
-			eipInstructionSize = blockEncoder.GetInstructionSize(instrCopy, instrCopy.IPRelativeMemoryAddress);
+			eipInstructionSize = (byte)blockEncoder.GetInstructionSize(instrCopy, instrCopy.IPRelativeMemoryAddress);
 
 			Debug.Assert(eipInstructionSize >= ripInstructionSize);
 			Size = eipInstructionSize;
 		}
 
-		public override void Initialize(BlockEncoder blockEncoder) {
+		public override void Initialize(BlockEncoder blockEncoder) =>
 			targetInstr = blockEncoder.GetTarget(instruction.IPRelativeMemoryAddress);
-			TryOptimize();
-		}
 
-		public override bool Optimize() => TryOptimize();
+		public override bool Optimize(ulong gained) => TryOptimize(gained);
 
-		bool TryOptimize() {
-			if (instrKind == InstrKind.Unchanged || instrKind == InstrKind.Rip || instrKind == InstrKind.Eip)
+		bool TryOptimize(ulong gained) {
+			if (instrKind == InstrKind.Unchanged || instrKind == InstrKind.Rip || instrKind == InstrKind.Eip) {
+				Done = true;
 				return false;
+			}
 
 			// If it's in the same block, we assume the target is at most 2GB away.
 			bool useRip = targetInstr.IsInBlock(Block);
@@ -79,19 +59,22 @@ namespace Iced.Intel.BlockEncoderInternal {
 			if (!useRip) {
 				var nextRip = IP + ripInstructionSize;
 				long diff = (long)(targetAddress - nextRip);
+				diff = CorrectDiff(targetInstr.IsInBlock(Block), diff, gained);
 				useRip = int.MinValue <= diff && diff <= int.MaxValue;
 			}
 
 			if (useRip) {
 				Size = ripInstructionSize;
 				instrKind = InstrKind.Rip;
+				Done = true;
 				return true;
 			}
 
-			// If it's in the lower 4GB we can use EIP relative addressing
+			// If it's in the low 4GB we can use EIP relative addressing
 			if (targetAddress <= uint.MaxValue) {
 				Size = eipInstructionSize;
 				instrKind = InstrKind.Eip;
+				Done = true;
 				return true;
 			}
 

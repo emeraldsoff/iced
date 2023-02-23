@@ -1,25 +1,5 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 import pytest
 from iced_x86 import *
@@ -31,40 +11,40 @@ FMT_SYNTAXES = [
 	FormatterSyntax.NASM,
 ]
 
-def test_invalid_syntax():
+def test_invalid_syntax() -> None:
 	with pytest.raises(ValueError):
-		Formatter(0x12345)
+		Formatter(0x12345) # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_op_access_arg(syntax):
+def test_invalid_op_access_arg(syntax: FormatterSyntax_) -> None:
 	instr = Decoder(64, b"\x62\xF2\x4F\xDD\x72\x50\x01").decode()
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
 		formatter.op_access(instr, 100)
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_get_instruction_operand_arg(syntax):
+def test_invalid_get_instruction_operand_arg(syntax: FormatterSyntax_) -> None:
 	instr = Decoder(64, b"\x62\xF2\x4F\xDD\x72\x50\x01").decode()
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
 		formatter.get_instruction_operand(instr, 100)
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_get_formatter_operand_arg(syntax):
+def test_invalid_get_formatter_operand_arg(syntax: FormatterSyntax_) -> None:
 	instr = Decoder(64, b"\x62\xF2\x4F\xDD\x72\x50\x01").decode()
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
 		formatter.get_formatter_operand(instr, 100)
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_format_operand_arg(syntax):
+def test_invalid_format_operand_arg(syntax: FormatterSyntax_) -> None:
 	instr = Decoder(64, b"\x62\xF2\x4F\xDD\x72\x50\x01").decode()
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
 		formatter.format_operand(instr, 100)
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_number_base(syntax):
+def test_number_base(syntax: FormatterSyntax_) -> None:
 	for base in range(0, 20):
 		formatter = Formatter(syntax)
 		if base == 2 or base == 8 or base == 10 or base == 16:
@@ -78,7 +58,7 @@ def test_number_base(syntax):
 			assert formatter.number_base == 16
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_options_props(syntax):
+def test_options_props(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 
 	formatter.uppercase_prefixes = True
@@ -110,15 +90,15 @@ def test_options_props(syntax):
 	formatter.binary_suffix = "B"
 	formatter.binary_digit_group_size = 8
 	formatter.digit_separator = "`"
-	formatter.leading_zeroes = True
+	formatter.leading_zeros = True
 	formatter.uppercase_hex = False
 	formatter.small_hex_numbers_in_decimal = False
 	formatter.add_leading_zero_to_hex_numbers = False
 	formatter.number_base = 8
-	formatter.branch_leading_zeroes = False
+	formatter.branch_leading_zeros = False
 	formatter.signed_immediate_operands = True
 	formatter.signed_memory_displacements = False
-	formatter.displacement_leading_zeroes = True
+	formatter.displacement_leading_zeros = True
 	formatter.memory_size_options = MemorySizeOptions.NEVER
 	formatter.rip_relative_addresses = True
 	formatter.show_branch_size = False
@@ -175,15 +155,15 @@ def test_options_props(syntax):
 	assert formatter.binary_suffix == "B"
 	assert formatter.binary_digit_group_size == 8
 	assert formatter.digit_separator == "`"
-	assert formatter.leading_zeroes
+	assert formatter.leading_zeros
 	assert not formatter.uppercase_hex
 	assert not formatter.small_hex_numbers_in_decimal
 	assert not formatter.add_leading_zero_to_hex_numbers
 	assert formatter.number_base == 8
-	assert not formatter.branch_leading_zeroes
+	assert not formatter.branch_leading_zeros
 	assert formatter.signed_immediate_operands
 	assert not formatter.signed_memory_displacements
-	assert formatter.displacement_leading_zeroes
+	assert formatter.displacement_leading_zeros
 	assert formatter.memory_size_options == MemorySizeOptions.NEVER
 	assert formatter.rip_relative_addresses
 	assert not formatter.show_branch_size
@@ -212,79 +192,79 @@ def test_options_props(syntax):
 	assert formatter.cc_g == CC_g.NLE
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_memory_size_options_arg(syntax):
+def test_invalid_memory_size_options_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.memory_size_options = 123
+		formatter.memory_size_options = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_b_arg(syntax):
+def test_invalid_cc_b_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_b = 123
+		formatter.cc_b = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_ae_arg(syntax):
+def test_invalid_cc_ae_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_ae = 123
+		formatter.cc_ae = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_e_arg(syntax):
+def test_invalid_cc_e_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_e = 123
+		formatter.cc_e = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_ne_arg(syntax):
+def test_invalid_cc_ne_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_ne = 123
+		formatter.cc_ne = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_be_arg(syntax):
+def test_invalid_cc_be_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_be = 123
+		formatter.cc_be = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_a_arg(syntax):
+def test_invalid_cc_a_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_a = 123
+		formatter.cc_a = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_p_arg(syntax):
+def test_invalid_cc_p_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_p = 123
+		formatter.cc_p = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_np_arg(syntax):
+def test_invalid_cc_np_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_np = 123
+		formatter.cc_np = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_l_arg(syntax):
+def test_invalid_cc_l_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_l = 123
+		formatter.cc_l = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_ge_arg(syntax):
+def test_invalid_cc_ge_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_ge = 123
+		formatter.cc_ge = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_le_arg(syntax):
+def test_invalid_cc_le_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_le = 123
+		formatter.cc_le = 123 # type: ignore
 
 @pytest.mark.parametrize("syntax", FMT_SYNTAXES)
-def test_invalid_cc_g_arg(syntax):
+def test_invalid_cc_g_arg(syntax: FormatterSyntax_) -> None:
 	formatter = Formatter(syntax)
 	with pytest.raises(ValueError):
-		formatter.cc_g = 123
+		formatter.cc_g = 123 # type: ignore

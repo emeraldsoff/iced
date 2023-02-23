@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System.Linq;
 using Generator.Enums;
@@ -66,6 +46,8 @@ namespace Generator.Decoder.CSharp {
 				("CC_ge_hash", genTypes[TypeIds.CC_ge], false, "Intel/ToEnumConverter.CC.cs"),
 				("CC_le_hash", genTypes[TypeIds.CC_le], false, "Intel/ToEnumConverter.CC.cs"),
 				("CC_g_hash", genTypes[TypeIds.CC_g], false, "Intel/ToEnumConverter.CC.cs"),
+				("MvexConvFnHash", genTypes[TypeIds.MvexConvFn], false, "Intel/ToEnumConverter.MvexConvFn.cs"),
+				("MvexTupleTypeLutKindHash", genTypes[TypeIds.MvexTupleTypeLutKind], false, "Intel/ToEnumConverter.MvexTupleTypeLutKind.cs"),
 			};
 			foreach (var info in infos) {
 				var filename = generatorContext.Types.Dirs.GetCSharpTestFilename(info.filename.Split('/'));
@@ -79,13 +61,12 @@ namespace Generator.Decoder.CSharp {
 			writer.WriteLine($"new Dictionary<string, {enumStr}>({enumValues.Length}, StringComparer.Ordinal) {{");
 			using (writer.Indent()) {
 				foreach (var value in enumValues) {
-					if (value.DeprecatedInfo.IsDeprecatedAndRenamed)
+					if (value.DeprecatedInfo.IsDeprecated && value.DeprecatedInfo.IsError)
 						continue;
-					var name = value.Name(idConverter);
 					var key = value.RawName;
 					if (lowerCase)
 						key = key.ToLowerInvariant();
-					writer.WriteLine($"{{ \"{key}\", {enumStr}.{name} }},");
+					writer.WriteLine($"{{ \"{key}\", {idConverter.ToDeclTypeAndValue(value)} }},");
 				}
 			}
 			writer.WriteLine("};");

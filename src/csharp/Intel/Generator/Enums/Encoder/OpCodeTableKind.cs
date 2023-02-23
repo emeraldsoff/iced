@@ -1,48 +1,34 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 namespace Generator.Enums.Encoder {
 	[Enum("OpCodeTableKind", Documentation = "Opcode table", Public = true)]
 	enum OpCodeTableKind {
-		[Comment("Legacy encoding table")]
+		[Comment("Legacy/#(c:MAP0)# table")]
 		Normal,
 
-		[Comment("#(c:0Fxx)# table (legacy, VEX, EVEX)")]
+		[Comment("#(c:0F)#/#(c:MAP1)# table (legacy, VEX, EVEX, MVEX)")]
 		T0F,
 
-		[Comment("#(c:0F38xx)# table (legacy, VEX, EVEX)")]
+		[Comment("#(c:0F38)#/#(c:MAP2)# table (legacy, VEX, EVEX, MVEX)")]
 		T0F38,
 
-		[Comment("#(c:0F3Axx)# table (legacy, VEX, EVEX)")]
+		[Comment("#(c:0F3A)#/#(c:MAP3)# table (legacy, VEX, EVEX, MVEX)")]
 		T0F3A,
 
-		[Comment("#(c:XOP8)# table (XOP)")]
-		XOP8,
+		[Comment("#(c:MAP5)# table (EVEX)")]
+		MAP5,
 
-		[Comment("#(c:XOP9)# table (XOP)")]
-		XOP9,
+		[Comment("#(c:MAP6)# table (EVEX)")]
+		MAP6,
 
-		[Comment("#(c:XOPA)# table (XOP)")]
-		XOPA,
+		[Comment("#(c:MAP8)# table (XOP)")]
+		MAP8,
+
+		[Comment("#(c:MAP9)# table (XOP)")]
+		MAP9,
+
+		[Comment("#(c:MAP10)# table (XOP)")]
+		MAP10,
 	}
 }

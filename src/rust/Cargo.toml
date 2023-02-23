@@ -1,15 +1,19 @@
 [workspace]
 
 exclude = [
-    # Exclude it so it can override the [profile.release] section
+    # Exclude them so they can override the [profile.release] section
+    "iced-x86-fzgt",
     "iced-x86-js",
+    "iced-x86-lua",
     "iced-x86-py",
 ]
 
 members = [
     "iced-x86",
-    "iced-x86-fzgt",
 ]
+
+[profile.test]
+opt-level = 0
 
 [profile.release]
 codegen-units = 1

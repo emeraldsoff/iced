@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Text;
@@ -38,7 +18,7 @@ namespace Generator.Encoder.Rust {
 		public string UInt64;
 #pragma warning restore CS8618 // Non-nullable field is uninitialized. Consider declaring as nullable.
 
-		public static readonly GenCreateNameArgs RustNames = new GenCreateNameArgs {
+		public static readonly GenCreateNameArgs RustNames = new() {
 			CreatePrefix = "with",
 			Register = "_reg",
 			Memory = "_mem",
@@ -92,6 +72,25 @@ namespace Generator.Encoder.Rust {
 			return true;
 		}
 
+		public string GetArgTypeString(MethodArg arg) =>
+			arg.Type switch {
+				MethodArgType.Code => genTypes[TypeIds.Code].Name(idConverter),
+				MethodArgType.Register => genTypes[TypeIds.Register].Name(idConverter),
+				MethodArgType.RepPrefixKind => genTypes[TypeIds.RepPrefixKind].Name(idConverter),
+				MethodArgType.Memory => "MemoryOperand",
+				MethodArgType.UInt8 => "u8",
+				MethodArgType.UInt16 => "u16",
+				MethodArgType.Int32 => "i32",
+				MethodArgType.PreferredInt32 or MethodArgType.UInt32 => "u32",
+				MethodArgType.Int64 => "i64",
+				MethodArgType.UInt64 => "u64",
+				MethodArgType.ByteSlice => "&[u8]",
+				MethodArgType.WordSlice => "&[u16]",
+				MethodArgType.DwordSlice => "&[u32]",
+				MethodArgType.QwordSlice => "&[u64]",
+				_ => throw new InvalidOperationException(),
+			};
+
 		public void WriteMethodDeclArgs(FileWriter writer, CreateMethod method) {
 			bool comma = false;
 			foreach (var arg in method.Args) {
@@ -105,104 +104,12 @@ namespace Generator.Encoder.Rust {
 				}
 				writer.Write(argName);
 				writer.Write(": ");
-				switch (arg.Type) {
-				case MethodArgType.Code:
-					writer.Write(genTypes[TypeIds.Code].Name(idConverter));
-					break;
-				case MethodArgType.Register:
-					writer.Write(genTypes[TypeIds.Register].Name(idConverter));
-					break;
-				case MethodArgType.RepPrefixKind:
-					writer.Write(genTypes[TypeIds.RepPrefixKind].Name(idConverter));
-					break;
-				case MethodArgType.Memory:
-					writer.Write("MemoryOperand");
-					break;
-				case MethodArgType.UInt8:
-					writer.Write("u8");
-					break;
-				case MethodArgType.UInt16:
-					writer.Write("u16");
-					break;
-				case MethodArgType.Int32:
-					writer.Write("i32");
-					break;
-				case MethodArgType.PreferedInt32:
-				case MethodArgType.UInt32:
-					writer.Write("u32");
-					break;
-				case MethodArgType.Int64:
-					writer.Write("i64");
-					break;
-				case MethodArgType.UInt64:
-					writer.Write("u64");
-					break;
-				case MethodArgType.ByteSlice:
-					writer.Write("&[u8]");
-					break;
-				case MethodArgType.WordSlice:
-					writer.Write("&[u16]");
-					break;
-				case MethodArgType.DwordSlice:
-					writer.Write("&[u32]");
-					break;
-				case MethodArgType.QwordSlice:
-					writer.Write("&[u64]");
-					break;
-				case MethodArgType.ByteArray:
-				case MethodArgType.WordArray:
-				case MethodArgType.DwordArray:
-				case MethodArgType.QwordArray:
-				case MethodArgType.BytePtr:
-				case MethodArgType.WordPtr:
-				case MethodArgType.DwordPtr:
-				case MethodArgType.QwordPtr:
-				case MethodArgType.ArrayIndex:
-				case MethodArgType.ArrayLength:
-				default:
-					throw new InvalidOperationException();
-				}
+				writer.Write(GetArgTypeString(arg));
 			}
 		}
 
-		public static bool Is64BitArgument(MethodArgType type) {
-			switch (type) {
-			case MethodArgType.Code:
-			case MethodArgType.Register:
-			case MethodArgType.RepPrefixKind:
-			case MethodArgType.Memory:
-			case MethodArgType.UInt8:
-			case MethodArgType.UInt16:
-			case MethodArgType.Int32:
-			case MethodArgType.UInt32:
-			case MethodArgType.PreferedInt32:
-			case MethodArgType.ByteSlice:
-			case MethodArgType.WordSlice:
-			case MethodArgType.DwordSlice:
-			case MethodArgType.QwordSlice:
-				return false;
-
-			case MethodArgType.Int64:
-			case MethodArgType.UInt64:
-				return true;
-
-			case MethodArgType.ArrayIndex:
-			case MethodArgType.ArrayLength:
-				// Never used, but if they're used in the future, they should be converted to u32 types if RustJS
-				throw new InvalidOperationException();
-
-			case MethodArgType.ByteArray:
-			case MethodArgType.WordArray:
-			case MethodArgType.DwordArray:
-			case MethodArgType.QwordArray:
-			case MethodArgType.BytePtr:
-			case MethodArgType.WordPtr:
-			case MethodArgType.DwordPtr:
-			case MethodArgType.QwordPtr:
-			default:
-				throw new ArgumentOutOfRangeException(nameof(type));
-			}
-		}
+		public static string GetRustOverloadedCreateName(CreateMethod method) => GetRustOverloadedCreateName(method.Args.Count - 1);
+		public static string GetRustOverloadedCreateName(int argCount) => argCount == 0 ? "with" : "with" + argCount.ToString();
 
 		public string GetCreateName(CreateMethod method, GenCreateNameArgs genNames) => GetCreateName(sb, method, genNames);
 
@@ -239,7 +146,7 @@ namespace Generator.Encoder.Rust {
 				case MethodArgType.RepPrefixKind:
 				case MethodArgType.UInt8:
 				case MethodArgType.UInt16:
-				case MethodArgType.PreferedInt32:
+				case MethodArgType.PreferredInt32:
 				case MethodArgType.ArrayIndex:
 				case MethodArgType.ArrayLength:
 				case MethodArgType.ByteArray:

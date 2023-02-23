@@ -1,29 +1,9 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::constant_offsets::ConstantOffsets;
-use super::ex_utils::to_js_error;
-use super::instruction::Instruction;
+use crate::constant_offsets::ConstantOffsets;
+use crate::ex_utils::to_js_error;
+use crate::instruction::Instruction;
 use wasm_bindgen::prelude::*;
 
 /// Encodes instructions decoded by the decoder or instructions created by other code.
@@ -38,12 +18,11 @@ use wasm_bindgen::prelude::*;
 /// // xchg ah,[rdx+rsi+16h]
 /// const bytes = new Uint8Array([0x86, 0x64, 0x32, 0x16]);
 /// const decoder = new Decoder(64, bytes, DecoderOptions.None);
-/// decoder.ipLo = 0x12345678;
-/// decoder.ipHi = 0x00000000;
+/// decoder.ip = 0x12345678n;
 /// const instr = decoder.decode();
 ///
 /// const encoder = new Encoder(64);
-/// const len = encoder.encode(instr, 0x00000000, 0x55555555);
+/// const len = encoder.encode(instr, 0x55555555n);
 /// assert.equal(len, 4);
 /// // We're done, take ownership of the buffer
 /// const buffer = encoder.takeBuffer();
@@ -92,56 +71,6 @@ impl Encoder {
 		Ok(Self(iced_x86_rust::Encoder::try_with_capacity(bitness, capacity).map_err(to_js_error)?))
 	}
 
-	/// Encodes an instruction and returns the size of the encoded instruction.
-	///
-	/// Enable the `bigint` feature to use APIs with 64-bit numbers (requires `BigInt`).
-	///
-	/// # Throws
-	///
-	/// Throws an error on failure.
-	///
-	/// # Arguments
-	///
-	/// * `instruction`: Instruction to encode
-	/// * `ripHi`: High 32 bits of the `RIP` of the encoded instruction
-	/// * `ripLo`: Low 32 bits of the `RIP` of the encoded instruction
-	///
-	/// # Examples
-	///
-	/// ```js
-	/// const assert = require("assert").strict;
-	/// const { Decoder, DecoderOptions, Encoder } = require("iced-x86");
-	///
-	/// // je short $+4
-	/// const bytes = new Uint8Array([0x75, 0x02]);
-	/// const decoder = new Decoder(64, bytes, DecoderOptions.None);
-	/// decoder.ipLo = 0x12345678;
-	/// decoder.ipHi = 0x00000000;
-	/// const instr = decoder.decode();
-	///
-	/// const encoder = new Encoder(64);
-	/// // Use a different IP (orig rip + 0x10)
-	/// const len = encoder.encode(instr, 0x00000000, 0x12345688);
-	/// assert.equal(len, 2);
-	/// // We're done, take ownership of the buffer
-	/// const buffer = encoder.takeBuffer();
-	/// assert.equal(buffer.length, 2);
-	/// assert.equal(buffer[0], 0x75);
-	/// assert.equal(buffer[1], 0xF2);
-	///
-	/// // Free wasm memory
-	/// decoder.free();
-	/// encoder.free();
-	/// instr.free();
-	/// ```
-	#[cfg(not(feature = "bigint"))]
-	pub fn encode(
-		&mut self, instruction: &Instruction, #[allow(non_snake_case)] ripHi: u32, #[allow(non_snake_case)] ripLo: u32,
-	) -> Result<u32, JsValue> {
-		let rip = ((ripHi as u64) << 32) | (ripLo as u64);
-		self.encode_core(instruction, rip)
-	}
-
 	/// Encodes an instruction and returns the size of the encoded instruction
 	///
 	/// # Throws
@@ -162,13 +91,12 @@ impl Encoder {
 	/// // je short $+4
 	/// const bytes = new Uint8Array([0x75, 0x02]);
 	/// const decoder = new Decoder(64, bytes, DecoderOptions.None);
-	/// decoder.ipLo = 0x12345678;
-	/// decoder.ipHi = 0x00000000;
+	/// decoder.ip = 0x12345678n;
 	/// const instr = decoder.decode();
 	///
 	/// const encoder = new Encoder(64);
 	/// // Use a different IP (orig rip + 0x10)
-	/// const len = encoder.encode(instr, 0x00000000, 0x12345688);
+	/// const len = encoder.encode(instr, 0x12345688n);
 	/// assert.equal(len, 2);
 	/// // We're done, take ownership of the buffer
 	/// const buffer = encoder.takeBuffer();
@@ -181,7 +109,6 @@ impl Encoder {
 	/// encoder.free();
 	/// instr.free();
 	/// ```
-	#[cfg(feature = "bigint")]
 	pub fn encode(&mut self, instruction: &Instruction, rip: u64) -> Result<u32, JsValue> {
 		self.encode_core(instruction, rip)
 	}
@@ -217,7 +144,7 @@ impl Encoder {
 	/// const encoder = new Encoder(64);
 	/// const instr = Instruction.createRegReg(Code.Add_r64_rm64, Register.R8, Register.RBP);
 	/// encoder.writeU8(0x90);
-	/// const len = encoder.encode(instr, 0x00000000, 0x55555555);
+	/// const len = encoder.encode(instr, 0x55555555n);
 	/// assert.equal(len, 3);
 	/// encoder.writeU8(0xCC);
 	/// // We're done, take ownership of the buffer
@@ -350,6 +277,26 @@ impl Encoder {
 	#[wasm_bindgen(js_name = "EVEX_LIG")]
 	pub fn set_evex_lig(&mut self, new_value: u32) {
 		self.0.set_evex_lig(new_value)
+	}
+
+	/// Value of the `MVEX.W` bit to use if it's an instruction that ignores the bit. Default is 0.
+	#[wasm_bindgen(getter)]
+	#[wasm_bindgen(js_name = "MVEX_WIG")]
+	#[cfg(feature = "mvex")]
+	pub fn mvex_wig(&self) -> u32 {
+		self.0.mvex_wig()
+	}
+
+	/// Value of the `MVEX.W` bit to use if it's an instruction that ignores the bit. Default is 0.
+	///
+	/// # Arguments
+	///
+	/// * `new_value`: new value (0 or 1)
+	#[wasm_bindgen(setter)]
+	#[wasm_bindgen(js_name = "MVEX_WIG")]
+	#[cfg(feature = "mvex")]
+	pub fn set_mvex_wig(&mut self, new_value: u32) {
+		self.0.set_mvex_wig(new_value)
 	}
 
 	/// Gets the bitness (16, 32 or 64)

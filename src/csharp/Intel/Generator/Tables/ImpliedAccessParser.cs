@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -105,7 +85,7 @@ namespace Generator.Tables {
 			return true;
 		}
 
-		static readonly HashSet<string> impliedAccessKeyHasValue = new HashSet<string>(StringComparer.Ordinal) {
+		static readonly HashSet<string> impliedAccessKeyHasValue = new(StringComparer.Ordinal) {
 			"cr", "cw", "crcw", "r", "w", "rw", "rcw",
 			"shift-mask", "shift-mask-1F-mod",
 			"enter", "leave",
@@ -113,6 +93,7 @@ namespace Generator.Tables {
 			"pusha", "popa",
 			"emmi-reg",
 			"xstore",
+			"mem-displ"
 		};
 		public bool ReadImpliedAccesses(string line, [NotNullWhen(true)] out ImpliedAccesses? accesses, [NotNullWhen(false)] out string? error) {
 			accesses = null;
@@ -280,12 +261,12 @@ namespace Generator.Tables {
 			}
 		}
 
-		static readonly Dictionary<ImplAccConditionKind, ImplAccConditionKind> toPosCond = new Dictionary<ImplAccConditionKind, ImplAccConditionKind> {
+		static readonly Dictionary<ImplAccConditionKind, ImplAccConditionKind> toPosCond = new() {
 			{ ImplAccConditionKind.None, ImplAccConditionKind.None },
 			{ ImplAccConditionKind.Bit64, ImplAccConditionKind.Bit64 },
 			{ ImplAccConditionKind.NotBit64, ImplAccConditionKind.Bit64 },
 		};
-		static readonly Dictionary<ImplAccConditionKind, ImplAccConditionKind> toNegCond = new Dictionary<ImplAccConditionKind, ImplAccConditionKind> {
+		static readonly Dictionary<ImplAccConditionKind, ImplAccConditionKind> toNegCond = new() {
 			{ ImplAccConditionKind.None, ImplAccConditionKind.None },
 			{ ImplAccConditionKind.Bit64, ImplAccConditionKind.NotBit64 },
 			{ ImplAccConditionKind.NotBit64, ImplAccConditionKind.NotBit64 },
@@ -570,6 +551,12 @@ namespace Generator.Tables {
 					stmt = new IntArgImplAccStatement(ImplAccStatementKind.Popa, arg1);
 					break;
 
+				case "mem-displ":
+					if (!ParserUtils.TryParseInt32(value, out int arg1s, out error))
+						return false;
+					stmt = new IntArgImplAccStatement(ImplAccStatementKind.MemDispl, (uint)arg1s);
+					break;
+
 				default:
 					error = $"Unknown key=value: `{keyValue}`";
 					return false;
@@ -769,7 +756,7 @@ namespace Generator.Tables {
 				addressSize = GetAddressSize(index);
 			bool isVecIndexReg = index is ImplAccRegister register &&
 				register.Kind == ImplAccRegisterKind.Register &&
-				(RegisterClass)toRegisterDef[register.Register!].RegisterClass.Value == RegisterClass.Vector;
+				toRegisterDef[register.Register!].GetRegisterClass() == RegisterClass.Vector;
 			if (vsibSize != 0) {
 				if (!isVecIndexReg) {
 					error = "Missing vector index register";
@@ -794,7 +781,7 @@ namespace Generator.Tables {
 				case ImplAccRegisterKind.Register:
 					var regEnum = reg.Register ?? throw new InvalidOperationException();
 					var regDef = toRegisterDef[regEnum];
-					switch ((RegisterKind)regDef.RegisterKind.Value) {
+					switch (regDef.GetRegisterKind()) {
 					case RegisterKind.GPR16:
 						return CodeSize.Code16;
 					case RegisterKind.GPR32:

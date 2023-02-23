@@ -1,42 +1,22 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 import copy
+import pickle
+from typing import Callable, List
 import pytest
 from iced_x86 import *
 
-def test_ctor():
+def test_ctor() -> None:
 	instr = Instruction()
 	assert instr.code == Code.INVALID
 	assert instr.code_size == CodeSize.UNKNOWN
 	assert instr.len == 0
 	assert instr.ip == 0
 
-def test_eq_ne_hash():
-	decodera = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41" b"\xC4\xE3\x49\x48\x10\x42")
-	decoderb = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41")
-	decodera.ip = 0x1234_5678_9ABC_DEF1
-	decoderb.ip = 0xABCD_EF01_1234_5678
+def test_eq_ne_hash() -> None:
+	decodera = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41" b"\xC4\xE3\x49\x48\x10\x42", ip=0x1234_5678_9ABC_DEF1)
+	decoderb = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41", ip=0xABCD_EF01_1234_5678)
 	instr1 = decodera.decode()
 	instr2 = decodera.decode()
 	instr3 = decoderb.decode()
@@ -63,7 +43,7 @@ def test_eq_ne_hash():
 	assert not (instr1 == {})
 	assert not (instr1 == (1, 2))
 
-def test_invalid():
+def test_invalid() -> None:
 	instr = Instruction()
 	assert not instr
 	assert instr.is_invalid
@@ -76,9 +56,8 @@ def test_invalid():
 	lambda instr: copy.deepcopy(instr),
 	lambda instr: instr.copy(),
 ])
-def test_copy_deepcopy_mcopy(copy_instr):
-	decoder = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41")
-	decoder.ip = 0x1234_5678_9ABC_DEF1
+def test_copy_deepcopy_mcopy(copy_instr: Callable[[Instruction], Instruction]) -> None:
+	decoder = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41", ip=0x1234_5678_9ABC_DEF1)
 	instr = decoder.decode()
 	instr2 = copy_instr(instr)
 	assert instr is not instr2
@@ -97,9 +76,8 @@ def test_copy_deepcopy_mcopy(copy_instr):
 	assert not instr2.eq_all_bits(instr)
 	assert hash(instr) == hash(instr2)
 
-def test_some_props1():
-	decoder = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41")
-	decoder.ip = 0x1234_5678_9ABC_DEF1
+def test_some_props1() -> None:
+	decoder = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41", ip=0x1234_5678_9ABC_DEF1)
 	instr = decoder.decode()
 
 	assert instr.len == 6
@@ -178,9 +156,8 @@ def test_some_props1():
 	assert instr.len == 1
 	assert len(instr) == 1
 
-def test_some_props2():
-	decoder = Decoder(64, b"\x00\xCE")
-	decoder.ip = 0x1234_5678_9ABC_DEF1
+def test_some_props2() -> None:
+	decoder = Decoder(64, b"\xF0\x00\x00", ip=0x1234_5678_9ABC_DEF1)
 	instr = decoder.decode()
 
 	assert not instr.has_xacquire_prefix
@@ -190,6 +167,10 @@ def test_some_props2():
 	assert not instr.has_xrelease_prefix
 	instr.has_xrelease_prefix = True
 	assert instr.has_xrelease_prefix
+
+	instr.has_rep_prefix = False
+	instr.has_repe_prefix = False
+	instr.has_repne_prefix = False
 
 	assert not instr.has_rep_prefix
 	assert not instr.has_repe_prefix
@@ -204,9 +185,9 @@ def test_some_props2():
 	instr.has_repne_prefix = True
 	assert instr.has_repne_prefix
 
-	assert not instr.has_lock_prefix
-	instr.has_lock_prefix = True
 	assert instr.has_lock_prefix
+	instr.has_lock_prefix = False
+	assert not instr.has_lock_prefix
 
 	assert instr.op_mask == Register.NONE
 	assert not instr.has_op_mask
@@ -239,16 +220,15 @@ def test_some_props2():
 	(32, CodeSize.CODE32, b"\x90"),
 	(64, CodeSize.CODE64, b"\x90"),
 ])
-def test_code_size(bitness, code_size, data):
+def test_code_size(bitness: int, code_size: CodeSize_, data: bytes) -> None:
 	instr = Decoder(bitness, data).decode()
 	assert instr.code_size == code_size
 	for new_size in [CodeSize.UNKNOWN, CodeSize.CODE16, CodeSize.CODE32, CodeSize.CODE64]:
 		instr.code_size = new_size
 		assert instr.code_size == new_size
 
-def test_op_kind():
-	decoder = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41")
-	decoder.ip = 0x1234_5678_9ABC_DEF1
+def test_op_kind() -> None:
+	decoder = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41", ip=0x1234_5678_9ABC_DEF1)
 	instr = decoder.decode()
 
 	assert instr.op0_kind == OpKind.REGISTER
@@ -301,9 +281,8 @@ def test_op_kind():
 	assert instr.op3_kind == instr.op_kind(3)
 	assert instr.op4_kind == instr.op_kind(4)
 
-def test_op_register():
-	decoder = Decoder(64, b"\xC4\xE3\x49\x48\xD3\x40")
-	decoder.ip = 0x1234_5678_9ABC_DEF1
+def test_op_register() -> None:
+	decoder = Decoder(64, b"\xC4\xE3\x49\x48\xD3\x40", ip=0x1234_5678_9ABC_DEF1)
 	instr = decoder.decode()
 	assert instr.op0_kind == OpKind.REGISTER
 	assert instr.op1_kind == OpKind.REGISTER
@@ -363,9 +342,8 @@ def test_op_register():
 	assert instr.op_register(3) == Register.XMM11
 	assert instr.op_register(4) == Register.NONE
 
-def test_mem():
-	decoder = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41")
-	decoder.ip = 0x1234_5678_9ABC_DEF1
+def test_mem() -> None:
+	decoder = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41", ip=0x1234_5678_9ABC_DEF1)
 	instr = decoder.decode()
 
 	assert not instr.has_segment_prefix
@@ -418,7 +396,17 @@ def test_mem():
 	instr.memory_index = Register.XMM13
 	assert instr.memory_index == Register.XMM13
 
-def test_imm8():
+	instr.code = Code.MVEX_VMOVAPD_ZMM_K1_ZMMMT
+
+	assert not instr.is_mvex_eviction_hint
+	instr.is_mvex_eviction_hint = True
+	assert instr.is_mvex_eviction_hint
+
+	assert instr.mvex_reg_mem_conv == MvexRegMemConv.NONE
+	instr.mvex_reg_mem_conv = MvexRegMemConv.REG_SWIZZLE_CDAB
+	assert instr.mvex_reg_mem_conv == MvexRegMemConv.REG_SWIZZLE_CDAB
+
+def test_imm8() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE8
 	instr.immediate8 = 0xFE
@@ -437,7 +425,7 @@ def test_imm8():
 	assert instr.immediate8 == 0xFE
 	assert instr.immediate(0) == 0xFE
 
-def test_imm8_2nd():
+def test_imm8_2nd() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE8_2ND
 	instr.immediate8_2nd = 0xFE
@@ -456,7 +444,7 @@ def test_imm8_2nd():
 	assert instr.immediate8_2nd == 0xFE
 	assert instr.immediate(0) == 0xFE
 
-def test_imm16():
+def test_imm16() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE16
 	instr.immediate16 = 0xFEDC
@@ -475,7 +463,7 @@ def test_imm16():
 	assert instr.immediate16 == 0xFEDC
 	assert instr.immediate(0) == 0xFEDC
 
-def test_imm32():
+def test_imm32() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE32
 	instr.immediate32 = 0xFEDC_BA98
@@ -494,7 +482,7 @@ def test_imm32():
 	assert instr.immediate32 == 0xFEDC_BA98
 	assert instr.immediate(0) == 0xFEDC_BA98
 
-def test_imm64():
+def test_imm64() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE64
 	instr.immediate64 = 0xFEDC_BA98_7654_3219
@@ -513,7 +501,7 @@ def test_imm64():
 	assert instr.immediate64 == 0xFEDC_BA98_7654_3219
 	assert instr.immediate(0) == 0xFEDC_BA98_7654_3219
 
-def test_imm8to16():
+def test_imm8to16() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE8TO16
 	instr.immediate8to16 = -0x12
@@ -535,7 +523,7 @@ def test_imm8to16():
 	assert instr.immediate8to16 == 0x12
 	assert instr.immediate(0) == 0x12
 
-def test_imm8to32():
+def test_imm8to32() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE8TO32
 	instr.immediate8to32 = -0x12
@@ -557,7 +545,7 @@ def test_imm8to32():
 	assert instr.immediate8to32 == 0x12
 	assert instr.immediate(0) == 0x12
 
-def test_imm8to64():
+def test_imm8to64() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE8TO64
 	instr.immediate8to64 = -0x12
@@ -579,7 +567,7 @@ def test_imm8to64():
 	assert instr.immediate8to64 == 0x12
 	assert instr.immediate(0) == 0x12
 
-def test_imm32to64():
+def test_imm32to64() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.IMMEDIATE32TO64
 	instr.immediate32to64 = -0x1234_5678
@@ -601,7 +589,7 @@ def test_imm32to64():
 	assert instr.immediate32to64 == 0x1234_5678
 	assert instr.immediate(0) == 0x1234_5678
 
-def test_near_br16():
+def test_near_br16() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.NEAR_BRANCH16
 	instr.near_branch16 = 0xFEDC
@@ -611,7 +599,7 @@ def test_near_br16():
 	assert instr.near_branch16 == 0x1234
 	assert instr.near_branch_target == 0x1234
 
-def test_near_br32():
+def test_near_br32() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.NEAR_BRANCH32
 	instr.near_branch32 = 0xFEDC_BA98
@@ -621,7 +609,7 @@ def test_near_br32():
 	assert instr.near_branch32 == 0x1234_5678
 	assert instr.near_branch_target == 0x1234_5678
 
-def test_near_br64():
+def test_near_br64() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.NEAR_BRANCH64
 	instr.near_branch64 = 0xFEDC_BA98_7654_321F
@@ -631,7 +619,7 @@ def test_near_br64():
 	assert instr.near_branch64 == 0x1234_5678_9ABC_DEF1
 	assert instr.near_branch_target == 0x1234_5678_9ABC_DEF1
 
-def test_far_br16():
+def test_far_br16() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.FAR_BRANCH16
 	instr.far_branch16 = 0x1234
@@ -643,7 +631,7 @@ def test_far_br16():
 	assert instr.far_branch16 == 0xABCD
 	assert instr.far_branch_selector == 0x1234
 
-def test_far_br32():
+def test_far_br32() -> None:
 	instr = Instruction()
 	instr.op0_kind = OpKind.FAR_BRANCH32
 	instr.far_branch32 = 0x1234_5678
@@ -660,7 +648,7 @@ def test_far_br32():
 	[0x12, 0x34],
 	[0x12, 0x34, 0x56, 0x78, 0x9A, 0xBC, 0xDE, 0xF0, 0x11, 0x22, 0x33, 0x44, 0x55, 0x66, 0x77, 0x88],
 ])
-def test_db_u(data):
+def test_db_u(data: List[int]) -> None:
 	assert 1 <= len(data) <= 16
 	instr = Instruction()
 	instr.code = Code.DECLAREBYTE
@@ -676,7 +664,7 @@ def test_db_u(data):
 	[0x12, 0x34],
 	[0x12, 0x34, 0x56, 0x78, -0x12, -0x34, -0x56, -0x78, 0x11, 0x22, 0x33, 0x44, -0x11, -0x22, -0x33, -0x44],
 ])
-def test_db_i(data):
+def test_db_i(data: List[int]) -> None:
 	assert 1 <= len(data) <= 16
 	instr = Instruction()
 	instr.code = Code.DECLAREBYTE
@@ -692,7 +680,7 @@ def test_db_i(data):
 	[0x1234, 0x89AB],
 	[0x1234, 0x89AB, 0x4567, 0xCDEF, 0x1122, 0x8899, 0x3344, 0xAABB],
 ])
-def test_dw_u(data):
+def test_dw_u(data: List[int]) -> None:
 	assert 1 <= len(data) <= 8
 	instr = Instruction()
 	instr.code = Code.DECLAREWORD
@@ -708,7 +696,7 @@ def test_dw_u(data):
 	[0x1234, -0x1234],
 	[0x1234, -0x1234, 0x4567, -0x4567, 0x1122, -0x1122, 0x3344, -0x3344],
 ])
-def test_dw_i(data):
+def test_dw_i(data: List[int]) -> None:
 	assert 1 <= len(data) <= 8
 	instr = Instruction()
 	instr.code = Code.DECLAREWORD
@@ -724,7 +712,7 @@ def test_dw_i(data):
 	[0x1234_5678, 0x89AB_CDEF],
 	[0x1234_5678, 0x9ABC_CDEF, 0x1122_3344, 0x8899_AABB],
 ])
-def test_dd_u(data):
+def test_dd_u(data: List[int]) -> None:
 	assert 1 <= len(data) <= 4
 	instr = Instruction()
 	instr.code = Code.DECLAREDWORD
@@ -740,7 +728,7 @@ def test_dd_u(data):
 	[0x1234_5678, -0x1234_5678],
 	[0x1234_5678, -0x1234_5678, 0x1122_3344, -0x1122_3344],
 ])
-def test_dd_i(data):
+def test_dd_i(data: List[int]) -> None:
 	assert 1 <= len(data) <= 4
 	instr = Instruction()
 	instr.code = Code.DECLAREDWORD
@@ -755,7 +743,7 @@ def test_dd_i(data):
 	[0x1234_5678_9ABC_DEF0],
 	[0x1234_5678_9ABC_DEF0, 0xABCD_EF01_2345_6789],
 ])
-def test_dq_u(data):
+def test_dq_u(data: List[int]) -> None:
 	assert 1 <= len(data) <= 2
 	instr = Instruction()
 	instr.code = Code.DECLAREQWORD
@@ -770,7 +758,7 @@ def test_dq_u(data):
 	[0x1234_5678_9ABC_DEF0],
 	[0x1234_5678_9ABC_DEF0, -0x1234_5678_9ABC_DEF0],
 ])
-def test_dq_i(data):
+def test_dq_i(data: List[int]) -> None:
 	assert 1 <= len(data) <= 2
 	instr = Instruction()
 	instr.code = Code.DECLAREQWORD
@@ -786,7 +774,7 @@ def test_dq_i(data):
 	(64, b"\xC4\xE2\x49\x90\x54\xA1\x01", 32),
 	(64, b"\xC4\xE2\x49\x91\x54\xA1\x01", 64),
 ])
-def test_vsib(bitness, data, vsib):
+def test_vsib(bitness: int, data: bytes, vsib: int) -> None:
 	instr = Decoder(bitness, data).decode()
 	if vsib == 0:
 		assert instr.vsib is None
@@ -806,9 +794,8 @@ def test_vsib(bitness, data, vsib):
 	else:
 		raise ValueError(f"Invalid vsib value: {vsib}")
 
-def test_ip_rel_addr():
-	decoder = Decoder(64, b"\x00\x00" b"\x01\x35\x34\x12\x5A\xA5" b"\x67\x01\x35\x34\x12\x5A\xA5")
-	decoder.ip = 0x1234_5678_9ABC_DEF0
+def test_ip_rel_addr() -> None:
+	decoder = Decoder(64, b"\x00\x00" b"\x01\x35\x34\x12\x5A\xA5" b"\x67\x01\x35\x34\x12\x5A\xA5", ip=0x1234_5678_9ABC_DEF0)
 
 	instr = decoder.decode()
 	assert not instr.is_ip_rel_memory_operand
@@ -821,7 +808,7 @@ def test_ip_rel_addr():
 	assert instr.is_ip_rel_memory_operand
 	assert instr.ip_rel_memory_address == 0x4016_F133
 
-def test_sp_inc():
+def test_sp_inc() -> None:
 	decoder = Decoder(64, b"\x90\x56\x5E")
 
 	instr = decoder.decode()
@@ -836,32 +823,33 @@ def test_sp_inc():
 	assert instr.is_stack_instruction
 	assert instr.stack_pointer_increment == 8
 
-@pytest.mark.parametrize("bitness, data, encoding", [
-	(64, b"\x56", EncodingKind.LEGACY),
-	(64, b"\xC5\xF8\x10\x10", EncodingKind.VEX),
-	(64, b"\x62\xF1\x7C\x08\x10\x50\x01", EncodingKind.EVEX),
-	(64, b"\x8F\xE8\x48\x85\x10\x40", EncodingKind.XOP),
-	(64, b"\x0F\x0F\x88\x34\x12\x5A\xA5\x0C", EncodingKind.D3NOW),
+@pytest.mark.parametrize("bitness, data, encoding, options", [
+	(64, b"\x56", EncodingKind.LEGACY, DecoderOptions.NONE),
+	(64, b"\xC5\xF8\x10\x10", EncodingKind.VEX, DecoderOptions.NONE),
+	(64, b"\x62\xF1\x7C\x08\x10\x50\x01", EncodingKind.EVEX, DecoderOptions.NONE),
+	(64, b"\x8F\xE8\x48\x85\x10\x40", EncodingKind.XOP, DecoderOptions.NONE),
+	(64, b"\x0F\x0F\x88\x34\x12\x5A\xA5\x0C", EncodingKind.D3NOW, DecoderOptions.NONE),
+	(64, b"\x62\xF2\x49\x0D\x6F\x50\x01", EncodingKind.MVEX, DecoderOptions.KNC),
 ])
-def test_encoding(bitness, data, encoding):
-	instr = Decoder(bitness, data).decode()
+def test_encoding(bitness: int, data: bytes, encoding: EncodingKind_, options: DecoderOptions_) -> None:
+	instr = Decoder(bitness, data, options).decode()
 	assert instr.encoding == encoding
 
-def test_cpuid_features():
+def test_cpuid_features() -> None:
 	instr = Decoder(64, b"\x62\xF1\x7C\x08\x10\x50\x01").decode()
 	cpuid_features = instr.cpuid_features()
-	assert type(cpuid_features) == list
+	assert isinstance(cpuid_features, list)
 	assert len(cpuid_features) == 2
 	assert set(cpuid_features) == set([CpuidFeature.AVX512VL, CpuidFeature.AVX512F])
 
-def test_cflow():
+def test_cflow() -> None:
 	decoder = Decoder(64, b"\x90\xCC\x70\x00")
 
 	assert decoder.decode().flow_control == FlowControl.NEXT
 	assert decoder.decode().flow_control == FlowControl.INTERRUPT
 	assert decoder.decode().flow_control == FlowControl.CONDITIONAL_BRANCH
 
-def test_rflags():
+def test_rflags() -> None:
 	decoder = Decoder(64, b"\x33\xC0")
 	instr = decoder.decode()
 
@@ -872,7 +860,7 @@ def test_rflags():
 	assert instr.rflags_undefined == RflagsBits.AF
 	assert instr.rflags_modified == RflagsBits.OF | RflagsBits.SF | RflagsBits.ZF | RflagsBits.AF | RflagsBits.CF | RflagsBits.PF
 
-def test_br_checks():
+def test_br_checks() -> None:
 	instr = Decoder(64, b"\x70\x00").decode()
 	assert instr.is_jcc_short_or_near
 	assert instr.is_jcc_short
@@ -932,14 +920,47 @@ def test_br_checks():
 	assert not instr.is_jmp_near_indirect
 	assert instr.is_call_near_indirect
 
-def test_condition_code():
+	instr = Decoder(64, b"\xC4\xE0\x78\x74\x5A", DecoderOptions.KNC).decode()
+	assert instr.is_jkcc_short_or_near
+	assert instr.is_jkcc_short
+	assert not instr.is_jkcc_near
+
+	instr = Decoder(64, b"\xC5\xF8\x84\x5A\xA5\x12\x34", DecoderOptions.KNC).decode()
+	assert instr.is_jkcc_short_or_near
+	assert not instr.is_jkcc_short
+	assert instr.is_jkcc_near
+
+	instr = Decoder(64, b"\xE0\x5A").decode()
+	assert not instr.is_jcx_short
+	assert instr.is_loopcc
+	assert not instr.is_loop
+
+	instr = Decoder(64, b"\xE2\x5A").decode()
+	assert not instr.is_jcx_short
+	assert not instr.is_loopcc
+	assert instr.is_loop
+
+	instr = Decoder(64, b"\xE3\x5A").decode()
+	assert instr.is_jcx_short
+	assert not instr.is_loopcc
+	assert not instr.is_loop
+
+def test_condition_code() -> None:
 	instr = Decoder(64, b"\x70\x00").decode()
 
 	assert instr.condition_code == ConditionCode.O
 	instr.negate_condition_code()
 	assert instr.condition_code == ConditionCode.NO
 
-def test_short_near_br():
+def test_string_instruction() -> None:
+	decoder = Decoder(64, b"\xA4\x90")
+	instr1 = decoder.decode()
+	instr2 = decoder.decode()
+
+	assert instr1.is_string_instruction
+	assert not instr2.is_string_instruction
+
+def test_short_near_br() -> None:
 	instr = Decoder(64, b"\x70\x00").decode()
 
 	assert instr.code == Code.JO_REL8_64
@@ -950,23 +971,23 @@ def test_short_near_br():
 	instr.as_near_branch()
 	assert instr.code == Code.JO_REL32_64
 
-def test_op_code():
+def test_op_code() -> None:
 	instr = Decoder(64, b"\x70\x00").decode()
 	idef1 = instr.op_code()
 	assert idef1.code == Code.JO_REL8_64
 	assert idef1 == OpCodeInfo(Code.JO_REL8_64)
 
-def test_repr_str():
+def test_repr_str() -> None:
 	instr = Decoder(64, b"\x48\x05\xA5\x5A\x34\x82").decode()
 	assert repr(instr) == "add rax,0FFFFFFFF82345AA5h"
 	assert str(instr) == "add rax,0FFFFFFFF82345AA5h"
 
-def test_format():
-	decoder = Decoder(64, b"\x48\x05\xA5\x5A\x34\x82" b"\x48\x8B\x05\x88\xA9\xCB\xED" b"\x70\x00")
-	decoder.ip = 0x1234_5678_9ABC_DEF0
+def test_format() -> None:
+	decoder = Decoder(64, b"\x48\x05\xA5\x5A\x34\x82" b"\x48\x8B\x05\x88\xA9\xCB\xED" b"\x70\x00", ip=0x1234_5678_9ABC_DEF0)
 
 	instr = decoder.decode()
 	assert f"{instr}" == "add rax,0FFFFFFFF82345AA5h"
+	assert f"{instr:}" == "add rax,0FFFFFFFF82345AA5h"
 	assert f"{instr:f}" == "add rax,0FFFFFFFF82345AA5h"
 	assert f"{instr:g}" == "add $0xFFFFFFFF82345AA5,%rax"
 	assert f"{instr:i}" == "add rax,0FFFFFFFF82345AA5h"
@@ -992,30 +1013,30 @@ def test_format():
 	assert f"{instr}" == "jo short 123456789ABCDEFFh"
 	assert f"{instr:B}" == "jo 123456789ABCDEFFh"
 
-def test_format_raise():
+def test_format_raise() -> None:
 	instr = Decoder(64, b"\x48\x05\xA5\x5A\x34\x82").decode()
 	with pytest.raises(ValueError):
 		f"{instr:!}"
 
-def test_op_kind_raise():
+def test_op_kind_raise() -> None:
 	instr = Instruction()
 	with pytest.raises(ValueError):
 		instr.op_kind(100)
 	with pytest.raises(ValueError):
 		instr.set_op_kind(100, OpKind.REGISTER)
 	with pytest.raises(ValueError):
-		instr.set_op_kind(0, 12345)
+		instr.set_op_kind(0, 12345) # type: ignore
 
-def test_op_register_raise():
+def test_op_register_raise_1() -> None:
 	instr = Instruction()
 	with pytest.raises(ValueError):
 		instr.op_register(100)
 	with pytest.raises(ValueError):
 		instr.set_op_register(100, Register.RAX)
 	with pytest.raises(ValueError):
-		instr.set_op_register(0, 12345)
+		instr.set_op_register(0, 12345) # type: ignore
 
-def test_immediate_raise():
+def test_immediate_raise() -> None:
 	instr = Instruction()
 
 	not_imm_op_kinds = [
@@ -1034,7 +1055,6 @@ def test_immediate_raise():
 		OpKind.MEMORY_ESDI,
 		OpKind.MEMORY_ESEDI,
 		OpKind.MEMORY_ESRDI,
-		OpKind.MEMORY64,
 		OpKind.MEMORY,
 	]
 
@@ -1083,7 +1103,7 @@ def test_immediate_raise():
 	with pytest.raises(ValueError):
 		instr.set_immediate_u64(100, 0)
 
-def test_db_raise():
+def test_db_raise() -> None:
 	instr = Instruction()
 	instr.code = Code.DECLAREBYTE
 	NUM = 16
@@ -1100,7 +1120,7 @@ def test_db_raise():
 	with pytest.raises(ValueError):
 		instr.get_declare_byte_value_i8(NUM)
 
-def test_dw_raise():
+def test_dw_raise() -> None:
 	instr = Instruction()
 	instr.code = Code.DECLAREWORD
 	NUM = 8
@@ -1117,7 +1137,7 @@ def test_dw_raise():
 	with pytest.raises(ValueError):
 		instr.get_declare_word_value_i16(NUM)
 
-def test_dd_raise():
+def test_dd_raise() -> None:
 	instr = Instruction()
 	instr.code = Code.DECLAREDWORD
 	NUM = 4
@@ -1134,7 +1154,7 @@ def test_dd_raise():
 	with pytest.raises(ValueError):
 		instr.get_declare_dword_value_i32(NUM)
 
-def test_dq_raise():
+def test_dq_raise() -> None:
 	instr = Instruction()
 	instr.code = Code.DECLAREQWORD
 	NUM = 2
@@ -1151,88 +1171,129 @@ def test_dq_raise():
 	with pytest.raises(ValueError):
 		instr.get_declare_qword_value_i64(NUM)
 
-def test_code_size_raise():
+def test_code_size_raise() -> None:
 	instr = Instruction()
 	instr.code_size = CodeSize.CODE64
 	with pytest.raises(ValueError):
-		instr.code_size = 1234
+		instr.code_size = 1234 # type: ignore
 
-def test_code_raise():
+def test_code_raise() -> None:
 	instr = Instruction()
 	instr.code = Code.EVEX_VAESENCLAST_ZMM_ZMM_ZMMM512
 	with pytest.raises(ValueError):
-		instr.code = 10000
+		instr.code = 10000 # type: ignore
 
-def test_segment_prefix_raise():
+def test_segment_prefix_raise() -> None:
 	instr = Instruction()
 	instr.segment_prefix = Register.FS
 	with pytest.raises(ValueError):
-		instr.segment_prefix = 1234
+		instr.segment_prefix = 1234 # type: ignore
 
-def test_memory_base_raise():
+def test_memory_base_raise() -> None:
 	instr = Instruction()
 	instr.memory_base = Register.RAX
 	with pytest.raises(ValueError):
-		instr.memory_base = 1234
+		instr.memory_base = 1234 # type: ignore
 
-def test_memory_index_raise():
+def test_memory_index_raise() -> None:
 	instr = Instruction()
 	instr.memory_index = Register.RAX
 	with pytest.raises(ValueError):
-		instr.memory_index = 1234
+		instr.memory_index = 1234 # type: ignore
 
-def test_op_register_raise():
+def test_op_register_raise_2() -> None:
 	instr = Instruction()
 
 	instr.op0_register = Register.RAX
 	with pytest.raises(ValueError):
-		instr.op0_register = 1234
+		instr.op0_register = 1234 # type: ignore
 
 	instr.set_op_register(0, Register.RAX)
 	with pytest.raises(ValueError):
-		instr.set_op_register(0, 1234)
+		instr.set_op_register(0, 1234) # type: ignore
 
 	instr.op1_register = Register.RAX
 	with pytest.raises(ValueError):
-		instr.op1_register = 1234
+		instr.op1_register = 1234 # type: ignore
 
 	instr.set_op_register(1, Register.RAX)
 	with pytest.raises(ValueError):
-		instr.set_op_register(1, 1234)
+		instr.set_op_register(1, 1234) # type: ignore
 
 	instr.op2_register = Register.RAX
 	with pytest.raises(ValueError):
-		instr.op2_register = 1234
+		instr.op2_register = 1234 # type: ignore
 
 	instr.set_op_register(2, Register.RAX)
 	with pytest.raises(ValueError):
-		instr.set_op_register(2, 1234)
+		instr.set_op_register(2, 1234) # type: ignore
 
 	instr.op3_register = Register.RAX
 	with pytest.raises(ValueError):
-		instr.op3_register = 1234
+		instr.op3_register = 1234 # type: ignore
 
 	instr.set_op_register(3, Register.RAX)
 	with pytest.raises(ValueError):
-		instr.set_op_register(3, 1234)
+		instr.set_op_register(3, 1234) # type: ignore
 
 	instr.op4_register = Register.NONE
 	with pytest.raises(ValueError):
-		instr.op4_register = 1234
+		instr.op4_register = 1234 # type: ignore
 
 	instr.set_op_register(4, Register.NONE)
 	with pytest.raises(ValueError):
-		instr.set_op_register(4, 1234)
+		instr.set_op_register(4, 1234) # type: ignore
 
-def test_op_mask_raise():
+def test_op_mask_raise() -> None:
 	instr = Instruction()
 	instr.op_mask = Register.K1
 	with pytest.raises(ValueError):
-		instr.op_mask = 1234
+		instr.op_mask = 1234 # type: ignore
 
-def test_fpu_stack_increment_info():
+def test_fpu_stack_increment_info() -> None:
 	instr = Decoder(64, b"\xDA\x18").decode()
 	info = instr.fpu_stack_increment_info()
 	assert info.increment == 1
 	assert not info.conditional
 	assert info.writes_top
+
+@pytest.mark.parametrize("bitness, data", [
+	(32, b"\xC4\xE3\x49\x48\x10\x41"),
+	(64, b"\x62\x92\x7D\x01\xA0\xB4\xF4\x34\x12\x5A\xA5"),
+	(64, b"\xC4\xE3\x49\x48\xD3\x40"),
+])
+def test_pickle(bitness: int, data: bytes) -> None:
+	decoder = Decoder(bitness, data, ip=0x1234_5678_9ABC_DEF1)
+	instr = decoder.decode()
+	assert not instr.is_invalid
+	assert not decoder.can_decode
+
+	dump = pickle.dumps(instr)
+	instr2 = pickle.loads(dump)
+	assert instr.eq_all_bits(instr2)
+
+def test_pickle_db() -> None:
+	instr = Instruction.create_declare_byte(b"\x9E\x75\x1F\x88\xE7\x24\x11\xEB\x96\x4D\x17\x08\x2E\x83\x5B\xA5")
+	assert instr.declare_data_len == 16
+	dump = pickle.dumps(instr)
+	instr2 = pickle.loads(dump)
+	assert instr.eq_all_bits(instr2)
+
+def test_unpickle_bytearray() -> None:
+	decoder = Decoder(64, b"\x62\x92\x7D\x01\xA0\xB4\xF4\x34\x12\x5A\xA5", ip=0x1234_5678_9ABC_DEF1)
+	instr = decoder.decode()
+	dump = pickle.dumps(instr)
+	instr2 = pickle.loads(bytearray(dump))
+	assert instr.eq_all_bits(instr2)
+
+def test_pickle_invalid_data() -> None:
+	with pytest.raises(EOFError):
+		pickle.loads(b"")
+	instr = Instruction.create(Code.AAA)
+	data = pickle.dumps(instr)
+	invalid_data = bytearray([0xFF for b in data])
+	# KeyError if PyPy
+	with pytest.raises((pickle.UnpicklingError, KeyError)):
+		pickle.loads(invalid_data)
+	with pytest.raises((pickle.UnpicklingError, KeyError)):
+		pickle.loads(bytes(invalid_data))

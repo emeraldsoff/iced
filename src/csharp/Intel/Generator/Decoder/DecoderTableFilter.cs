@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -44,6 +24,7 @@ namespace Generator.Decoder {
 		readonly object[] invalidHandler;
 		readonly object[] invalidNoModrmHandler;
 		readonly List<string> removedNames;
+		readonly EnumValue[] prefixes;
 
 		public DecoderTableFilter(GenTypes genTypes, HashSet<EnumValue> filteredCodeValues, (string name, object?[] handlers)[] infos, EncodingKind encoding) {
 			this.genTypes = genTypes;
@@ -53,15 +34,25 @@ namespace Generator.Decoder {
 
 			switch (encoding) {
 			case EncodingKind.Legacy:
-				handlerKindType = genTypes[TypeIds.OpCodeHandlerKind];
-				invalid = handlerKindType[nameof(OpCodeHandlerKind.Invalid)];
-				invalid_NoModRM = handlerKindType[nameof(OpCodeHandlerKind.Invalid_NoModRM)];
-				handlerKind_d3now = handlerKindType[nameof(OpCodeHandlerKind.D3NOW)];
-				handlerKind_wbinvd = handlerKindType[nameof(OpCodeHandlerKind.Wbinvd)];
-				groupKind = handlerKindType[nameof(OpCodeHandlerKind.Group)];
-				group8x64Kind = handlerKindType[nameof(OpCodeHandlerKind.Group8x64)];
-				group8x8Kind = handlerKindType[nameof(OpCodeHandlerKind.Group8x8)];
-				noModrmHandlers = new[] { handlerKindType[nameof(OpCodeHandlerKind.MandatoryPrefix_NoModRM)] };
+				handlerKindType = genTypes[TypeIds.LegacyOpCodeHandlerKind];
+				invalid = handlerKindType[nameof(LegacyOpCodeHandlerKind.Invalid)];
+				invalid_NoModRM = handlerKindType[nameof(LegacyOpCodeHandlerKind.Invalid_NoModRM)];
+				handlerKind_d3now = handlerKindType[nameof(LegacyOpCodeHandlerKind.D3NOW)];
+				handlerKind_wbinvd = handlerKindType[nameof(LegacyOpCodeHandlerKind.Wbinvd)];
+				groupKind = handlerKindType[nameof(LegacyOpCodeHandlerKind.Group)];
+				group8x64Kind = handlerKindType[nameof(LegacyOpCodeHandlerKind.Group8x64)];
+				group8x8Kind = handlerKindType[nameof(LegacyOpCodeHandlerKind.Group8x8)];
+				noModrmHandlers = new[] { handlerKindType[nameof(LegacyOpCodeHandlerKind.MandatoryPrefix_NoModRM)] };
+				prefixes = new[] {
+					handlerKindType[nameof(LegacyOpCodeHandlerKind.PrefixEsCsSsDs)],
+					handlerKindType[nameof(LegacyOpCodeHandlerKind.PrefixFsGs)],
+					handlerKindType[nameof(LegacyOpCodeHandlerKind.Prefix66)],
+					handlerKindType[nameof(LegacyOpCodeHandlerKind.Prefix67)],
+					handlerKindType[nameof(LegacyOpCodeHandlerKind.PrefixF0)],
+					handlerKindType[nameof(LegacyOpCodeHandlerKind.PrefixF2)],
+					handlerKindType[nameof(LegacyOpCodeHandlerKind.PrefixF3)],
+					handlerKindType[nameof(LegacyOpCodeHandlerKind.PrefixREX)],
+				};
 				break;
 
 			case EncodingKind.VEX:
@@ -78,6 +69,7 @@ namespace Generator.Decoder {
 					handlerKindType[nameof(VexOpCodeHandlerKind.MandatoryPrefix2_NoModRM)],
 					handlerKindType[nameof(VexOpCodeHandlerKind.VectorLength_NoModRM)],
 				};
+				prefixes = Array.Empty<EnumValue>();
 				break;
 
 			case EncodingKind.EVEX:
@@ -90,6 +82,20 @@ namespace Generator.Decoder {
 				group8x64Kind = null;
 				group8x8Kind = null;
 				noModrmHandlers = Array.Empty<EnumValue>();
+				prefixes = Array.Empty<EnumValue>();
+				break;
+
+			case EncodingKind.MVEX:
+				handlerKindType = genTypes[TypeIds.MvexOpCodeHandlerKind];
+				invalid = handlerKindType[nameof(MvexOpCodeHandlerKind.Invalid)];
+				invalid_NoModRM = invalid;
+				handlerKind_d3now = null;
+				handlerKind_wbinvd = null;
+				groupKind = handlerKindType[nameof(MvexOpCodeHandlerKind.Group)];
+				group8x64Kind = null;
+				group8x8Kind = null;
+				noModrmHandlers = Array.Empty<EnumValue>();
+				prefixes = Array.Empty<EnumValue>();
 				break;
 
 			case EncodingKind.D3NOW:
@@ -243,6 +249,10 @@ namespace Generator.Decoder {
 		bool CanReplaceHandlerWithInvalid(object?[] handler) {
 			if (handler[0] == invalid || handler[0] == invalid_NoModRM)
 				return false;
+			foreach (var prefix in prefixes) {
+				if (prefix == handler[0])
+					return false;
+			}
 			bool foundInvalidHandler = false;
 			bool otherArgs = false;
 			for (int i = 1; i < handler.Length; i++) {

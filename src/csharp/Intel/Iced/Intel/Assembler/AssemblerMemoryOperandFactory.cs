@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && BLOCK_ENCODER && CODE_ASSEMBLER
 using System.ComponentModel;
@@ -29,13 +9,13 @@ namespace Iced.Intel {
 	/// Memory operand factory.
 	/// </summary>
 	[EditorBrowsable(EditorBrowsableState.Never)]
-	public readonly partial struct AssemblerMemoryOperandFactory {
+	public readonly struct AssemblerMemoryOperandFactory {
 		/// <summary>
 		/// Creates a new instance.
 		/// </summary>
 		/// <param name="size">Size of this memory operand.</param>
 		internal AssemblerMemoryOperandFactory(MemoryOperandSize size) {
-			Prefix = Register.None;
+			Segment = Register.None;
 			Size = size;
 			Flags = AssemblerOperandFlags.None;
 		}
@@ -44,11 +24,11 @@ namespace Iced.Intel {
 		/// Creates a new instance.
 		/// </summary>
 		/// <param name="size">Size of this memory operand.</param>
-		/// <param name="prefix">Register prefix</param>
+		/// <param name="segment">Segment register</param>
 		/// <param name="flags">Flags</param>
-		internal AssemblerMemoryOperandFactory(MemoryOperandSize size, Register prefix, AssemblerOperandFlags flags) {
+		internal AssemblerMemoryOperandFactory(MemoryOperandSize size, Register segment, AssemblerOperandFlags flags) {
 			Size = size;
-			Prefix = prefix;
+			Segment = segment;
 			Flags = flags;
 		}
 
@@ -58,9 +38,9 @@ namespace Iced.Intel {
 		internal readonly MemoryOperandSize Size;
 
 		/// <summary>
-		/// Prefix register.
+		/// Segment register.
 		/// </summary>
-		internal readonly Register Prefix;
+		internal readonly Register Segment;
 
 		/// <summary>
 		/// Gets the mask associated with this operand.
@@ -101,24 +81,42 @@ namespace Iced.Intel {
 		/// Specify the content of the memory operand (Base + Index * Scale + Displacement).
 		/// </summary>
 		/// <param name="operand">Size of this memory operand.</param>
-		public AssemblerMemoryOperand this[AssemblerMemoryOperand operand] => new AssemblerMemoryOperand(Size, Prefix, operand.Base, operand.Index, operand.Scale, operand.Displacement, Flags);
+		public AssemblerMemoryOperand this[AssemblerMemoryOperand operand] => new AssemblerMemoryOperand(Size, Segment, operand.Base, operand.Index, operand.Scale, operand.Displacement, Flags);
 
 		/// <summary>
 		/// Specify a long offset displacement.
 		/// </summary>
 		/// <param name="offset">Offset of this memory operand.</param>
-		public AssemblerMemoryOperand this[long offset] => new AssemblerMemoryOperand(Size, Prefix, Register.None, Register.None, 1, offset, Flags);
+		public AssemblerMemoryOperand this[long offset] => new AssemblerMemoryOperand(Size, Segment, Register.None, Register.None, 1, offset, Flags);
 
 		/// <summary>
 		/// Specify a ulong offset displacement.
 		/// </summary>
 		/// <param name="offset">Offset of this memory operand.</param>
-		public AssemblerMemoryOperand this[ulong offset] => new AssemblerMemoryOperand(Size, Prefix, Register.None, Register.None, 1, (long)offset, Flags);
+		public AssemblerMemoryOperand this[ulong offset] => new AssemblerMemoryOperand(Size, Segment, Register.None, Register.None, 1, (long)offset, Flags);
 
 		/// <summary>
 		/// Specify a memory operand with a label.
 		/// </summary>
-		public AssemblerMemoryOperand this[Label label] => new AssemblerMemoryOperand(Size, Prefix, Register.RIP, Register.None, 1, (long)label.Id, Flags);
+		public AssemblerMemoryOperand this[Label label] => new AssemblerMemoryOperand(Size, Segment, Register.RIP, Register.None, 1, (long)label.Id, Flags);
+
+		/// <summary>
+		/// Specify a base register used with this memory operand (Base + Index * Scale + Displacement)
+		/// </summary>
+		/// <param name="register">Size of this memory operand.</param>
+		public AssemblerMemoryOperand this[AssemblerRegister16 register] => new AssemblerMemoryOperand(Size, Segment, register, Register.None, 1, 0, Flags);
+
+		/// <summary>
+		/// Specify a base register used with this memory operand (Base + Index * Scale + Displacement)
+		/// </summary>
+		/// <param name="register">Size of this memory operand.</param>
+		public AssemblerMemoryOperand this[AssemblerRegister32 register] => new AssemblerMemoryOperand(Size, Segment, register, Register.None, 1, 0, Flags);
+
+		/// <summary>
+		/// Specify a base register used with this memory operand (Base + Index * Scale + Displacement)
+		/// </summary>
+		/// <param name="register">Size of this memory operand.</param>
+		public AssemblerMemoryOperand this[AssemblerRegister64 register] => new AssemblerMemoryOperand(Size, Segment, register, Register.None, 1, 0, Flags);
 	}
 }
 #endif

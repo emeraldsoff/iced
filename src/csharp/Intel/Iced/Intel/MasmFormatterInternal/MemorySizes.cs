@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if MASM
 using System;
@@ -87,6 +67,7 @@ namespace Iced.Intel.MasmFormatterInternal {
 			var zmmword_ptr = new[] { zmmword, ptr };
 			var mem384 = new FormatterString("mem384");
 			var mem384_ptr = new[] { mem384, ptr };
+			var word_bcst = new[] { word, bcst };
 			var mmword = new FormatterString("mmword");
 			var mmword_ptr = new[] { mmword, ptr };
 			var sizes = new ushort[] {
@@ -173,6 +154,7 @@ namespace Iced.Intel.MasmFormatterInternal {
 				0x0063,
 				0x0063,
 				0x0063,
+				0x0063,
 				0x00AB,
 				0x00AB,
 				0x00AB,
@@ -194,6 +176,10 @@ namespace Iced.Intel.MasmFormatterInternal {
 				0x010E,
 				0x010E,
 				0x010E,
+				0x010E,
+				0x010E,
+				0x014F,
+				0x014F,
 				0x014F,
 				0x014F,
 				0x014F,
@@ -223,41 +209,57 @@ namespace Iced.Intel.MasmFormatterInternal {
 				0x0190,
 				0x0190,
 				0x0190,
+				0x0190,
+				0x0190,
+				0x0052,
 				0x0062,
 				0x0062,
+				0x0052,
 				0x0062,
-				0x0062,
-				0x0062,
-				0x00AA,
-				0x00AA,
-				0x00AA,
-				0x0062,
-				0x00AA,
-				0x0062,
-				0x0062,
-				0x00AA,
-				0x00AA,
-				0x00AA,
-				0x0062,
-				0x00AA,
+				0x0052,
+				0x0052,
 				0x0062,
 				0x0062,
 				0x00AA,
 				0x00AA,
 				0x00AA,
+				0x0052,
 				0x0062,
 				0x00AA,
 				0x0062,
-				0x0062,
-				0x0062,
-				0x00AA,
-				0x00AA,
-				0x00AA,
-				0x00AA,
 				0x00AA,
 				0x00AA,
 				0x0062,
 				0x0062,
+				0x0052,
+				0x0052,
+				0x0062,
+				0x0062,
+				0x00AA,
+				0x00AA,
+				0x00AA,
+				0x0052,
+				0x0062,
+				0x00AA,
+				0x0062,
+				0x00AA,
+				0x00AA,
+				0x0062,
+				0x0062,
+				0x0052,
+				0x0052,
+				0x0062,
+				0x0062,
+				0x00AA,
+				0x00AA,
+				0x00AA,
+				0x0052,
+				0x0062,
+				0x00AA,
+				0x0062,
+				0x0062,
+				0x00AA,
+				0x00AA,
 				0x0062,
 				// GENERATOR-END: MemorySizes
 			};
@@ -285,6 +287,7 @@ namespace Iced.Intel.MasmFormatterInternal {
 					0x0F => ymmword_ptr,
 					0x10 => zmmword_ptr,
 					0x11 => mem384_ptr,
+					0x12 => word_bcst,
 					// GENERATOR-END: MemoryKeywordsSwitch
 					_ => throw new InvalidOperationException(),
 				};

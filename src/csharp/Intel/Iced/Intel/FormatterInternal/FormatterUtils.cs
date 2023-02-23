@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if GAS || INTEL || MASM || NASM
 using System;
@@ -156,6 +136,8 @@ namespace Iced.Intel.FormatterInternal {
 			case Code.Jmp_rel8_16:
 			case Code.Jmp_rel8_32:
 			case Code.Jmp_rel8_64:
+			case Code.VEX_KNC_Jkzd_kr_rel8_64:
+			case Code.VEX_KNC_Jknzd_kr_rel8_64:
 				return FormatterFlowControl.ShortBranch;
 			case Code.Loopne_rel8_16_CX:
 			case Code.Loopne_rel8_32_CX:
@@ -243,6 +225,8 @@ namespace Iced.Intel.FormatterInternal {
 			case Code.Jg_rel32_64:
 			case Code.Jmpe_disp16:
 			case Code.Jmpe_disp32:
+			case Code.VEX_KNC_Jkzd_kr_rel32_64:
+			case Code.VEX_KNC_Jknzd_kr_rel32_64:
 				return FormatterFlowControl.NearBranch;
 			case Code.Call_ptr1616:
 			case Code.Call_ptr1632:
@@ -257,91 +241,6 @@ namespace Iced.Intel.FormatterInternal {
 
 			default:
 				throw new InvalidOperationException();
-			}
-		}
-
-		public static bool IsRepeOrRepneInstruction(Code code) {
-			switch (code) {
-			case Code.Cmpsb_m8_m8:
-			case Code.Cmpsw_m16_m16:
-			case Code.Cmpsd_m32_m32:
-			case Code.Cmpsq_m64_m64:
-			case Code.Scasb_AL_m8:
-			case Code.Scasw_AX_m16:
-			case Code.Scasd_EAX_m32:
-			case Code.Scasq_RAX_m64:
-				return true;
-
-			default:
-				return false;
-			}
-		}
-
-		static bool IsRepRepeRepneInstruction(Code code) {
-			switch (code) {
-			case Code.Insb_m8_DX:
-			case Code.Insw_m16_DX:
-			case Code.Insd_m32_DX:
-			case Code.Outsb_DX_m8:
-			case Code.Outsw_DX_m16:
-			case Code.Outsd_DX_m32:
-			case Code.Movsb_m8_m8:
-			case Code.Movsw_m16_m16:
-			case Code.Movsd_m32_m32:
-			case Code.Movsq_m64_m64:
-			case Code.Cmpsb_m8_m8:
-			case Code.Cmpsw_m16_m16:
-			case Code.Cmpsd_m32_m32:
-			case Code.Cmpsq_m64_m64:
-			case Code.Stosb_m8_AL:
-			case Code.Stosw_m16_AX:
-			case Code.Stosd_m32_EAX:
-			case Code.Stosq_m64_RAX:
-			case Code.Lodsb_AL_m8:
-			case Code.Lodsw_AX_m16:
-			case Code.Lodsd_EAX_m32:
-			case Code.Lodsq_RAX_m64:
-			case Code.Scasb_AL_m8:
-			case Code.Scasw_AX_m16:
-			case Code.Scasd_EAX_m32:
-			case Code.Scasq_RAX_m64:
-			case Code.Montmul_16:
-			case Code.Montmul_32:
-			case Code.Montmul_64:
-			case Code.Xsha1_16:
-			case Code.Xsha1_32:
-			case Code.Xsha1_64:
-			case Code.Xsha256_16:
-			case Code.Xsha256_32:
-			case Code.Xsha256_64:
-			case Code.Xstore_16:
-			case Code.Xstore_32:
-			case Code.Xstore_64:
-			case Code.Xcryptecb_16:
-			case Code.Xcryptecb_32:
-			case Code.Xcryptecb_64:
-			case Code.Xcryptcbc_16:
-			case Code.Xcryptcbc_32:
-			case Code.Xcryptcbc_64:
-			case Code.Xcryptctr_16:
-			case Code.Xcryptctr_32:
-			case Code.Xcryptctr_64:
-			case Code.Xcryptcfb_16:
-			case Code.Xcryptcfb_32:
-			case Code.Xcryptcfb_64:
-			case Code.Xcryptofb_16:
-			case Code.Xcryptofb_32:
-			case Code.Xcryptofb_64:
-			case Code.Ccs_hash_16:
-			case Code.Ccs_hash_32:
-			case Code.Ccs_hash_64:
-			case Code.Ccs_encrypt_16:
-			case Code.Ccs_encrypt_32:
-			case Code.Ccs_encrypt_64:
-				return true;
-
-			default:
-				return false;
 			}
 		}
 
@@ -363,21 +262,11 @@ namespace Iced.Intel.FormatterInternal {
 			return (register - Register.ES) + PrefixKind.ES;
 		}
 
-		static bool IsCode64(CodeSize codeSize) =>
-			codeSize == CodeSize.Code64 || codeSize == CodeSize.Unknown;
-
 		public static bool ShowIndexScale(in Instruction instruction, FormatterOptions options) =>
 			options.ShowUselessPrefixes || !instruction.Code.IgnoresIndex();
 
 		public static bool ShowSegmentPrefix(Register defaultSegReg, in Instruction instruction, FormatterOptions options) =>
 			ShowSegmentPrefix(defaultSegReg, instruction, options.ShowUselessPrefixes);
-
-		static Register GetDefaultSegmentRegister(in Instruction instruction) {
-			var baseReg = instruction.MemoryBase;
-			if (baseReg == Register.BP || baseReg == Register.EBP || baseReg == Register.ESP || baseReg == Register.RBP || baseReg == Register.RSP)
-				return Register.SS;
-			return Register.DS;
-		}
 
 		public static bool CanShowRoundingControl(in Instruction instruction, FormatterOptions options) {
 			switch (instruction.Code) {

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && OPCODE_INFO
 using System;
@@ -51,8 +31,10 @@ namespace Iced.Intel.EncoderInternal {
 		IgnoresSegment = 0x00040000,
 		OpMaskReadWrite = 0x00080000,
 		ModRegRmString = 0x00100000,
-		DecOptionValueMask = 0x0000000F,
+		DecOptionValueMask = 0x0000001F,
 		DecOptionValueShift = 0x00000015,
+		ForceOpSize64 = 0x40000000,
+		RequiresUniqueDestRegNum = 0x80000000,
 	}
 	// GENERATOR-END: OpCodeInfoFlags1
 
@@ -104,6 +86,7 @@ namespace Iced.Intel.EncoderInternal {
 		NoVecIndex,
 		SwapVecIndex12,
 		SkipOp0,
+		VecIndexSameAsOpIndex,
 	}
 	// GENERATOR-END: InstrStrFmtOption
 }

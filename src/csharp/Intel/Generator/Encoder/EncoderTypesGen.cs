@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -36,6 +16,7 @@ namespace Generator.Encoder {
 		public EnumType? VexOpKind;
 		public EnumType? XopOpKind;
 		public EnumType? EvexOpKind;
+		public EnumType? MvexOpKind;
 
 		readonly GenTypes genTypes;
 
@@ -47,6 +28,7 @@ namespace Generator.Encoder {
 			GenerateVexOpKind();
 			GenerateXopOpKind();
 			GenerateEvexOpKind();
+			GenerateMvexOpKind();
 			GenerateEncFlags1();
 		}
 
@@ -54,6 +36,7 @@ namespace Generator.Encoder {
 		void GenerateVexOpKind() => VexOpKind = GenerateOpKind(TypeIds.VexOpKind, EncodingKind.VEX);
 		void GenerateXopOpKind() => XopOpKind = GenerateOpKind(TypeIds.XopOpKind, EncodingKind.XOP);
 		void GenerateEvexOpKind() => EvexOpKind = GenerateOpKind(TypeIds.EvexOpKind, EncodingKind.EVEX);
+		void GenerateMvexOpKind() => MvexOpKind = GenerateOpKind(TypeIds.MvexOpKind, EncodingKind.MVEX);
 
 		internal static OpCodeOperandKindDef[] GetDefs(GenTypes genTypes, EncodingKind encoding) {
 			var defs = genTypes.GetObject<InstructionDefs>(TypeIds.InstructionDefs).Defs;
@@ -69,8 +52,8 @@ namespace Generator.Encoder {
 		}
 
 		EnumType GenerateOpKind(TypeId typeId, EncodingKind encoding) {
-			var values = GetDefs(genTypes, encoding).Select(a => new EnumValue(0, a.EnumValue.RawName, null)).ToArray();
-			return new EnumType(typeId, null, values, EnumTypeFlags.None);
+			var values = GetDefs(genTypes, encoding).Select(a => new EnumValue(0, a.EnumValue.RawName, default)).ToArray();
+			return new EnumType(typeId, default, values, EnumTypeFlags.None);
 		}
 
 		void GenerateImmSizes() {
@@ -108,9 +91,9 @@ namespace Generator.Encoder {
 			uint bit = 0;
 
 			var opKind = ConstantUtils.GetMaskBits(opKindEnumType.Values.Max(a => a.Value));
-			fields.Add(new EnumValue(opKind.mask, $"{fieldPrefix}OpMask", null));
+			fields.Add(new EnumValue(opKind.mask, $"{fieldPrefix}OpMask", default));
 			for (int i = 0; i < numOps; i++) {
-				fields.Add(new EnumValue(bit, $"{fieldPrefix}Op{i}Shift", null));
+				fields.Add(new EnumValue(bit, $"{fieldPrefix}Op{i}Shift", default));
 				bit += opKind.bits;
 			}
 			if (bit > 32)
@@ -120,7 +103,7 @@ namespace Generator.Encoder {
 
 		void GenerateEncFlags1() {
 			var values = new List<EnumValue> {
-				new EnumValue(0, "None", null)
+				new EnumValue(0, "None", default)
 			};
 
 			uint maxBits = 0;
@@ -128,13 +111,14 @@ namespace Generator.Encoder {
 			maxBits = Math.Max(maxBits, GenerateOpKindFields(values, VexOpKind, "VEX_", 5));
 			maxBits = Math.Max(maxBits, GenerateOpKindFields(values, XopOpKind, "XOP_", 4));
 			maxBits = Math.Max(maxBits, GenerateOpKindFields(values, EvexOpKind, "EVEX_", 4));
+			maxBits = Math.Max(maxBits, GenerateOpKindFields(values, MvexOpKind, "MVEX_", 4));
 
 			if (maxBits > 30)
 				throw new InvalidOperationException();
-			values.Add(new EnumValue(0x40000000, nameof(InstructionDefFlags3.IgnoresRoundingControl), null));
-			values.Add(new EnumValue(0x80000000, nameof(InstructionDefFlags3.AmdLockRegBit), null));
+			values.Add(new EnumValue(0x40000000, nameof(InstructionDefFlags3.IgnoresRoundingControl), default));
+			values.Add(new EnumValue(0x80000000, nameof(InstructionDefFlags3.AmdLockRegBit), default));
 
-			EncFlags1 = new EnumType(TypeIds.EncFlags1, null, values.ToArray(), EnumTypeFlags.Flags | EnumTypeFlags.NoInitialize);
+			EncFlags1 = new EnumType(TypeIds.EncFlags1, default, values.ToArray(), EnumTypeFlags.Flags | EnumTypeFlags.NoInitialize);
 		}
 	}
 }

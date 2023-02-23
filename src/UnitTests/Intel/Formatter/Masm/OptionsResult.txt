@@ -1,25 +1,5 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 REP movs byte ptr es:[rdi],byte ptr fs:[rsi]
 rep movs byte ptr es:[rdi],byte ptr fs:[rsi]
@@ -33,23 +13,23 @@ mov rcx,cr4
 jo SHORT 7FFFFFFFFFFFFFF2h
 jo short 7FFFFFFFFFFFFFF2h
 
-vsqrtss xmm2{k3}{Z},xmm6,xmm3 {RN-SAE}
-vsqrtss xmm2{k3}{z},xmm6,xmm3 {rn-sae}
-vsqrtss xmm2{k3}{Z},xmm6,xmm3 {RD-SAE}
-vsqrtss xmm2{k3}{z},xmm6,xmm3 {rd-sae}
-vsqrtss xmm2{k3}{Z},xmm6,xmm3 {RU-SAE}
-vsqrtss xmm2{k3}{z},xmm6,xmm3 {ru-sae}
-vsqrtss xmm2{k3}{Z},xmm6,xmm3 {RZ-SAE}
-vsqrtss xmm2{k3}{z},xmm6,xmm3 {rz-sae}
-vfixupimmpd zmm2{k3}{Z},zmm6,zmm3,0A5h {SAE}
-vfixupimmpd zmm2{k3}{z},zmm6,zmm3,0A5h {sae}
+vsqrtss xmm2{k3}{Z},xmm6,xmm3{RN-SAE}
+vsqrtss xmm2{k3}{z},xmm6,xmm3{rn-sae}
+vsqrtss xmm2{k3}{Z},xmm6,xmm3{RD-SAE}
+vsqrtss xmm2{k3}{z},xmm6,xmm3{rd-sae}
+vsqrtss xmm2{k3}{Z},xmm6,xmm3{RU-SAE}
+vsqrtss xmm2{k3}{z},xmm6,xmm3{ru-sae}
+vsqrtss xmm2{k3}{Z},xmm6,xmm3{RZ-SAE}
+vsqrtss xmm2{k3}{z},xmm6,xmm3{rz-sae}
+vfixupimmpd zmm2{k3}{Z},zmm6,zmm3,0A5h{SAE}
+vfixupimmpd zmm2{k3}{z},zmm6,zmm3,0A5h{sae}
 
 REP MOVS BYTE PTR ES:[RDI],BYTE PTR FS:[RSI]
 rep movs byte ptr es:[rdi],byte ptr fs:[rsi]
 MOV RCX,CR4
 mov rcx,cr4
-VFNMSUB213PS ZMM2{K3}{Z},ZMM6,ZMM3 {RU-SAE}
-vfnmsub213ps zmm2{k3}{z},zmm6,zmm3 {ru-sae}
+VFNMSUB213PS ZMM2{K3}{Z},ZMM6,ZMM3{RU-SAE}
+vfnmsub213ps zmm2{k3}{z},zmm6,zmm3{ru-sae}
 JO SHORT 7FFFFFFFFFFFFFF2h
 jo short 7FFFFFFFFFFFFFF2h
 
@@ -490,61 +470,111 @@ or rcx,0000000000000000h
 or rcx,0h
 or rcx,0000000000000000h
 mov al,ds:[0h]
-mov al,ds:[0000h]
 mov al,ds:[0h]
-mov al,ds:[00000000h]
+mov al,ds:[0h]
+mov al,ds:[0h]
 mov al,[0h]
-mov al,[0000000000000000h]
+mov al,[0h]
 
 mov cl,[bx-1h]
-mov cl,[bx-01h]
-mov cl,[bx+1h]
-mov cl,[bx+01h]
 mov cl,[bx-1h]
+mov cl,[bx+1h]
+mov cl,[bx+1h]
+mov cl,[bx-1h]
+mov cl,[bx-1h]
+mov cl,[bx+1h]
+mov cl,[bx+1h]
+mov cl,[eax-1h]
+mov cl,[eax-1h]
+mov cl,[eax+1h]
+mov cl,[eax+1h]
+mov cl,[eax-1h]
+mov cl,[eax-1h]
+mov cl,[eax+1h]
+mov cl,[eax+1h]
+mov cl,[rax-1h]
+mov cl,[rax-1h]
+mov cl,[rax+1h]
+mov cl,[rax+1h]
+mov cl,[rax-1h]
+mov cl,[rax-1h]
+mov cl,[rax+1h]
+mov cl,[rax+1h]
+
+mov cl,[bx+0FFFFh]
+mov cl,[bx+0FFFFh]
+mov cl,[bx+1h]
+mov cl,[bx+1h]
+mov cl,[bx+0FFFFh]
+mov cl,[bx+0FFFFh]
+mov cl,[bx+1h]
+mov cl,[bx+1h]
+mov cl,[eax+0FFFFFFFFh]
+mov cl,[eax+0FFFFFFFFh]
+mov cl,[eax+1h]
+mov cl,[eax+1h]
+mov cl,[eax+0FFFFFFFFh]
+mov cl,[eax+0FFFFFFFFh]
+mov cl,[eax+1h]
+mov cl,[eax+1h]
+mov cl,[rax+0FFFFFFFFFFFFFFFFh]
+mov cl,[rax+0FFFFFFFFFFFFFFFFh]
+mov cl,[rax+1h]
+mov cl,[rax+1h]
+mov cl,[rax+0FFFFFFFFFFFFFFFFh]
+mov cl,[rax+0FFFFFFFFFFFFFFFFh]
+mov cl,[rax+1h]
+mov cl,[rax+1h]
+
 mov cl,[bx-0001h]
-mov cl,[bx+1h]
+mov cl,[bx-0001h]
 mov cl,[bx+0001h]
-mov cl,[eax-1h]
-mov cl,[eax-01h]
-mov cl,[eax+1h]
-mov cl,[eax+01h]
-mov cl,[eax-1h]
+mov cl,[bx+0001h]
+mov cl,[bx-0001h]
+mov cl,[bx-0001h]
+mov cl,[bx+0001h]
+mov cl,[bx+0001h]
 mov cl,[eax-00000001h]
-mov cl,[eax+1h]
+mov cl,[eax-00000001h]
 mov cl,[eax+00000001h]
-mov cl,[rax-1h]
-mov cl,[rax-01h]
-mov cl,[rax+1h]
-mov cl,[rax+01h]
-mov cl,[rax-1h]
-mov cl,[rax-0000000000000001h]
-mov cl,[rax+1h]
-mov cl,[rax+0000000000000001h]
+mov cl,[eax+00000001h]
+mov cl,[eax-00000001h]
+mov cl,[eax-00000001h]
+mov cl,[eax+00000001h]
+mov cl,[eax+00000001h]
+mov cl,[rax-00000001h]
+mov cl,[rax-00000001h]
+mov cl,[rax+00000001h]
+mov cl,[rax+00000001h]
+mov cl,[rax-00000001h]
+mov cl,[rax-00000001h]
+mov cl,[rax+00000001h]
+mov cl,[rax+00000001h]
 
 mov cl,[bx+0FFFFh]
 mov cl,[bx+0FFFFh]
-mov cl,[bx+1h]
-mov cl,[bx+01h]
+mov cl,[bx+0001h]
+mov cl,[bx+0001h]
 mov cl,[bx+0FFFFh]
 mov cl,[bx+0FFFFh]
-mov cl,[bx+1h]
+mov cl,[bx+0001h]
 mov cl,[bx+0001h]
 mov cl,[eax+0FFFFFFFFh]
 mov cl,[eax+0FFFFFFFFh]
-mov cl,[eax+1h]
-mov cl,[eax+01h]
+mov cl,[eax+00000001h]
+mov cl,[eax+00000001h]
 mov cl,[eax+0FFFFFFFFh]
 mov cl,[eax+0FFFFFFFFh]
-mov cl,[eax+1h]
+mov cl,[eax+00000001h]
 mov cl,[eax+00000001h]
 mov cl,[rax+0FFFFFFFFFFFFFFFFh]
 mov cl,[rax+0FFFFFFFFFFFFFFFFh]
-mov cl,[rax+1h]
-mov cl,[rax+01h]
+mov cl,[rax+00000001h]
+mov cl,[rax+00000001h]
 mov cl,[rax+0FFFFFFFFFFFFFFFFh]
 mov cl,[rax+0FFFFFFFFFFFFFFFFh]
-mov cl,[rax+1h]
-mov cl,[rax+0000000000000001h]
+mov cl,[rax+00000001h]
+mov cl,[rax+00000001h]
 
 mov al,ds:[0FFFFh]
 mov al,ds:[0FFFFh]
@@ -554,24 +584,38 @@ mov al,[0FFFFFFFFFFFFFFFFh]
 mov al,[0FFFFFFFFFFFFFFFFh]
 
 mov al,ds:[0h]
-mov al,ds:[0000h]
 mov al,ds:[0h]
-mov al,ds:[00000000h]
+mov al,ds:[0h]
+mov al,ds:[0h]
 mov al,[0h]
+mov al,[0h]
+
+mov al,ds:[0FFFFh]
+mov al,ds:[0FFFFh]
+mov al,ds:[0FFFFFFFFh]
+mov al,ds:[0FFFFFFFFh]
+mov al,[0FFFFFFFFFFFFFFFFh]
+mov al,[0FFFFFFFFFFFFFFFFh]
+
+mov al,ds:[0000h]
+mov al,ds:[0000h]
+mov al,ds:[00000000h]
+mov al,ds:[00000000h]
+mov al,[0000000000000000h]
 mov al,[0000000000000000h]
 
 mov cl,[bx-0001h]
-mov cl,[bx-01h]
+mov cl,[bx-1h]
 mov cl,[eax-00000001h]
-mov cl,[eax-01h]
-mov cl,[rax-0000000000000001h]
-mov cl,[rax-01h]
+mov cl,[eax-1h]
+mov cl,[rax-00000001h]
+mov cl,[rax-1h]
 mov cl,[bx+0001h]
-mov cl,[bx+01h]
+mov cl,[bx+1h]
 mov cl,[eax+00000001h]
-mov cl,[eax+01h]
-mov cl,[rax+0000000000000001h]
-mov cl,[rax+01h]
+mov cl,[eax+1h]
+mov cl,[rax+00000001h]
+mov cl,[rax+1h]
 
 mov cl,[bx+0FFFFh]
 mov cl,[bx+0FFFFh]
@@ -580,11 +624,37 @@ mov cl,[eax+0FFFFFFFFh]
 mov cl,[rax+0FFFFFFFFFFFFFFFFh]
 mov cl,[rax+0FFFFFFFFFFFFFFFFh]
 mov cl,[bx+0001h]
-mov cl,[bx+01h]
+mov cl,[bx+1h]
 mov cl,[eax+00000001h]
-mov cl,[eax+01h]
-mov cl,[rax+0000000000000001h]
-mov cl,[rax+01h]
+mov cl,[eax+1h]
+mov cl,[rax+00000001h]
+mov cl,[rax+1h]
+
+mov cl,[bx-0001h]
+mov cl,[bx-1h]
+mov cl,[eax-00000001h]
+mov cl,[eax-1h]
+mov cl,[rax-00000001h]
+mov cl,[rax-1h]
+mov cl,[bx+0001h]
+mov cl,[bx+1h]
+mov cl,[eax+00000001h]
+mov cl,[eax+1h]
+mov cl,[rax+00000001h]
+mov cl,[rax+1h]
+
+mov cl,[bx+0FFFFh]
+mov cl,[bx+0FFFFh]
+mov cl,[eax+0FFFFFFFFh]
+mov cl,[eax+0FFFFFFFFh]
+mov cl,[rax+0FFFFFFFFFFFFFFFFh]
+mov cl,[rax+0FFFFFFFFFFFFFFFFh]
+mov cl,[bx+0001h]
+mov cl,[bx+1h]
+mov cl,[eax+00000001h]
+mov cl,[eax+1h]
+mov cl,[rax+00000001h]
+mov cl,[rax+1h]
 
 vfnmadd231ps zmm2{k3},zmm6,[bx+si+1FC0h]
 vfnmadd231ps zmm2{k3},zmm6,[bx+si-2000h]
@@ -597,6 +667,19 @@ vfnmadd231ps zmm2{k3},zmm6,[eax+0FFFFE000h]
 vfnmadd231ps zmm2{k3},zmm6,[rax+1FC0h]
 vfnmadd231ps zmm2{k3},zmm6,[rax-2000h]
 vfnmadd231ps zmm2{k3},zmm6,[rax+1FC0h]
+vfnmadd231ps zmm2{k3},zmm6,[rax+0FFFFFFFFFFFFE000h]
+
+vfnmadd231ps zmm2{k3},zmm6,[bx+si+1FC0h]
+vfnmadd231ps zmm2{k3},zmm6,[bx+si-2000h]
+vfnmadd231ps zmm2{k3},zmm6,[bx+si+1FC0h]
+vfnmadd231ps zmm2{k3},zmm6,[bx+si+0E000h]
+vfnmadd231ps zmm2{k3},zmm6,[eax+00001FC0h]
+vfnmadd231ps zmm2{k3},zmm6,[eax-00002000h]
+vfnmadd231ps zmm2{k3},zmm6,[eax+00001FC0h]
+vfnmadd231ps zmm2{k3},zmm6,[eax+0FFFFE000h]
+vfnmadd231ps zmm2{k3},zmm6,[rax+00001FC0h]
+vfnmadd231ps zmm2{k3},zmm6,[rax-00002000h]
+vfnmadd231ps zmm2{k3},zmm6,[rax+00001FC0h]
 vfnmadd231ps zmm2{k3},zmm6,[rax+0FFFFFFFFFFFFE000h]
 
 fadd st,st(3)
@@ -962,6 +1045,60 @@ setng al
 setg al
 setnle al
 
+cmpbxadd [rax],edx,esi
+cmpcxadd [rax],edx,esi
+cmpnaexadd [rax],edx,esi
+cmpaexadd [rax],edx,esi
+cmpnbxadd [rax],edx,esi
+cmpncxadd [rax],edx,esi
+cmpexadd [rax],edx,esi
+cmpzxadd [rax],edx,esi
+cmpnexadd [rax],edx,esi
+cmpnzxadd [rax],edx,esi
+cmpbexadd [rax],edx,esi
+cmpnaxadd [rax],edx,esi
+cmpaxadd [rax],edx,esi
+cmpnbexadd [rax],edx,esi
+cmppxadd [rax],edx,esi
+cmppexadd [rax],edx,esi
+cmpnpxadd [rax],edx,esi
+cmppoxadd [rax],edx,esi
+cmplxadd [rax],edx,esi
+cmpngexadd [rax],edx,esi
+cmpgexadd [rax],edx,esi
+cmpnlxadd [rax],edx,esi
+cmplexadd [rax],edx,esi
+cmpngxadd [rax],edx,esi
+cmpgxadd [rax],edx,esi
+cmpnlexadd [rax],edx,esi
+
+cmpbxadd [rax],rdx,rsi
+cmpcxadd [rax],rdx,rsi
+cmpnaexadd [rax],rdx,rsi
+cmpaexadd [rax],rdx,rsi
+cmpnbxadd [rax],rdx,rsi
+cmpncxadd [rax],rdx,rsi
+cmpexadd [rax],rdx,rsi
+cmpzxadd [rax],rdx,rsi
+cmpnexadd [rax],rdx,rsi
+cmpnzxadd [rax],rdx,rsi
+cmpbexadd [rax],rdx,rsi
+cmpnaxadd [rax],rdx,rsi
+cmpaxadd [rax],rdx,rsi
+cmpnbexadd [rax],rdx,rsi
+cmppxadd [rax],rdx,rsi
+cmppexadd [rax],rdx,rsi
+cmpnpxadd [rax],rdx,rsi
+cmppoxadd [rax],rdx,rsi
+cmplxadd [rax],rdx,rsi
+cmpngexadd [rax],rdx,rsi
+cmpgexadd [rax],rdx,rsi
+cmpnlxadd [rax],rdx,rsi
+cmplexadd [rax],rdx,rsi
+cmpngxadd [rax],rdx,rsi
+cmpgxadd [rax],rdx,rsi
+cmpnlexadd [rax],rdx,rsi
+
 mov ecx,edx
 mov ecx,[rdx]
 mov ecx,[rdx]
@@ -1083,22 +1220,22 @@ vcvtudq2pd zmm10{k3},ymm19
 vcvtudq2pd zmm18{k3}{z},ymm11
 vcvtudq2pd zmm2{k3},ymm3
 
-vcvtsi2sd xmm18,xmm14,ebx {rn-sae}
-vcvtsi2sd xmm10,xmm22,ebx {rd-sae}
-vcvtsi2sd xmm2,xmm6,r11d {ru-sae}
-vcvtsi2sd xmm2,xmm6,ebx {rz-sae}
-vcvtusi2sd xmm18,xmm14,ebx {rn-sae}
-vcvtusi2sd xmm10,xmm22,ebx {rd-sae}
-vcvtusi2sd xmm2,xmm6,r11d {ru-sae}
-vcvtusi2sd xmm2,xmm6,ebx {rz-sae}
-vcvtdq2pd zmm2{k3}{z},ymm3 {rn-sae}
-vcvtdq2pd zmm10{k3},ymm19 {rd-sae}
-vcvtdq2pd zmm18{k3}{z},ymm11 {ru-sae}
-vcvtdq2pd zmm2{k3},ymm3 {rz-sae}
-vcvtudq2pd zmm2{k3}{z},ymm3 {rn-sae}
-vcvtudq2pd zmm10{k3},ymm19 {rd-sae}
-vcvtudq2pd zmm18{k3}{z},ymm11 {ru-sae}
-vcvtudq2pd zmm2{k3},ymm3 {rz-sae}
+vcvtsi2sd xmm18,xmm14,ebx{rn-sae}
+vcvtsi2sd xmm10,xmm22,ebx{rd-sae}
+vcvtsi2sd xmm2,xmm6,r11d{ru-sae}
+vcvtsi2sd xmm2,xmm6,ebx{rz-sae}
+vcvtusi2sd xmm18,xmm14,ebx{rn-sae}
+vcvtusi2sd xmm10,xmm22,ebx{rd-sae}
+vcvtusi2sd xmm2,xmm6,r11d{ru-sae}
+vcvtusi2sd xmm2,xmm6,ebx{rz-sae}
+vcvtdq2pd zmm2{k3}{z},ymm3{rn-sae}
+vcvtdq2pd zmm10{k3},ymm19{rd-sae}
+vcvtdq2pd zmm18{k3}{z},ymm11{ru-sae}
+vcvtdq2pd zmm2{k3},ymm3{rz-sae}
+vcvtudq2pd zmm2{k3}{z},ymm3{rn-sae}
+vcvtudq2pd zmm10{k3},ymm19{rd-sae}
+vcvtudq2pd zmm18{k3}{z},ymm11{ru-sae}
+vcvtudq2pd zmm2{k3},ymm3{rz-sae}
 
 mov al,[0F0DEBC9A78563412h]
 mov al,[0F0DEBC9A78563412h]
@@ -1983,6 +2120,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2041,6 +2185,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2094,6 +2245,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2152,6 +2310,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2210,6 +2375,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2263,6 +2435,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2321,6 +2500,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2379,6 +2565,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2432,6 +2625,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repne insb
 repne insw
@@ -2490,6 +2690,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repnz insb
 repnz insw
@@ -2548,6 +2755,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repnz insb
 repnz insw
@@ -2601,6 +2815,13 @@ rep xcryptcbc
 rep xcryptctr
 rep xcryptcfb
 rep xcryptofb
+rep ccs_hash
+rep ccs_encrypt
+rep undoc
+rep undoc
+rep xsha512
+rep xstore_alt
+rep xsha512_alt
 
 repnz insb
 repnz insw
@@ -2623,3 +2844,13 @@ repnz lodsd
 repnz scasb
 repnz scasw
 repnz scasd
+
+mov al,[rax+1]
+mov al,byte ptr [rax+1]
+mov al,[rax+1]
+mov al,[rax+1]
+
+ror byte ptr [rax],0A5h
+ror byte ptr [rax],0A5h
+ror byte ptr [rax],0A5h
+ror [rax],0A5h

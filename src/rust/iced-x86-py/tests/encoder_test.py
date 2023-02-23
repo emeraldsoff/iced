@@ -1,93 +1,75 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 import pytest
 from iced_x86 import *
 
 @pytest.mark.parametrize("bitness", [16, 32, 64, 0, 15, 128])
-def test_invalid_bitness(bitness):
-	if bitness == 16 or bitness == 32 or bitness == 64:
+def test_invalid_bitness(bitness: int) -> None:
+	if bitness in (16, 32, 64):
 		Encoder(bitness)
 	else:
 		with pytest.raises(ValueError):
 			Encoder(bitness)
 
 @pytest.mark.parametrize("capacity", [0, 1, 0x1234])
-def test_capacity_arg(capacity):
+def test_capacity_arg(capacity: int) -> None:
 	Encoder(64, capacity)
 
 @pytest.mark.parametrize("bitness", [16, 32, 64])
-def test_bitness(bitness):
+def test_bitness(bitness: int) -> None:
 	encoder = Encoder(bitness)
 	assert encoder.bitness == bitness
 
 @pytest.mark.parametrize("bitness", [16, 32, 64])
-def test_options(bitness):
+def test_options(bitness: int) -> None:
 	encoder = Encoder(bitness)
 	assert not encoder.prevent_vex2
 	assert encoder.vex_wig == 0
 	assert encoder.vex_lig == 0
 	assert encoder.evex_wig == 0
 	assert encoder.evex_lig == 0
+	assert encoder.mvex_wig == 0
 
 	encoder.prevent_vex2 = True
 	encoder.vex_wig = 1
 	encoder.vex_lig = 1
 	encoder.evex_wig = 1
 	encoder.evex_lig = 2
+	encoder.mvex_wig = 1
 
 	assert encoder.prevent_vex2
 	assert encoder.vex_wig == 1
 	assert encoder.vex_lig == 1
 	assert encoder.evex_wig == 1
 	assert encoder.evex_lig == 2
+	assert encoder.mvex_wig == 1
 
 @pytest.mark.parametrize("bitness, data", [
 	(16, b"\x03\xCE\x90\xF3\x90"),
 	(32, b"\x03\xCE\x90\xF3\x90"),
 	(64, b"\x48\x09\xCE\x90\xF3\x90"),
 ])
-def test_encode(bitness, data):
+def test_encode(bitness: int, data: bytes) -> None:
 	encoder = Encoder(bitness)
-	decoder = Decoder(bitness, data)
-	decoder.ip = 0x1234_5678_9ABC_DEF0
+	decoder = Decoder(bitness, data, ip=0x1234_5678_9ABC_DEF0)
 	rip = decoder.ip
 	for instr in decoder:
 		instr_len = encoder.encode(instr, rip)
 		assert instr.len == instr_len
 		rip += instr_len
 	encoded_data = encoder.take_buffer()
-	assert type(encoded_data) == bytes
+	assert isinstance(encoded_data, bytes)
 	assert data == encoded_data
 
-def test_encode_rip_63_set():
+def test_encode_rip_63_set() -> None:
 	decoder = Decoder(64, b"\x48\x09\xCE\x90\xF3\x90")
 	instr = decoder.decode()
 	encoder = Encoder(64)
 	assert encoder.encode(instr, 0x1234_5678_9ABC_DEF0) == instr.len
 	assert encoder.encode(instr, 0xFEDC_BA98_7654_3210) == instr.len
 
-def test_write_u8():
+def test_write_u8() -> None:
 	decoder = Decoder(64, b"\x48\x09\xCE\x90\xF3\x90")
 	instr = decoder.decode()
 	encoder = Encoder(64)
@@ -100,7 +82,7 @@ def test_write_u8():
 	encoded_data = encoder.take_buffer()
 	assert encoded_data == b"\x12\x34\x48\x09\xCE\x56\x78\x9A"
 
-def test_encode_invalid_instruction():
+def test_encode_invalid_instruction() -> None:
 	# Can't encode INVALID
 	instr = Instruction()
 	encoder = Encoder(64)
@@ -108,14 +90,13 @@ def test_encode_invalid_instruction():
 		encoder.encode(instr, instr.ip)
 
 	# Jcc SHORT with a target too far away
-	decoder = Decoder(64, b"\x72\x00")
-	decoder.ip = 0x1234_5678_9ABC_DEF0
+	decoder = Decoder(64, b"\x72\x00", ip=0x1234_5678_9ABC_DEF0)
 	decoder.decode_out(instr)
 	encoder.encode(instr, instr.ip)
 	with pytest.raises(ValueError):
 		encoder.encode(instr, 0xFEDC_BA98_7654_3210)
 
-def test_offsets():
+def test_offsets() -> None:
 	decoder = Decoder(64, b"\x90\x83\xB3\x34\x12\x5A\xA5\x5A")
 	encoder = Encoder(64)
 

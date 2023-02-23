@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && BLOCK_ENCODER
 using System;
@@ -200,7 +180,7 @@ namespace Iced.Intel {
 					instr.IP = ip;
 					instrs[j] = instr;
 					instrCount++;
-					Debug.Assert(instr.Size != 0);
+					Debug.Assert(instr.Size != 0 || instruction.Code == Code.Zero_bytes);
 					ip += instr.Size;
 				}
 				block.SetInstructions(instrs);
@@ -231,10 +211,8 @@ namespace Iced.Intel {
 				ulong ip = block.RIP;
 				foreach (var instr in block.Instructions) {
 					instr.IP = ip;
-					var oldSize = instr.Size;
-					instr.Initialize(this);
-					if (instr.Size > oldSize)
-						throw new InvalidOperationException();
+					if (!instr.Done)
+						instr.Initialize(this);
 					ip += instr.Size;
 				}
 			}
@@ -286,27 +264,32 @@ namespace Iced.Intel {
 			new BlockEncoder(bitness, blocks, options).Encode(out errorMessage, out result);
 
 		bool Encode([NotNullWhen(false)] out string? errorMessage, [NotNullWhen(true)] out BlockEncoderResult[]? result) {
-			const int MAX_ITERS = 1000;
+			const int MAX_ITERS = 5;
 			for (int iter = 0; iter < MAX_ITERS; iter++) {
 				bool updated = false;
 				foreach (var block in blocks) {
 					ulong ip = block.RIP;
+					ulong gained = 0;
 					foreach (var instr in block.Instructions) {
 						instr.IP = ip;
-						var oldSize = instr.Size;
-						if (instr.Optimize()) {
-							if (instr.Size > oldSize) {
-								errorMessage = "Internal error: new size > old size";
+						if (!instr.Done) {
+							var oldSize = instr.Size;
+							if (instr.Optimize(gained)) {
+								if (instr.Size > oldSize) {
+									errorMessage = "Internal error: new size > old size";
+									result = null;
+									return false;
+								}
+								if (instr.Size < oldSize) {
+									gained += oldSize - instr.Size;
+									updated = true;
+								}
+							}
+							else if (instr.Size != oldSize) {
+								errorMessage = "Internal error: new size != old size";
 								result = null;
 								return false;
 							}
-							if (instr.Size < oldSize)
-								updated = true;
-						}
-						else if (instr.Size != oldSize) {
-							errorMessage = "Internal error: new size != old size";
-							result = null;
-							return false;
 						}
 						ip += instr.Size;
 					}

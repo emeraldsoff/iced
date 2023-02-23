@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER
 using System;
@@ -106,6 +86,17 @@ namespace Iced.Intel {
 			set => Internal_EVEX_LIG = (value & 3) << 5;
 		}
 		internal uint Internal_EVEX_LIG;
+
+#if MVEX
+		/// <summary>
+		/// Value of the <c>MVEX.W</c> bit to use if it's an instruction that ignores the bit. Default is 0.
+		/// </summary>
+		public uint MVEX_WIG {
+			get => Internal_MVEX_WIG >> 7;
+			set => Internal_MVEX_WIG = (value & 1) << 7;
+		}
+		internal uint Internal_MVEX_WIG;
+#endif
 
 		internal const string ERROR_ONLY_1632_BIT_MODE = "The instruction can only be used in 16/32-bit mode";
 		internal const string ERROR_ONLY_64_BIT_MODE = "The instruction can only be used in 64-bit mode";
@@ -276,10 +267,8 @@ namespace Iced.Intel {
 				throw new InvalidOperationException();
 			}
 
-			if (!handler.IsDeclareData) {
+			if (!handler.IsSpecialInstr) {
 				var ops = handler.Operands;
-				if (instruction.OpCount != ops.Length)
-					ErrorMessage = $"Expected {ops.Length} operand(s) but the instruction has {instruction.OpCount} operand(s)";
 				for (int i = 0; i < ops.Length; i++)
 					ops[i].Encode(this, instruction, i);
 
@@ -303,12 +292,12 @@ namespace Iced.Intel {
 					WriteImmediate();
 			}
 			else {
-				Debug.Assert(handler is DeclareDataHandler);
+				Debug.Assert(handler is DeclareDataHandler || handler is ZeroBytesHandler);
 				handler.Encode(this, instruction);
 			}
 
 			uint instrLen = (uint)currentRip - (uint)rip;
-			if (instrLen > IcedConstants.MaxInstructionLength && !handler.IsDeclareData)
+			if (instrLen > IcedConstants.MaxInstructionLength && !handler.IsSpecialInstr)
 				ErrorMessage = $"Instruction length > {IcedConstants.MaxInstructionLength} bytes";
 			errorMessage = this.errorMessage;
 			if (errorMessage is not null) {
@@ -534,6 +523,7 @@ namespace Iced.Intel {
 						EncoderFlags |= EncoderFlags.P67;
 				}
 				else {
+					Debug.Assert(bitness == 32);
 					if (regSize == 2)
 						EncoderFlags |= EncoderFlags.P67;
 				}
@@ -548,6 +538,10 @@ namespace Iced.Intel {
 					ErrorMessage = $"Operand {operand}: Absolute addresses can't have base and/or index regs";
 					return;
 				}
+				if (instruction.MemoryIndexScale != 1) {
+					ErrorMessage = $"Operand {operand}: Absolute addresses must have scale == *1";
+					return;
+				}
 				switch (instruction.MemoryDisplSize) {
 				case 2:
 					if (bitness == 64) {
@@ -557,11 +551,19 @@ namespace Iced.Intel {
 					if (bitness == 32)
 						EncoderFlags |= EncoderFlags.P67;
 					DisplSize = DisplSize.Size2;
+					if (instruction.MemoryDisplacement64 > ushort.MaxValue) {
+						ErrorMessage = $"Operand {operand}: Displacement must fit in a ushort";
+						return;
+					}
 					Displ = instruction.MemoryDisplacement32;
 					break;
 				case 4:
 					EncoderFlags |= adrSize32Flags;
 					DisplSize = DisplSize.Size4;
+					if (instruction.MemoryDisplacement64 > uint.MaxValue) {
+						ErrorMessage = $"Operand {operand}: Displacement must fit in a uint";
+						return;
+					}
 					Displ = instruction.MemoryDisplacement32;
 					break;
 				case 8:
@@ -575,7 +577,7 @@ namespace Iced.Intel {
 					DisplHi = (uint)(addr >> 32);
 					break;
 				default:
-					ErrorMessage = $"Operand {operand}: {nameof(Instruction)}.{nameof(Instruction.MemoryDisplSize)} must be initialized to 2 (16-bit) or 4 (32-bit)";
+					ErrorMessage = $"Operand {operand}: {nameof(Instruction)}.{nameof(Instruction.MemoryDisplSize)} must be initialized to 2 (16-bit), 4 (32-bit) or 8 (64-bit)";
 					break;
 				}
 			}
@@ -719,10 +721,10 @@ namespace Iced.Intel {
 			return 0;
 		}
 
-		bool TryConvertToDisp8N(int displ, out sbyte compressedValue) {
+		bool TryConvertToDisp8N(in Instruction instruction, int displ, out sbyte compressedValue) {
 			var tryConvertToDisp8N = handler.TryConvertToDisp8N;
 			if (tryConvertToDisp8N is not null)
-				return tryConvertToDisp8N(this, handler, displ, out compressedValue);
+				return tryConvertToDisp8N(this, handler, instruction, displ, out compressedValue);
 			if (sbyte.MinValue <= displ && displ <= sbyte.MaxValue) {
 				compressedValue = (sbyte)displ;
 				return true;
@@ -759,6 +761,10 @@ namespace Iced.Intel {
 			else if (baseReg == Register.None && indexReg == Register.None) {
 				ModRM |= 6;
 				DisplSize = DisplSize.Size2;
+				if (instruction.MemoryDisplacement64 > ushort.MaxValue) {
+					ErrorMessage = $"Operand {operand}: Displacement must fit in a ushort";
+					return;
+				}
 				Displ = instruction.MemoryDisplacement32;
 			}
 			else {
@@ -767,22 +773,37 @@ namespace Iced.Intel {
 			}
 
 			if (baseReg != Register.None || indexReg != Register.None) {
+				if ((long)instruction.MemoryDisplacement64 < short.MinValue || (long)instruction.MemoryDisplacement64 > ushort.MaxValue) {
+					ErrorMessage = $"Operand {operand}: Displacement must fit in a short or a ushort";
+					return;
+				}
 				Displ = instruction.MemoryDisplacement32;
 				// [bp] => [bp+00]
 				if (displSize == 0 && baseReg == Register.BP && indexReg == Register.None) {
 					displSize = 1;
-					Displ = 0;
+					if (Displ != 0) {
+						ErrorMessage = $"Operand {operand}: Displacement must be 0 if displSize == 0";
+						return;
+					}
 				}
 				if (displSize == 1) {
-					if (TryConvertToDisp8N((short)Displ, out sbyte compressedValue))
-						Displ = (byte)compressedValue;
+					if (TryConvertToDisp8N(instruction, (short)Displ, out sbyte compressedValue))
+						Displ = (uint)compressedValue;
 					else
 						displSize = 2;
 				}
 				if (displSize == 0) {
-					// Nothing
+					if (Displ != 0) {
+						ErrorMessage = $"Operand {operand}: Displacement must be 0 if displSize == 0";
+						return;
+					}
 				}
 				else if (displSize == 1) {
+					// This if check should never be true when we're here
+					if ((int)Displ < sbyte.MinValue || (int)Displ > sbyte.MaxValue) {
+						ErrorMessage = $"Operand {operand}: Displacement must fit in an sbyte";
+						return;
+					}
 					ModRM |= 0x40;
 					DisplSize = DisplSize.Size1;
 				}
@@ -807,7 +828,6 @@ namespace Iced.Intel {
 			var baseReg = instruction.MemoryBase;
 			var indexReg = instruction.MemoryIndex;
 			var displSize = instruction.MemoryDisplSize;
-			Displ = instruction.MemoryDisplacement32;
 
 			Register baseRegLo, baseRegHi;
 			Register indexRegLo, indexRegHi;
@@ -842,6 +862,10 @@ namespace Iced.Intel {
 					ErrorMessage = $"Operand {operand}: RIP relative addressing can't use an index register";
 					return;
 				}
+				if (instruction.InternalMemoryIndexScale != 0) {
+					ErrorMessage = $"Operand {operand}: RIP relative addressing must use scale *1";
+					return;
+				}
 				if (bitness != 64) {
 					ErrorMessage = $"Operand {operand}: RIP/EIP relative addressing is only available in 64-bit mode";
 					return;
@@ -868,6 +892,20 @@ namespace Iced.Intel {
 				return;
 			}
 			var scale = instruction.InternalMemoryIndexScale;
+			Displ = instruction.MemoryDisplacement32;
+			if (addrSize == 64) {
+				if ((long)instruction.MemoryDisplacement64 < int.MinValue || (long)instruction.MemoryDisplacement64 > int.MaxValue) {
+					ErrorMessage = $"Operand {operand}: Displacement must fit in an int";
+					return;
+				}
+			}
+			else {
+				Debug.Assert(addrSize == 32);
+				if ((long)instruction.MemoryDisplacement64 < int.MinValue || (long)instruction.MemoryDisplacement64 > uint.MaxValue) {
+					ErrorMessage = $"Operand {operand}: Displacement must fit in an int or a uint";
+					return;
+				}
+			}
 			if (baseReg == Register.None && indexReg == Register.None) {
 				if (vsibIndexRegLo != Register.None) {
 					ErrorMessage = $"Operand {operand}: VSIB addressing can't use an offset-only address";
@@ -893,11 +931,14 @@ namespace Iced.Intel {
 			// [ebp]/[ebp+index*scale] => [ebp+00]/[ebp+index*scale+00]
 			if (displSize == 0 && (baseNum & 7) == 5) {
 				displSize = 1;
-				Displ = 0;
+				if (Displ != 0) {
+					ErrorMessage = $"Operand {operand}: Displacement must be 0 if displSize == 0";
+					return;
+				}
 			}
 
 			if (displSize == 1) {
-				if (TryConvertToDisp8N((short)Displ, out sbyte compressedValue))
+				if (TryConvertToDisp8N(instruction, (int)Displ, out sbyte compressedValue))
 					Displ = (uint)compressedValue;
 				else
 					displSize = addrSize / 8;
@@ -909,6 +950,11 @@ namespace Iced.Intel {
 				DisplSize = DisplSize.Size4;
 			}
 			else if (displSize == 1) {
+				// This if check should never be true when we're here
+				if ((int)Displ < sbyte.MinValue || (int)Displ > sbyte.MaxValue) {
+					ErrorMessage = $"Operand {operand}: Displacement must fit in an sbyte";
+					return;
+				}
 				ModRM |= 0x40;
 				DisplSize = DisplSize.Size1;
 			}
@@ -916,8 +962,16 @@ namespace Iced.Intel {
 				ModRM |= 0x80;
 				DisplSize = DisplSize.Size4;
 			}
-			else if (displSize != 0)
-				throw new ArgumentException($"Invalid displSize = {displSize}");
+			else if (displSize == 0) {
+				if (Displ != 0) {
+					ErrorMessage = $"Operand {operand}: Displacement must be 0 if displSize == 0";
+					return;
+				}
+			}
+			else {
+				ErrorMessage = $"Operand {operand}: Invalid {nameof(Instruction.MemoryDisplSize)} value";
+				return;
+			}
 
 			if (indexReg == Register.None && (baseNum & 7) != 4 && scale == 0 && (EncoderFlags & EncoderFlags.MustUseSib) == 0) {
 				// Tested earlier in the method
@@ -963,7 +1017,7 @@ namespace Iced.Intel {
 			new byte[6] { 0x26, 0x2E, 0x36, 0x3E, 0x64, 0x65 };
 
 		internal void WritePrefixes(in Instruction instruction, bool canWriteF3 = true) {
-			Debug.Assert(!handler.IsDeclareData);
+			Debug.Assert(!handler.IsSpecialInstr);
 			var seg = instruction.SegmentPrefix;
 			if (seg != Register.None) {
 				Debug.Assert((uint)(seg - Register.ES) < (uint)SegmentOverrides.Length);
@@ -975,14 +1029,14 @@ namespace Iced.Intel {
 				WriteByteInternal(0x66);
 			if ((EncoderFlags & EncoderFlags.P67) != 0)
 				WriteByteInternal(0x67);
-			if (canWriteF3 && instruction.Internal_HasRepePrefix_HasXreleasePrefix)
+			if (canWriteF3 && instruction.HasRepePrefix)
 				WriteByteInternal(0xF3);
-			if (instruction.Internal_HasRepnePrefix_HasXacquirePrefix)
+			if (instruction.HasRepnePrefix)
 				WriteByteInternal(0xF2);
 		}
 
 		void WriteModRM() {
-			Debug.Assert(!handler.IsDeclareData);
+			Debug.Assert(!handler.IsSpecialInstr);
 			Debug.Assert((EncoderFlags & (EncoderFlags.ModRM | EncoderFlags.Displ)) != 0);
 			if ((EncoderFlags & EncoderFlags.ModRM) != 0) {
 				WriteByteInternal(ModRM);
@@ -1054,7 +1108,7 @@ namespace Iced.Intel {
 		}
 
 		void WriteImmediate() {
-			Debug.Assert(!handler.IsDeclareData);
+			Debug.Assert(!handler.IsSpecialInstr);
 			ushort ip;
 			uint eip;
 			ulong rip;

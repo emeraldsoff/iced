@@ -1,39 +1,27 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::super::iced_constants::IcedConstants;
-use super::super::super::*;
-#[cfg(not(feature = "std"))]
+use crate::iced_constants::IcedConstants;
+use crate::*;
 use alloc::string::String;
+
+#[cfg(feature = "mvex")]
+#[derive(Default)]
+pub(crate) struct MvexDecoderInfo {
+	pub(crate) eviction_hint: bool,
+	pub(crate) reg_mem_conv: MvexRegMemConv,
+}
 
 #[derive(Default)]
 pub(crate) struct DecoderTestCase {
+	#[allow(dead_code)]
 	pub(crate) line_number: u32,
 	pub(crate) test_options: u32,
 	pub(crate) decoder_error: DecoderError,
 	pub(crate) decoder_options: u32,
 	pub(crate) bitness: u32,
 	pub(crate) hex_bytes: String,
+	pub(crate) ip: u64,
 	pub(crate) encoded_hex_bytes: String,
 	pub(crate) code: Code,
 	pub(crate) mnemonic: Mnemonic,
@@ -65,4 +53,6 @@ pub(crate) struct DecoderTestCase {
 	pub(crate) far_branch_selector: u16,
 	pub(crate) op_registers: [Register; IcedConstants::MAX_OP_COUNT],
 	pub(crate) constant_offsets: ConstantOffsets,
+	#[cfg(feature = "mvex")]
+	pub(crate) mvex: MvexDecoderInfo,
 }

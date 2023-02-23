@@ -1,28 +1,8 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
-vfnmsub213ps zmm2{k3}{z}, zmm6, zmm3 {ru-sae}
-vfnmsub213ps zmm2{k3}{z},zmm6,zmm3 {ru-sae}
+vfnmsub213ps zmm2{k3}{z}, zmm6, zmm3{ru-sae}
+vfnmsub213ps zmm2{k3}{z},zmm6,zmm3{ru-sae}
 
 mov ecx,ds:[rax+rdx]
 mov ecx,[rax+rdx]
@@ -193,39 +173,39 @@ vcmpps k2{k3},ymm6,ymm3,1Eh
 vcmpps k2{k3},ymm6,ymm3,1Fh
 vcmpps k2{k3},ymm6,ymm3,20h
 
-vcmpps k2{k3},zmm6,zmm3,0 {sae}
-vcmpps k2{k3},zmm6,zmm3,1 {sae}
-vcmpps k2{k3},zmm6,zmm3,2 {sae}
-vcmpps k2{k3},zmm6,zmm3,3 {sae}
-vcmpps k2{k3},zmm6,zmm3,4 {sae}
-vcmpps k2{k3},zmm6,zmm3,5 {sae}
-vcmpps k2{k3},zmm6,zmm3,6 {sae}
-vcmpps k2{k3},zmm6,zmm3,7 {sae}
-vcmpps k2{k3},zmm6,zmm3,8 {sae}
-vcmpps k2{k3},zmm6,zmm3,9 {sae}
-vcmpps k2{k3},zmm6,zmm3,0Ah {sae}
-vcmpps k2{k3},zmm6,zmm3,0Bh {sae}
-vcmpps k2{k3},zmm6,zmm3,0Ch {sae}
-vcmpps k2{k3},zmm6,zmm3,0Dh {sae}
-vcmpps k2{k3},zmm6,zmm3,0Eh {sae}
-vcmpps k2{k3},zmm6,zmm3,0Fh {sae}
-vcmpps k2{k3},zmm6,zmm3,10h {sae}
-vcmpps k2{k3},zmm6,zmm3,11h {sae}
-vcmpps k2{k3},zmm6,zmm3,12h {sae}
-vcmpps k2{k3},zmm6,zmm3,13h {sae}
-vcmpps k2{k3},zmm6,zmm3,14h {sae}
-vcmpps k2{k3},zmm6,zmm3,15h {sae}
-vcmpps k2{k3},zmm6,zmm3,16h {sae}
-vcmpps k2{k3},zmm6,zmm3,17h {sae}
-vcmpps k2{k3},zmm6,zmm3,18h {sae}
-vcmpps k2{k3},zmm6,zmm3,19h {sae}
-vcmpps k2{k3},zmm6,zmm3,1Ah {sae}
-vcmpps k2{k3},zmm6,zmm3,1Bh {sae}
-vcmpps k2{k3},zmm6,zmm3,1Ch {sae}
-vcmpps k2{k3},zmm6,zmm3,1Dh {sae}
-vcmpps k2{k3},zmm6,zmm3,1Eh {sae}
-vcmpps k2{k3},zmm6,zmm3,1Fh {sae}
-vcmpps k2{k3},zmm6,zmm3,20h {sae}
+vcmpps k2{k3},zmm6,zmm3,0{sae}
+vcmpps k2{k3},zmm6,zmm3,1{sae}
+vcmpps k2{k3},zmm6,zmm3,2{sae}
+vcmpps k2{k3},zmm6,zmm3,3{sae}
+vcmpps k2{k3},zmm6,zmm3,4{sae}
+vcmpps k2{k3},zmm6,zmm3,5{sae}
+vcmpps k2{k3},zmm6,zmm3,6{sae}
+vcmpps k2{k3},zmm6,zmm3,7{sae}
+vcmpps k2{k3},zmm6,zmm3,8{sae}
+vcmpps k2{k3},zmm6,zmm3,9{sae}
+vcmpps k2{k3},zmm6,zmm3,0Ah{sae}
+vcmpps k2{k3},zmm6,zmm3,0Bh{sae}
+vcmpps k2{k3},zmm6,zmm3,0Ch{sae}
+vcmpps k2{k3},zmm6,zmm3,0Dh{sae}
+vcmpps k2{k3},zmm6,zmm3,0Eh{sae}
+vcmpps k2{k3},zmm6,zmm3,0Fh{sae}
+vcmpps k2{k3},zmm6,zmm3,10h{sae}
+vcmpps k2{k3},zmm6,zmm3,11h{sae}
+vcmpps k2{k3},zmm6,zmm3,12h{sae}
+vcmpps k2{k3},zmm6,zmm3,13h{sae}
+vcmpps k2{k3},zmm6,zmm3,14h{sae}
+vcmpps k2{k3},zmm6,zmm3,15h{sae}
+vcmpps k2{k3},zmm6,zmm3,16h{sae}
+vcmpps k2{k3},zmm6,zmm3,17h{sae}
+vcmpps k2{k3},zmm6,zmm3,18h{sae}
+vcmpps k2{k3},zmm6,zmm3,19h{sae}
+vcmpps k2{k3},zmm6,zmm3,1Ah{sae}
+vcmpps k2{k3},zmm6,zmm3,1Bh{sae}
+vcmpps k2{k3},zmm6,zmm3,1Ch{sae}
+vcmpps k2{k3},zmm6,zmm3,1Dh{sae}
+vcmpps k2{k3},zmm6,zmm3,1Eh{sae}
+vcmpps k2{k3},zmm6,zmm3,1Fh{sae}
+vcmpps k2{k3},zmm6,zmm3,20h{sae}
 
 cmppd xmm1,xmm5,0
 cmppd xmm1,xmm5,1
@@ -373,39 +353,39 @@ vcmppd k2{k3},ymm6,ymm3,1Eh
 vcmppd k2{k3},ymm6,ymm3,1Fh
 vcmppd k2{k3},ymm6,ymm3,20h
 
-vcmppd k2{k3},zmm6,zmm3,0 {sae}
-vcmppd k2{k3},zmm6,zmm3,1 {sae}
-vcmppd k2{k3},zmm6,zmm3,2 {sae}
-vcmppd k2{k3},zmm6,zmm3,3 {sae}
-vcmppd k2{k3},zmm6,zmm3,4 {sae}
-vcmppd k2{k3},zmm6,zmm3,5 {sae}
-vcmppd k2{k3},zmm6,zmm3,6 {sae}
-vcmppd k2{k3},zmm6,zmm3,7 {sae}
-vcmppd k2{k3},zmm6,zmm3,8 {sae}
-vcmppd k2{k3},zmm6,zmm3,9 {sae}
-vcmppd k2{k3},zmm6,zmm3,0Ah {sae}
-vcmppd k2{k3},zmm6,zmm3,0Bh {sae}
-vcmppd k2{k3},zmm6,zmm3,0Ch {sae}
-vcmppd k2{k3},zmm6,zmm3,0Dh {sae}
-vcmppd k2{k3},zmm6,zmm3,0Eh {sae}
-vcmppd k2{k3},zmm6,zmm3,0Fh {sae}
-vcmppd k2{k3},zmm6,zmm3,10h {sae}
-vcmppd k2{k3},zmm6,zmm3,11h {sae}
-vcmppd k2{k3},zmm6,zmm3,12h {sae}
-vcmppd k2{k3},zmm6,zmm3,13h {sae}
-vcmppd k2{k3},zmm6,zmm3,14h {sae}
-vcmppd k2{k3},zmm6,zmm3,15h {sae}
-vcmppd k2{k3},zmm6,zmm3,16h {sae}
-vcmppd k2{k3},zmm6,zmm3,17h {sae}
-vcmppd k2{k3},zmm6,zmm3,18h {sae}
-vcmppd k2{k3},zmm6,zmm3,19h {sae}
-vcmppd k2{k3},zmm6,zmm3,1Ah {sae}
-vcmppd k2{k3},zmm6,zmm3,1Bh {sae}
-vcmppd k2{k3},zmm6,zmm3,1Ch {sae}
-vcmppd k2{k3},zmm6,zmm3,1Dh {sae}
-vcmppd k2{k3},zmm6,zmm3,1Eh {sae}
-vcmppd k2{k3},zmm6,zmm3,1Fh {sae}
-vcmppd k2{k3},zmm6,zmm3,20h {sae}
+vcmppd k2{k3},zmm6,zmm3,0{sae}
+vcmppd k2{k3},zmm6,zmm3,1{sae}
+vcmppd k2{k3},zmm6,zmm3,2{sae}
+vcmppd k2{k3},zmm6,zmm3,3{sae}
+vcmppd k2{k3},zmm6,zmm3,4{sae}
+vcmppd k2{k3},zmm6,zmm3,5{sae}
+vcmppd k2{k3},zmm6,zmm3,6{sae}
+vcmppd k2{k3},zmm6,zmm3,7{sae}
+vcmppd k2{k3},zmm6,zmm3,8{sae}
+vcmppd k2{k3},zmm6,zmm3,9{sae}
+vcmppd k2{k3},zmm6,zmm3,0Ah{sae}
+vcmppd k2{k3},zmm6,zmm3,0Bh{sae}
+vcmppd k2{k3},zmm6,zmm3,0Ch{sae}
+vcmppd k2{k3},zmm6,zmm3,0Dh{sae}
+vcmppd k2{k3},zmm6,zmm3,0Eh{sae}
+vcmppd k2{k3},zmm6,zmm3,0Fh{sae}
+vcmppd k2{k3},zmm6,zmm3,10h{sae}
+vcmppd k2{k3},zmm6,zmm3,11h{sae}
+vcmppd k2{k3},zmm6,zmm3,12h{sae}
+vcmppd k2{k3},zmm6,zmm3,13h{sae}
+vcmppd k2{k3},zmm6,zmm3,14h{sae}
+vcmppd k2{k3},zmm6,zmm3,15h{sae}
+vcmppd k2{k3},zmm6,zmm3,16h{sae}
+vcmppd k2{k3},zmm6,zmm3,17h{sae}
+vcmppd k2{k3},zmm6,zmm3,18h{sae}
+vcmppd k2{k3},zmm6,zmm3,19h{sae}
+vcmppd k2{k3},zmm6,zmm3,1Ah{sae}
+vcmppd k2{k3},zmm6,zmm3,1Bh{sae}
+vcmppd k2{k3},zmm6,zmm3,1Ch{sae}
+vcmppd k2{k3},zmm6,zmm3,1Dh{sae}
+vcmppd k2{k3},zmm6,zmm3,1Eh{sae}
+vcmppd k2{k3},zmm6,zmm3,1Fh{sae}
+vcmppd k2{k3},zmm6,zmm3,20h{sae}
 
 cmpss xmm1,xmm5,0
 cmpss xmm1,xmm5,1
@@ -643,6 +623,422 @@ vpcomuq xmm2,xmm6,xmm3,6
 vpcomuq xmm2,xmm6,xmm3,7
 vpcomuq xmm2,xmm6,xmm3,8
 
+vpcmpb k2{k3},xmm6,xmm3,0
+vpcmpb k2{k3},xmm6,xmm3,1
+vpcmpb k2{k3},xmm6,xmm3,2
+vpcmpb k2{k3},xmm6,xmm3,3
+vpcmpb k2{k3},xmm6,xmm3,4
+vpcmpb k2{k3},xmm6,xmm3,5
+vpcmpb k2{k3},xmm6,xmm3,6
+vpcmpb k2{k3},xmm6,xmm3,7
+vpcmpb k2{k3},xmm6,xmm3,8
+
+vpcmpb k2{k3},ymm6,ymm3,0
+vpcmpb k2{k3},ymm6,ymm3,1
+vpcmpb k2{k3},ymm6,ymm3,2
+vpcmpb k2{k3},ymm6,ymm3,3
+vpcmpb k2{k3},ymm6,ymm3,4
+vpcmpb k2{k3},ymm6,ymm3,5
+vpcmpb k2{k3},ymm6,ymm3,6
+vpcmpb k2{k3},ymm6,ymm3,7
+vpcmpb k2{k3},ymm6,ymm3,8
+
+vpcmpb k2{k3},zmm6,zmm3,0
+vpcmpb k2{k3},zmm6,zmm3,1
+vpcmpb k2{k3},zmm6,zmm3,2
+vpcmpb k2{k3},zmm6,zmm3,3
+vpcmpb k2{k3},zmm6,zmm3,4
+vpcmpb k2{k3},zmm6,zmm3,5
+vpcmpb k2{k3},zmm6,zmm3,6
+vpcmpb k2{k3},zmm6,zmm3,7
+vpcmpb k2{k3},zmm6,zmm3,8
+
+vpcmpw k2{k3},xmm6,xmm3,0
+vpcmpw k2{k3},xmm6,xmm3,1
+vpcmpw k2{k3},xmm6,xmm3,2
+vpcmpw k2{k3},xmm6,xmm3,3
+vpcmpw k2{k3},xmm6,xmm3,4
+vpcmpw k2{k3},xmm6,xmm3,5
+vpcmpw k2{k3},xmm6,xmm3,6
+vpcmpw k2{k3},xmm6,xmm3,7
+vpcmpw k2{k3},xmm6,xmm3,8
+
+vpcmpw k2{k3},ymm6,ymm3,0
+vpcmpw k2{k3},ymm6,ymm3,1
+vpcmpw k2{k3},ymm6,ymm3,2
+vpcmpw k2{k3},ymm6,ymm3,3
+vpcmpw k2{k3},ymm6,ymm3,4
+vpcmpw k2{k3},ymm6,ymm3,5
+vpcmpw k2{k3},ymm6,ymm3,6
+vpcmpw k2{k3},ymm6,ymm3,7
+vpcmpw k2{k3},ymm6,ymm3,8
+
+vpcmpw k2{k3},zmm6,zmm3,0
+vpcmpw k2{k3},zmm6,zmm3,1
+vpcmpw k2{k3},zmm6,zmm3,2
+vpcmpw k2{k3},zmm6,zmm3,3
+vpcmpw k2{k3},zmm6,zmm3,4
+vpcmpw k2{k3},zmm6,zmm3,5
+vpcmpw k2{k3},zmm6,zmm3,6
+vpcmpw k2{k3},zmm6,zmm3,7
+vpcmpw k2{k3},zmm6,zmm3,8
+
+vpcmpd k2{k3},xmm6,xmm3,0
+vpcmpd k2{k3},xmm6,xmm3,1
+vpcmpd k2{k3},xmm6,xmm3,2
+vpcmpd k2{k3},xmm6,xmm3,3
+vpcmpd k2{k3},xmm6,xmm3,4
+vpcmpd k2{k3},xmm6,xmm3,5
+vpcmpd k2{k3},xmm6,xmm3,6
+vpcmpd k2{k3},xmm6,xmm3,7
+vpcmpd k2{k3},xmm6,xmm3,8
+
+vpcmpd k2{k3},ymm6,ymm3,0
+vpcmpd k2{k3},ymm6,ymm3,1
+vpcmpd k2{k3},ymm6,ymm3,2
+vpcmpd k2{k3},ymm6,ymm3,3
+vpcmpd k2{k3},ymm6,ymm3,4
+vpcmpd k2{k3},ymm6,ymm3,5
+vpcmpd k2{k3},ymm6,ymm3,6
+vpcmpd k2{k3},ymm6,ymm3,7
+vpcmpd k2{k3},ymm6,ymm3,8
+
+vpcmpd k2{k3},zmm6,zmm3,0
+vpcmpd k2{k3},zmm6,zmm3,1
+vpcmpd k2{k3},zmm6,zmm3,2
+vpcmpd k2{k3},zmm6,zmm3,3
+vpcmpd k2{k3},zmm6,zmm3,4
+vpcmpd k2{k3},zmm6,zmm3,5
+vpcmpd k2{k3},zmm6,zmm3,6
+vpcmpd k2{k3},zmm6,zmm3,7
+vpcmpd k2{k3},zmm6,zmm3,8
+
+vpcmpq k2{k3},xmm6,xmm3,0
+vpcmpq k2{k3},xmm6,xmm3,1
+vpcmpq k2{k3},xmm6,xmm3,2
+vpcmpq k2{k3},xmm6,xmm3,3
+vpcmpq k2{k3},xmm6,xmm3,4
+vpcmpq k2{k3},xmm6,xmm3,5
+vpcmpq k2{k3},xmm6,xmm3,6
+vpcmpq k2{k3},xmm6,xmm3,7
+vpcmpq k2{k3},xmm6,xmm3,8
+
+vpcmpq k2{k3},ymm6,ymm3,0
+vpcmpq k2{k3},ymm6,ymm3,1
+vpcmpq k2{k3},ymm6,ymm3,2
+vpcmpq k2{k3},ymm6,ymm3,3
+vpcmpq k2{k3},ymm6,ymm3,4
+vpcmpq k2{k3},ymm6,ymm3,5
+vpcmpq k2{k3},ymm6,ymm3,6
+vpcmpq k2{k3},ymm6,ymm3,7
+vpcmpq k2{k3},ymm6,ymm3,8
+
+vpcmpq k2{k3},zmm6,zmm3,0
+vpcmpq k2{k3},zmm6,zmm3,1
+vpcmpq k2{k3},zmm6,zmm3,2
+vpcmpq k2{k3},zmm6,zmm3,3
+vpcmpq k2{k3},zmm6,zmm3,4
+vpcmpq k2{k3},zmm6,zmm3,5
+vpcmpq k2{k3},zmm6,zmm3,6
+vpcmpq k2{k3},zmm6,zmm3,7
+vpcmpq k2{k3},zmm6,zmm3,8
+
+vpcmpub k2{k3},xmm6,xmm3,0
+vpcmpub k2{k3},xmm6,xmm3,1
+vpcmpub k2{k3},xmm6,xmm3,2
+vpcmpub k2{k3},xmm6,xmm3,3
+vpcmpub k2{k3},xmm6,xmm3,4
+vpcmpub k2{k3},xmm6,xmm3,5
+vpcmpub k2{k3},xmm6,xmm3,6
+vpcmpub k2{k3},xmm6,xmm3,7
+vpcmpub k2{k3},xmm6,xmm3,8
+
+vpcmpub k2{k3},ymm6,ymm3,0
+vpcmpub k2{k3},ymm6,ymm3,1
+vpcmpub k2{k3},ymm6,ymm3,2
+vpcmpub k2{k3},ymm6,ymm3,3
+vpcmpub k2{k3},ymm6,ymm3,4
+vpcmpub k2{k3},ymm6,ymm3,5
+vpcmpub k2{k3},ymm6,ymm3,6
+vpcmpub k2{k3},ymm6,ymm3,7
+vpcmpub k2{k3},ymm6,ymm3,8
+
+vpcmpub k2{k3},zmm6,zmm3,0
+vpcmpub k2{k3},zmm6,zmm3,1
+vpcmpub k2{k3},zmm6,zmm3,2
+vpcmpub k2{k3},zmm6,zmm3,3
+vpcmpub k2{k3},zmm6,zmm3,4
+vpcmpub k2{k3},zmm6,zmm3,5
+vpcmpub k2{k3},zmm6,zmm3,6
+vpcmpub k2{k3},zmm6,zmm3,7
+vpcmpub k2{k3},zmm6,zmm3,8
+
+vpcmpuw k2{k3},xmm6,xmm3,0
+vpcmpuw k2{k3},xmm6,xmm3,1
+vpcmpuw k2{k3},xmm6,xmm3,2
+vpcmpuw k2{k3},xmm6,xmm3,3
+vpcmpuw k2{k3},xmm6,xmm3,4
+vpcmpuw k2{k3},xmm6,xmm3,5
+vpcmpuw k2{k3},xmm6,xmm3,6
+vpcmpuw k2{k3},xmm6,xmm3,7
+vpcmpuw k2{k3},xmm6,xmm3,8
+
+vpcmpuw k2{k3},ymm6,ymm3,0
+vpcmpuw k2{k3},ymm6,ymm3,1
+vpcmpuw k2{k3},ymm6,ymm3,2
+vpcmpuw k2{k3},ymm6,ymm3,3
+vpcmpuw k2{k3},ymm6,ymm3,4
+vpcmpuw k2{k3},ymm6,ymm3,5
+vpcmpuw k2{k3},ymm6,ymm3,6
+vpcmpuw k2{k3},ymm6,ymm3,7
+vpcmpuw k2{k3},ymm6,ymm3,8
+
+vpcmpuw k2{k3},zmm6,zmm3,0
+vpcmpuw k2{k3},zmm6,zmm3,1
+vpcmpuw k2{k3},zmm6,zmm3,2
+vpcmpuw k2{k3},zmm6,zmm3,3
+vpcmpuw k2{k3},zmm6,zmm3,4
+vpcmpuw k2{k3},zmm6,zmm3,5
+vpcmpuw k2{k3},zmm6,zmm3,6
+vpcmpuw k2{k3},zmm6,zmm3,7
+vpcmpuw k2{k3},zmm6,zmm3,8
+
+vpcmpud k2{k3},xmm6,xmm3,0
+vpcmpud k2{k3},xmm6,xmm3,1
+vpcmpud k2{k3},xmm6,xmm3,2
+vpcmpud k2{k3},xmm6,xmm3,3
+vpcmpud k2{k3},xmm6,xmm3,4
+vpcmpud k2{k3},xmm6,xmm3,5
+vpcmpud k2{k3},xmm6,xmm3,6
+vpcmpud k2{k3},xmm6,xmm3,7
+vpcmpud k2{k3},xmm6,xmm3,8
+
+vpcmpud k2{k3},ymm6,ymm3,0
+vpcmpud k2{k3},ymm6,ymm3,1
+vpcmpud k2{k3},ymm6,ymm3,2
+vpcmpud k2{k3},ymm6,ymm3,3
+vpcmpud k2{k3},ymm6,ymm3,4
+vpcmpud k2{k3},ymm6,ymm3,5
+vpcmpud k2{k3},ymm6,ymm3,6
+vpcmpud k2{k3},ymm6,ymm3,7
+vpcmpud k2{k3},ymm6,ymm3,8
+
+vpcmpud k2{k3},zmm6,zmm3,0
+vpcmpud k2{k3},zmm6,zmm3,1
+vpcmpud k2{k3},zmm6,zmm3,2
+vpcmpud k2{k3},zmm6,zmm3,3
+vpcmpud k2{k3},zmm6,zmm3,4
+vpcmpud k2{k3},zmm6,zmm3,5
+vpcmpud k2{k3},zmm6,zmm3,6
+vpcmpud k2{k3},zmm6,zmm3,7
+vpcmpud k2{k3},zmm6,zmm3,8
+
+vpcmpuq k2{k3},xmm6,xmm3,0
+vpcmpuq k2{k3},xmm6,xmm3,1
+vpcmpuq k2{k3},xmm6,xmm3,2
+vpcmpuq k2{k3},xmm6,xmm3,3
+vpcmpuq k2{k3},xmm6,xmm3,4
+vpcmpuq k2{k3},xmm6,xmm3,5
+vpcmpuq k2{k3},xmm6,xmm3,6
+vpcmpuq k2{k3},xmm6,xmm3,7
+vpcmpuq k2{k3},xmm6,xmm3,8
+
+vpcmpuq k2{k3},ymm6,ymm3,0
+vpcmpuq k2{k3},ymm6,ymm3,1
+vpcmpuq k2{k3},ymm6,ymm3,2
+vpcmpuq k2{k3},ymm6,ymm3,3
+vpcmpuq k2{k3},ymm6,ymm3,4
+vpcmpuq k2{k3},ymm6,ymm3,5
+vpcmpuq k2{k3},ymm6,ymm3,6
+vpcmpuq k2{k3},ymm6,ymm3,7
+vpcmpuq k2{k3},ymm6,ymm3,8
+
+vpcmpuq k2{k3},zmm6,zmm3,0
+vpcmpuq k2{k3},zmm6,zmm3,1
+vpcmpuq k2{k3},zmm6,zmm3,2
+vpcmpuq k2{k3},zmm6,zmm3,3
+vpcmpuq k2{k3},zmm6,zmm3,4
+vpcmpuq k2{k3},zmm6,zmm3,5
+vpcmpuq k2{k3},zmm6,zmm3,6
+vpcmpuq k2{k3},zmm6,zmm3,7
+vpcmpuq k2{k3},zmm6,zmm3,8
+
+vcmpph k2{k3},xmm6,xmm3,0
+vcmpph k2{k3},xmm6,xmm3,1
+vcmpph k2{k3},xmm6,xmm3,2
+vcmpph k2{k3},xmm6,xmm3,3
+vcmpph k2{k3},xmm6,xmm3,4
+vcmpph k2{k3},xmm6,xmm3,5
+vcmpph k2{k3},xmm6,xmm3,6
+vcmpph k2{k3},xmm6,xmm3,7
+vcmpph k2{k3},xmm6,xmm3,8
+vcmpph k2{k3},xmm6,xmm3,9
+vcmpph k2{k3},xmm6,xmm3,0Ah
+vcmpph k2{k3},xmm6,xmm3,0Bh
+vcmpph k2{k3},xmm6,xmm3,0Ch
+vcmpph k2{k3},xmm6,xmm3,0Dh
+vcmpph k2{k3},xmm6,xmm3,0Eh
+vcmpph k2{k3},xmm6,xmm3,0Fh
+vcmpph k2{k3},xmm6,xmm3,10h
+vcmpph k2{k3},xmm6,xmm3,11h
+vcmpph k2{k3},xmm6,xmm3,12h
+vcmpph k2{k3},xmm6,xmm3,13h
+vcmpph k2{k3},xmm6,xmm3,14h
+vcmpph k2{k3},xmm6,xmm3,15h
+vcmpph k2{k3},xmm6,xmm3,16h
+vcmpph k2{k3},xmm6,xmm3,17h
+vcmpph k2{k3},xmm6,xmm3,18h
+vcmpph k2{k3},xmm6,xmm3,19h
+vcmpph k2{k3},xmm6,xmm3,1Ah
+vcmpph k2{k3},xmm6,xmm3,1Bh
+vcmpph k2{k3},xmm6,xmm3,1Ch
+vcmpph k2{k3},xmm6,xmm3,1Dh
+vcmpph k2{k3},xmm6,xmm3,1Eh
+vcmpph k2{k3},xmm6,xmm3,1Fh
+vcmpph k2{k3},xmm6,xmm3,20h
+
+vcmpph k2{k3},ymm6,ymm3,0
+vcmpph k2{k3},ymm6,ymm3,1
+vcmpph k2{k3},ymm6,ymm3,2
+vcmpph k2{k3},ymm6,ymm3,3
+vcmpph k2{k3},ymm6,ymm3,4
+vcmpph k2{k3},ymm6,ymm3,5
+vcmpph k2{k3},ymm6,ymm3,6
+vcmpph k2{k3},ymm6,ymm3,7
+vcmpph k2{k3},ymm6,ymm3,8
+vcmpph k2{k3},ymm6,ymm3,9
+vcmpph k2{k3},ymm6,ymm3,0Ah
+vcmpph k2{k3},ymm6,ymm3,0Bh
+vcmpph k2{k3},ymm6,ymm3,0Ch
+vcmpph k2{k3},ymm6,ymm3,0Dh
+vcmpph k2{k3},ymm6,ymm3,0Eh
+vcmpph k2{k3},ymm6,ymm3,0Fh
+vcmpph k2{k3},ymm6,ymm3,10h
+vcmpph k2{k3},ymm6,ymm3,11h
+vcmpph k2{k3},ymm6,ymm3,12h
+vcmpph k2{k3},ymm6,ymm3,13h
+vcmpph k2{k3},ymm6,ymm3,14h
+vcmpph k2{k3},ymm6,ymm3,15h
+vcmpph k2{k3},ymm6,ymm3,16h
+vcmpph k2{k3},ymm6,ymm3,17h
+vcmpph k2{k3},ymm6,ymm3,18h
+vcmpph k2{k3},ymm6,ymm3,19h
+vcmpph k2{k3},ymm6,ymm3,1Ah
+vcmpph k2{k3},ymm6,ymm3,1Bh
+vcmpph k2{k3},ymm6,ymm3,1Ch
+vcmpph k2{k3},ymm6,ymm3,1Dh
+vcmpph k2{k3},ymm6,ymm3,1Eh
+vcmpph k2{k3},ymm6,ymm3,1Fh
+vcmpph k2{k3},ymm6,ymm3,20h
+
+vcmpph k2{k3},zmm6,zmm3,0{sae}
+vcmpph k2{k3},zmm6,zmm3,1{sae}
+vcmpph k2{k3},zmm6,zmm3,2{sae}
+vcmpph k2{k3},zmm6,zmm3,3{sae}
+vcmpph k2{k3},zmm6,zmm3,4{sae}
+vcmpph k2{k3},zmm6,zmm3,5{sae}
+vcmpph k2{k3},zmm6,zmm3,6{sae}
+vcmpph k2{k3},zmm6,zmm3,7{sae}
+vcmpph k2{k3},zmm6,zmm3,8{sae}
+vcmpph k2{k3},zmm6,zmm3,9{sae}
+vcmpph k2{k3},zmm6,zmm3,0Ah{sae}
+vcmpph k2{k3},zmm6,zmm3,0Bh{sae}
+vcmpph k2{k3},zmm6,zmm3,0Ch{sae}
+vcmpph k2{k3},zmm6,zmm3,0Dh{sae}
+vcmpph k2{k3},zmm6,zmm3,0Eh{sae}
+vcmpph k2{k3},zmm6,zmm3,0Fh{sae}
+vcmpph k2{k3},zmm6,zmm3,10h{sae}
+vcmpph k2{k3},zmm6,zmm3,11h{sae}
+vcmpph k2{k3},zmm6,zmm3,12h{sae}
+vcmpph k2{k3},zmm6,zmm3,13h{sae}
+vcmpph k2{k3},zmm6,zmm3,14h{sae}
+vcmpph k2{k3},zmm6,zmm3,15h{sae}
+vcmpph k2{k3},zmm6,zmm3,16h{sae}
+vcmpph k2{k3},zmm6,zmm3,17h{sae}
+vcmpph k2{k3},zmm6,zmm3,18h{sae}
+vcmpph k2{k3},zmm6,zmm3,19h{sae}
+vcmpph k2{k3},zmm6,zmm3,1Ah{sae}
+vcmpph k2{k3},zmm6,zmm3,1Bh{sae}
+vcmpph k2{k3},zmm6,zmm3,1Ch{sae}
+vcmpph k2{k3},zmm6,zmm3,1Dh{sae}
+vcmpph k2{k3},zmm6,zmm3,1Eh{sae}
+vcmpph k2{k3},zmm6,zmm3,1Fh{sae}
+vcmpph k2{k3},zmm6,zmm3,20h{sae}
+
+vcmpsh k2{k3},xmm6,xmm3,0
+vcmpsh k2{k3},xmm6,xmm3,1
+vcmpsh k2{k3},xmm6,xmm3,2
+vcmpsh k2{k3},xmm6,xmm3,3
+vcmpsh k2{k3},xmm6,xmm3,4
+vcmpsh k2{k3},xmm6,xmm3,5
+vcmpsh k2{k3},xmm6,xmm3,6
+vcmpsh k2{k3},xmm6,xmm3,7
+vcmpsh k2{k3},xmm6,xmm3,8
+vcmpsh k2{k3},xmm6,xmm3,9
+vcmpsh k2{k3},xmm6,xmm3,0Ah
+vcmpsh k2{k3},xmm6,xmm3,0Bh
+vcmpsh k2{k3},xmm6,xmm3,0Ch
+vcmpsh k2{k3},xmm6,xmm3,0Dh
+vcmpsh k2{k3},xmm6,xmm3,0Eh
+vcmpsh k2{k3},xmm6,xmm3,0Fh
+vcmpsh k2{k3},xmm6,xmm3,10h
+vcmpsh k2{k3},xmm6,xmm3,11h
+vcmpsh k2{k3},xmm6,xmm3,12h
+vcmpsh k2{k3},xmm6,xmm3,13h
+vcmpsh k2{k3},xmm6,xmm3,14h
+vcmpsh k2{k3},xmm6,xmm3,15h
+vcmpsh k2{k3},xmm6,xmm3,16h
+vcmpsh k2{k3},xmm6,xmm3,17h
+vcmpsh k2{k3},xmm6,xmm3,18h
+vcmpsh k2{k3},xmm6,xmm3,19h
+vcmpsh k2{k3},xmm6,xmm3,1Ah
+vcmpsh k2{k3},xmm6,xmm3,1Bh
+vcmpsh k2{k3},xmm6,xmm3,1Ch
+vcmpsh k2{k3},xmm6,xmm3,1Dh
+vcmpsh k2{k3},xmm6,xmm3,1Eh
+vcmpsh k2{k3},xmm6,xmm3,1Fh
+vcmpsh k2{k3},xmm6,xmm3,20h
+
+vcmpps k2,zmm6,zmm3,0
+vcmpps k2,zmm6,zmm3,1
+vcmpps k2,zmm6,zmm3,2
+vcmpps k2,zmm6,zmm3,3
+vcmpps k2,zmm6,zmm3,4
+vcmpps k2,zmm6,zmm3,5
+vcmpps k2,zmm6,zmm3,6
+vcmpps k2,zmm6,zmm3,7
+vcmpps k2,zmm6,zmm3,8
+
+vcmppd k2,zmm6,zmm3,0
+vcmppd k2,zmm6,zmm3,1
+vcmppd k2,zmm6,zmm3,2
+vcmppd k2,zmm6,zmm3,3
+vcmppd k2,zmm6,zmm3,4
+vcmppd k2,zmm6,zmm3,5
+vcmppd k2,zmm6,zmm3,6
+vcmppd k2,zmm6,zmm3,7
+vcmppd k2,zmm6,zmm3,8
+
+vpcmpud k2,zmm6,zmm3,0
+vpcmpud k2,zmm6,zmm3,1
+vpcmpud k2,zmm6,zmm3,2
+vpcmpud k2,zmm6,zmm3,3
+vpcmpud k2,zmm6,zmm3,4
+vpcmpud k2,zmm6,zmm3,5
+vpcmpud k2,zmm6,zmm3,6
+vpcmpud k2,zmm6,zmm3,7
+vpcmpud k2,zmm6,zmm3,8
+
+vpcmpd k2,zmm6,zmm3,0
+vpcmpd k2,zmm6,zmm3,1
+vpcmpd k2,zmm6,zmm3,2
+vpcmpd k2,zmm6,zmm3,3
+vpcmpd k2,zmm6,zmm3,4
+vpcmpd k2,zmm6,zmm3,5
+vpcmpd k2,zmm6,zmm3,6
+vpcmpd k2,zmm6,zmm3,7
+vpcmpd k2,zmm6,zmm3,8
+
 faddp
 fcom
 fcomp
@@ -801,39 +1197,39 @@ vcmpgt_oqps k2{k3},ymm6,ymm3
 vcmptrue_usps k2{k3},ymm6,ymm3
 vcmpps k2{k3},ymm6,ymm3,20h
 
-vcmpeqps k2{k3},zmm6,zmm3 {sae}
-vcmpltps k2{k3},zmm6,zmm3 {sae}
-vcmpleps k2{k3},zmm6,zmm3 {sae}
-vcmpunordps k2{k3},zmm6,zmm3 {sae}
-vcmpneqps k2{k3},zmm6,zmm3 {sae}
-vcmpnltps k2{k3},zmm6,zmm3 {sae}
-vcmpnleps k2{k3},zmm6,zmm3 {sae}
-vcmpordps k2{k3},zmm6,zmm3 {sae}
-vcmpeq_uqps k2{k3},zmm6,zmm3 {sae}
-vcmpngeps k2{k3},zmm6,zmm3 {sae}
-vcmpngtps k2{k3},zmm6,zmm3 {sae}
-vcmpfalseps k2{k3},zmm6,zmm3 {sae}
-vcmpneq_oqps k2{k3},zmm6,zmm3 {sae}
-vcmpgeps k2{k3},zmm6,zmm3 {sae}
-vcmpgtps k2{k3},zmm6,zmm3 {sae}
-vcmptrueps k2{k3},zmm6,zmm3 {sae}
-vcmpeq_osps k2{k3},zmm6,zmm3 {sae}
-vcmplt_oqps k2{k3},zmm6,zmm3 {sae}
-vcmple_oqps k2{k3},zmm6,zmm3 {sae}
-vcmpunord_sps k2{k3},zmm6,zmm3 {sae}
-vcmpneq_usps k2{k3},zmm6,zmm3 {sae}
-vcmpnlt_uqps k2{k3},zmm6,zmm3 {sae}
-vcmpnle_uqps k2{k3},zmm6,zmm3 {sae}
-vcmpord_sps k2{k3},zmm6,zmm3 {sae}
-vcmpeq_usps k2{k3},zmm6,zmm3 {sae}
-vcmpnge_uqps k2{k3},zmm6,zmm3 {sae}
-vcmpngt_uqps k2{k3},zmm6,zmm3 {sae}
-vcmpfalse_osps k2{k3},zmm6,zmm3 {sae}
-vcmpneq_osps k2{k3},zmm6,zmm3 {sae}
-vcmpge_oqps k2{k3},zmm6,zmm3 {sae}
-vcmpgt_oqps k2{k3},zmm6,zmm3 {sae}
-vcmptrue_usps k2{k3},zmm6,zmm3 {sae}
-vcmpps k2{k3},zmm6,zmm3,20h {sae}
+vcmpeqps k2{k3},zmm6,zmm3{sae}
+vcmpltps k2{k3},zmm6,zmm3{sae}
+vcmpleps k2{k3},zmm6,zmm3{sae}
+vcmpunordps k2{k3},zmm6,zmm3{sae}
+vcmpneqps k2{k3},zmm6,zmm3{sae}
+vcmpnltps k2{k3},zmm6,zmm3{sae}
+vcmpnleps k2{k3},zmm6,zmm3{sae}
+vcmpordps k2{k3},zmm6,zmm3{sae}
+vcmpeq_uqps k2{k3},zmm6,zmm3{sae}
+vcmpngeps k2{k3},zmm6,zmm3{sae}
+vcmpngtps k2{k3},zmm6,zmm3{sae}
+vcmpfalseps k2{k3},zmm6,zmm3{sae}
+vcmpneq_oqps k2{k3},zmm6,zmm3{sae}
+vcmpgeps k2{k3},zmm6,zmm3{sae}
+vcmpgtps k2{k3},zmm6,zmm3{sae}
+vcmptrueps k2{k3},zmm6,zmm3{sae}
+vcmpeq_osps k2{k3},zmm6,zmm3{sae}
+vcmplt_oqps k2{k3},zmm6,zmm3{sae}
+vcmple_oqps k2{k3},zmm6,zmm3{sae}
+vcmpunord_sps k2{k3},zmm6,zmm3{sae}
+vcmpneq_usps k2{k3},zmm6,zmm3{sae}
+vcmpnlt_uqps k2{k3},zmm6,zmm3{sae}
+vcmpnle_uqps k2{k3},zmm6,zmm3{sae}
+vcmpord_sps k2{k3},zmm6,zmm3{sae}
+vcmpeq_usps k2{k3},zmm6,zmm3{sae}
+vcmpnge_uqps k2{k3},zmm6,zmm3{sae}
+vcmpngt_uqps k2{k3},zmm6,zmm3{sae}
+vcmpfalse_osps k2{k3},zmm6,zmm3{sae}
+vcmpneq_osps k2{k3},zmm6,zmm3{sae}
+vcmpge_oqps k2{k3},zmm6,zmm3{sae}
+vcmpgt_oqps k2{k3},zmm6,zmm3{sae}
+vcmptrue_usps k2{k3},zmm6,zmm3{sae}
+vcmpps k2{k3},zmm6,zmm3,20h{sae}
 
 cmpeqpd xmm1,xmm5
 cmpltpd xmm1,xmm5
@@ -981,39 +1377,39 @@ vcmpgt_oqpd k2{k3},ymm6,ymm3
 vcmptrue_uspd k2{k3},ymm6,ymm3
 vcmppd k2{k3},ymm6,ymm3,20h
 
-vcmpeqpd k2{k3},zmm6,zmm3 {sae}
-vcmpltpd k2{k3},zmm6,zmm3 {sae}
-vcmplepd k2{k3},zmm6,zmm3 {sae}
-vcmpunordpd k2{k3},zmm6,zmm3 {sae}
-vcmpneqpd k2{k3},zmm6,zmm3 {sae}
-vcmpnltpd k2{k3},zmm6,zmm3 {sae}
-vcmpnlepd k2{k3},zmm6,zmm3 {sae}
-vcmpordpd k2{k3},zmm6,zmm3 {sae}
-vcmpeq_uqpd k2{k3},zmm6,zmm3 {sae}
-vcmpngepd k2{k3},zmm6,zmm3 {sae}
-vcmpngtpd k2{k3},zmm6,zmm3 {sae}
-vcmpfalsepd k2{k3},zmm6,zmm3 {sae}
-vcmpneq_oqpd k2{k3},zmm6,zmm3 {sae}
-vcmpgepd k2{k3},zmm6,zmm3 {sae}
-vcmpgtpd k2{k3},zmm6,zmm3 {sae}
-vcmptruepd k2{k3},zmm6,zmm3 {sae}
-vcmpeq_ospd k2{k3},zmm6,zmm3 {sae}
-vcmplt_oqpd k2{k3},zmm6,zmm3 {sae}
-vcmple_oqpd k2{k3},zmm6,zmm3 {sae}
-vcmpunord_spd k2{k3},zmm6,zmm3 {sae}
-vcmpneq_uspd k2{k3},zmm6,zmm3 {sae}
-vcmpnlt_uqpd k2{k3},zmm6,zmm3 {sae}
-vcmpnle_uqpd k2{k3},zmm6,zmm3 {sae}
-vcmpord_spd k2{k3},zmm6,zmm3 {sae}
-vcmpeq_uspd k2{k3},zmm6,zmm3 {sae}
-vcmpnge_uqpd k2{k3},zmm6,zmm3 {sae}
-vcmpngt_uqpd k2{k3},zmm6,zmm3 {sae}
-vcmpfalse_ospd k2{k3},zmm6,zmm3 {sae}
-vcmpneq_ospd k2{k3},zmm6,zmm3 {sae}
-vcmpge_oqpd k2{k3},zmm6,zmm3 {sae}
-vcmpgt_oqpd k2{k3},zmm6,zmm3 {sae}
-vcmptrue_uspd k2{k3},zmm6,zmm3 {sae}
-vcmppd k2{k3},zmm6,zmm3,20h {sae}
+vcmpeqpd k2{k3},zmm6,zmm3{sae}
+vcmpltpd k2{k3},zmm6,zmm3{sae}
+vcmplepd k2{k3},zmm6,zmm3{sae}
+vcmpunordpd k2{k3},zmm6,zmm3{sae}
+vcmpneqpd k2{k3},zmm6,zmm3{sae}
+vcmpnltpd k2{k3},zmm6,zmm3{sae}
+vcmpnlepd k2{k3},zmm6,zmm3{sae}
+vcmpordpd k2{k3},zmm6,zmm3{sae}
+vcmpeq_uqpd k2{k3},zmm6,zmm3{sae}
+vcmpngepd k2{k3},zmm6,zmm3{sae}
+vcmpngtpd k2{k3},zmm6,zmm3{sae}
+vcmpfalsepd k2{k3},zmm6,zmm3{sae}
+vcmpneq_oqpd k2{k3},zmm6,zmm3{sae}
+vcmpgepd k2{k3},zmm6,zmm3{sae}
+vcmpgtpd k2{k3},zmm6,zmm3{sae}
+vcmptruepd k2{k3},zmm6,zmm3{sae}
+vcmpeq_ospd k2{k3},zmm6,zmm3{sae}
+vcmplt_oqpd k2{k3},zmm6,zmm3{sae}
+vcmple_oqpd k2{k3},zmm6,zmm3{sae}
+vcmpunord_spd k2{k3},zmm6,zmm3{sae}
+vcmpneq_uspd k2{k3},zmm6,zmm3{sae}
+vcmpnlt_uqpd k2{k3},zmm6,zmm3{sae}
+vcmpnle_uqpd k2{k3},zmm6,zmm3{sae}
+vcmpord_spd k2{k3},zmm6,zmm3{sae}
+vcmpeq_uspd k2{k3},zmm6,zmm3{sae}
+vcmpnge_uqpd k2{k3},zmm6,zmm3{sae}
+vcmpngt_uqpd k2{k3},zmm6,zmm3{sae}
+vcmpfalse_ospd k2{k3},zmm6,zmm3{sae}
+vcmpneq_ospd k2{k3},zmm6,zmm3{sae}
+vcmpge_oqpd k2{k3},zmm6,zmm3{sae}
+vcmpgt_oqpd k2{k3},zmm6,zmm3{sae}
+vcmptrue_uspd k2{k3},zmm6,zmm3{sae}
+vcmppd k2{k3},zmm6,zmm3,20h{sae}
 
 cmpeqss xmm1,xmm5
 cmpltss xmm1,xmm5
@@ -1250,6 +1646,422 @@ vpcomnequq xmm2,xmm6,xmm3
 vpcomfalseuq xmm2,xmm6,xmm3
 vpcomtrueuq xmm2,xmm6,xmm3
 vpcomuq xmm2,xmm6,xmm3,8
+
+vpcmpeqb k2{k3},xmm6,xmm3
+vpcmpltb k2{k3},xmm6,xmm3
+vpcmpleb k2{k3},xmm6,xmm3
+vpcmpfalseb k2{k3},xmm6,xmm3
+vpcmpneqb k2{k3},xmm6,xmm3
+vpcmpnltb k2{k3},xmm6,xmm3
+vpcmpnleb k2{k3},xmm6,xmm3
+vpcmptrueb k2{k3},xmm6,xmm3
+vpcmpb k2{k3},xmm6,xmm3,8
+
+vpcmpeqb k2{k3},ymm6,ymm3
+vpcmpltb k2{k3},ymm6,ymm3
+vpcmpleb k2{k3},ymm6,ymm3
+vpcmpfalseb k2{k3},ymm6,ymm3
+vpcmpneqb k2{k3},ymm6,ymm3
+vpcmpnltb k2{k3},ymm6,ymm3
+vpcmpnleb k2{k3},ymm6,ymm3
+vpcmptrueb k2{k3},ymm6,ymm3
+vpcmpb k2{k3},ymm6,ymm3,8
+
+vpcmpeqb k2{k3},zmm6,zmm3
+vpcmpltb k2{k3},zmm6,zmm3
+vpcmpleb k2{k3},zmm6,zmm3
+vpcmpfalseb k2{k3},zmm6,zmm3
+vpcmpneqb k2{k3},zmm6,zmm3
+vpcmpnltb k2{k3},zmm6,zmm3
+vpcmpnleb k2{k3},zmm6,zmm3
+vpcmptrueb k2{k3},zmm6,zmm3
+vpcmpb k2{k3},zmm6,zmm3,8
+
+vpcmpeqw k2{k3},xmm6,xmm3
+vpcmpltw k2{k3},xmm6,xmm3
+vpcmplew k2{k3},xmm6,xmm3
+vpcmpfalsew k2{k3},xmm6,xmm3
+vpcmpneqw k2{k3},xmm6,xmm3
+vpcmpnltw k2{k3},xmm6,xmm3
+vpcmpnlew k2{k3},xmm6,xmm3
+vpcmptruew k2{k3},xmm6,xmm3
+vpcmpw k2{k3},xmm6,xmm3,8
+
+vpcmpeqw k2{k3},ymm6,ymm3
+vpcmpltw k2{k3},ymm6,ymm3
+vpcmplew k2{k3},ymm6,ymm3
+vpcmpfalsew k2{k3},ymm6,ymm3
+vpcmpneqw k2{k3},ymm6,ymm3
+vpcmpnltw k2{k3},ymm6,ymm3
+vpcmpnlew k2{k3},ymm6,ymm3
+vpcmptruew k2{k3},ymm6,ymm3
+vpcmpw k2{k3},ymm6,ymm3,8
+
+vpcmpeqw k2{k3},zmm6,zmm3
+vpcmpltw k2{k3},zmm6,zmm3
+vpcmplew k2{k3},zmm6,zmm3
+vpcmpfalsew k2{k3},zmm6,zmm3
+vpcmpneqw k2{k3},zmm6,zmm3
+vpcmpnltw k2{k3},zmm6,zmm3
+vpcmpnlew k2{k3},zmm6,zmm3
+vpcmptruew k2{k3},zmm6,zmm3
+vpcmpw k2{k3},zmm6,zmm3,8
+
+vpcmpeqd k2{k3},xmm6,xmm3
+vpcmpltd k2{k3},xmm6,xmm3
+vpcmpled k2{k3},xmm6,xmm3
+vpcmpfalsed k2{k3},xmm6,xmm3
+vpcmpneqd k2{k3},xmm6,xmm3
+vpcmpnltd k2{k3},xmm6,xmm3
+vpcmpnled k2{k3},xmm6,xmm3
+vpcmptrued k2{k3},xmm6,xmm3
+vpcmpd k2{k3},xmm6,xmm3,8
+
+vpcmpeqd k2{k3},ymm6,ymm3
+vpcmpltd k2{k3},ymm6,ymm3
+vpcmpled k2{k3},ymm6,ymm3
+vpcmpfalsed k2{k3},ymm6,ymm3
+vpcmpneqd k2{k3},ymm6,ymm3
+vpcmpnltd k2{k3},ymm6,ymm3
+vpcmpnled k2{k3},ymm6,ymm3
+vpcmptrued k2{k3},ymm6,ymm3
+vpcmpd k2{k3},ymm6,ymm3,8
+
+vpcmpeqd k2{k3},zmm6,zmm3
+vpcmpltd k2{k3},zmm6,zmm3
+vpcmpled k2{k3},zmm6,zmm3
+vpcmpfalsed k2{k3},zmm6,zmm3
+vpcmpneqd k2{k3},zmm6,zmm3
+vpcmpnltd k2{k3},zmm6,zmm3
+vpcmpnled k2{k3},zmm6,zmm3
+vpcmptrued k2{k3},zmm6,zmm3
+vpcmpd k2{k3},zmm6,zmm3,8
+
+vpcmpeqq k2{k3},xmm6,xmm3
+vpcmpltq k2{k3},xmm6,xmm3
+vpcmpleq k2{k3},xmm6,xmm3
+vpcmpfalseq k2{k3},xmm6,xmm3
+vpcmpneqq k2{k3},xmm6,xmm3
+vpcmpnltq k2{k3},xmm6,xmm3
+vpcmpnleq k2{k3},xmm6,xmm3
+vpcmptrueq k2{k3},xmm6,xmm3
+vpcmpq k2{k3},xmm6,xmm3,8
+
+vpcmpeqq k2{k3},ymm6,ymm3
+vpcmpltq k2{k3},ymm6,ymm3
+vpcmpleq k2{k3},ymm6,ymm3
+vpcmpfalseq k2{k3},ymm6,ymm3
+vpcmpneqq k2{k3},ymm6,ymm3
+vpcmpnltq k2{k3},ymm6,ymm3
+vpcmpnleq k2{k3},ymm6,ymm3
+vpcmptrueq k2{k3},ymm6,ymm3
+vpcmpq k2{k3},ymm6,ymm3,8
+
+vpcmpeqq k2{k3},zmm6,zmm3
+vpcmpltq k2{k3},zmm6,zmm3
+vpcmpleq k2{k3},zmm6,zmm3
+vpcmpfalseq k2{k3},zmm6,zmm3
+vpcmpneqq k2{k3},zmm6,zmm3
+vpcmpnltq k2{k3},zmm6,zmm3
+vpcmpnleq k2{k3},zmm6,zmm3
+vpcmptrueq k2{k3},zmm6,zmm3
+vpcmpq k2{k3},zmm6,zmm3,8
+
+vpcmpequb k2{k3},xmm6,xmm3
+vpcmpltub k2{k3},xmm6,xmm3
+vpcmpleub k2{k3},xmm6,xmm3
+vpcmpfalseub k2{k3},xmm6,xmm3
+vpcmpnequb k2{k3},xmm6,xmm3
+vpcmpnltub k2{k3},xmm6,xmm3
+vpcmpnleub k2{k3},xmm6,xmm3
+vpcmptrueub k2{k3},xmm6,xmm3
+vpcmpub k2{k3},xmm6,xmm3,8
+
+vpcmpequb k2{k3},ymm6,ymm3
+vpcmpltub k2{k3},ymm6,ymm3
+vpcmpleub k2{k3},ymm6,ymm3
+vpcmpfalseub k2{k3},ymm6,ymm3
+vpcmpnequb k2{k3},ymm6,ymm3
+vpcmpnltub k2{k3},ymm6,ymm3
+vpcmpnleub k2{k3},ymm6,ymm3
+vpcmptrueub k2{k3},ymm6,ymm3
+vpcmpub k2{k3},ymm6,ymm3,8
+
+vpcmpequb k2{k3},zmm6,zmm3
+vpcmpltub k2{k3},zmm6,zmm3
+vpcmpleub k2{k3},zmm6,zmm3
+vpcmpfalseub k2{k3},zmm6,zmm3
+vpcmpnequb k2{k3},zmm6,zmm3
+vpcmpnltub k2{k3},zmm6,zmm3
+vpcmpnleub k2{k3},zmm6,zmm3
+vpcmptrueub k2{k3},zmm6,zmm3
+vpcmpub k2{k3},zmm6,zmm3,8
+
+vpcmpequw k2{k3},xmm6,xmm3
+vpcmpltuw k2{k3},xmm6,xmm3
+vpcmpleuw k2{k3},xmm6,xmm3
+vpcmpfalseuw k2{k3},xmm6,xmm3
+vpcmpnequw k2{k3},xmm6,xmm3
+vpcmpnltuw k2{k3},xmm6,xmm3
+vpcmpnleuw k2{k3},xmm6,xmm3
+vpcmptrueuw k2{k3},xmm6,xmm3
+vpcmpuw k2{k3},xmm6,xmm3,8
+
+vpcmpequw k2{k3},ymm6,ymm3
+vpcmpltuw k2{k3},ymm6,ymm3
+vpcmpleuw k2{k3},ymm6,ymm3
+vpcmpfalseuw k2{k3},ymm6,ymm3
+vpcmpnequw k2{k3},ymm6,ymm3
+vpcmpnltuw k2{k3},ymm6,ymm3
+vpcmpnleuw k2{k3},ymm6,ymm3
+vpcmptrueuw k2{k3},ymm6,ymm3
+vpcmpuw k2{k3},ymm6,ymm3,8
+
+vpcmpequw k2{k3},zmm6,zmm3
+vpcmpltuw k2{k3},zmm6,zmm3
+vpcmpleuw k2{k3},zmm6,zmm3
+vpcmpfalseuw k2{k3},zmm6,zmm3
+vpcmpnequw k2{k3},zmm6,zmm3
+vpcmpnltuw k2{k3},zmm6,zmm3
+vpcmpnleuw k2{k3},zmm6,zmm3
+vpcmptrueuw k2{k3},zmm6,zmm3
+vpcmpuw k2{k3},zmm6,zmm3,8
+
+vpcmpequd k2{k3},xmm6,xmm3
+vpcmpltud k2{k3},xmm6,xmm3
+vpcmpleud k2{k3},xmm6,xmm3
+vpcmpfalseud k2{k3},xmm6,xmm3
+vpcmpnequd k2{k3},xmm6,xmm3
+vpcmpnltud k2{k3},xmm6,xmm3
+vpcmpnleud k2{k3},xmm6,xmm3
+vpcmptrueud k2{k3},xmm6,xmm3
+vpcmpud k2{k3},xmm6,xmm3,8
+
+vpcmpequd k2{k3},ymm6,ymm3
+vpcmpltud k2{k3},ymm6,ymm3
+vpcmpleud k2{k3},ymm6,ymm3
+vpcmpfalseud k2{k3},ymm6,ymm3
+vpcmpnequd k2{k3},ymm6,ymm3
+vpcmpnltud k2{k3},ymm6,ymm3
+vpcmpnleud k2{k3},ymm6,ymm3
+vpcmptrueud k2{k3},ymm6,ymm3
+vpcmpud k2{k3},ymm6,ymm3,8
+
+vpcmpequd k2{k3},zmm6,zmm3
+vpcmpltud k2{k3},zmm6,zmm3
+vpcmpleud k2{k3},zmm6,zmm3
+vpcmpfalseud k2{k3},zmm6,zmm3
+vpcmpnequd k2{k3},zmm6,zmm3
+vpcmpnltud k2{k3},zmm6,zmm3
+vpcmpnleud k2{k3},zmm6,zmm3
+vpcmptrueud k2{k3},zmm6,zmm3
+vpcmpud k2{k3},zmm6,zmm3,8
+
+vpcmpequq k2{k3},xmm6,xmm3
+vpcmpltuq k2{k3},xmm6,xmm3
+vpcmpleuq k2{k3},xmm6,xmm3
+vpcmpfalseuq k2{k3},xmm6,xmm3
+vpcmpnequq k2{k3},xmm6,xmm3
+vpcmpnltuq k2{k3},xmm6,xmm3
+vpcmpnleuq k2{k3},xmm6,xmm3
+vpcmptrueuq k2{k3},xmm6,xmm3
+vpcmpuq k2{k3},xmm6,xmm3,8
+
+vpcmpequq k2{k3},ymm6,ymm3
+vpcmpltuq k2{k3},ymm6,ymm3
+vpcmpleuq k2{k3},ymm6,ymm3
+vpcmpfalseuq k2{k3},ymm6,ymm3
+vpcmpnequq k2{k3},ymm6,ymm3
+vpcmpnltuq k2{k3},ymm6,ymm3
+vpcmpnleuq k2{k3},ymm6,ymm3
+vpcmptrueuq k2{k3},ymm6,ymm3
+vpcmpuq k2{k3},ymm6,ymm3,8
+
+vpcmpequq k2{k3},zmm6,zmm3
+vpcmpltuq k2{k3},zmm6,zmm3
+vpcmpleuq k2{k3},zmm6,zmm3
+vpcmpfalseuq k2{k3},zmm6,zmm3
+vpcmpnequq k2{k3},zmm6,zmm3
+vpcmpnltuq k2{k3},zmm6,zmm3
+vpcmpnleuq k2{k3},zmm6,zmm3
+vpcmptrueuq k2{k3},zmm6,zmm3
+vpcmpuq k2{k3},zmm6,zmm3,8
+
+vcmpeqph k2{k3},xmm6,xmm3
+vcmpltph k2{k3},xmm6,xmm3
+vcmpleph k2{k3},xmm6,xmm3
+vcmpunordph k2{k3},xmm6,xmm3
+vcmpneqph k2{k3},xmm6,xmm3
+vcmpnltph k2{k3},xmm6,xmm3
+vcmpnleph k2{k3},xmm6,xmm3
+vcmpordph k2{k3},xmm6,xmm3
+vcmpeq_uqph k2{k3},xmm6,xmm3
+vcmpngeph k2{k3},xmm6,xmm3
+vcmpngtph k2{k3},xmm6,xmm3
+vcmpfalseph k2{k3},xmm6,xmm3
+vcmpneq_oqph k2{k3},xmm6,xmm3
+vcmpgeph k2{k3},xmm6,xmm3
+vcmpgtph k2{k3},xmm6,xmm3
+vcmptrueph k2{k3},xmm6,xmm3
+vcmpeq_osph k2{k3},xmm6,xmm3
+vcmplt_oqph k2{k3},xmm6,xmm3
+vcmple_oqph k2{k3},xmm6,xmm3
+vcmpunord_sph k2{k3},xmm6,xmm3
+vcmpneq_usph k2{k3},xmm6,xmm3
+vcmpnlt_uqph k2{k3},xmm6,xmm3
+vcmpnle_uqph k2{k3},xmm6,xmm3
+vcmpord_sph k2{k3},xmm6,xmm3
+vcmpeq_usph k2{k3},xmm6,xmm3
+vcmpnge_uqph k2{k3},xmm6,xmm3
+vcmpngt_uqph k2{k3},xmm6,xmm3
+vcmpfalse_osph k2{k3},xmm6,xmm3
+vcmpneq_osph k2{k3},xmm6,xmm3
+vcmpge_oqph k2{k3},xmm6,xmm3
+vcmpgt_oqph k2{k3},xmm6,xmm3
+vcmptrue_usph k2{k3},xmm6,xmm3
+vcmpph k2{k3},xmm6,xmm3,20h
+
+vcmpeqph k2{k3},ymm6,ymm3
+vcmpltph k2{k3},ymm6,ymm3
+vcmpleph k2{k3},ymm6,ymm3
+vcmpunordph k2{k3},ymm6,ymm3
+vcmpneqph k2{k3},ymm6,ymm3
+vcmpnltph k2{k3},ymm6,ymm3
+vcmpnleph k2{k3},ymm6,ymm3
+vcmpordph k2{k3},ymm6,ymm3
+vcmpeq_uqph k2{k3},ymm6,ymm3
+vcmpngeph k2{k3},ymm6,ymm3
+vcmpngtph k2{k3},ymm6,ymm3
+vcmpfalseph k2{k3},ymm6,ymm3
+vcmpneq_oqph k2{k3},ymm6,ymm3
+vcmpgeph k2{k3},ymm6,ymm3
+vcmpgtph k2{k3},ymm6,ymm3
+vcmptrueph k2{k3},ymm6,ymm3
+vcmpeq_osph k2{k3},ymm6,ymm3
+vcmplt_oqph k2{k3},ymm6,ymm3
+vcmple_oqph k2{k3},ymm6,ymm3
+vcmpunord_sph k2{k3},ymm6,ymm3
+vcmpneq_usph k2{k3},ymm6,ymm3
+vcmpnlt_uqph k2{k3},ymm6,ymm3
+vcmpnle_uqph k2{k3},ymm6,ymm3
+vcmpord_sph k2{k3},ymm6,ymm3
+vcmpeq_usph k2{k3},ymm6,ymm3
+vcmpnge_uqph k2{k3},ymm6,ymm3
+vcmpngt_uqph k2{k3},ymm6,ymm3
+vcmpfalse_osph k2{k3},ymm6,ymm3
+vcmpneq_osph k2{k3},ymm6,ymm3
+vcmpge_oqph k2{k3},ymm6,ymm3
+vcmpgt_oqph k2{k3},ymm6,ymm3
+vcmptrue_usph k2{k3},ymm6,ymm3
+vcmpph k2{k3},ymm6,ymm3,20h
+
+vcmpeqph k2{k3},zmm6,zmm3{sae}
+vcmpltph k2{k3},zmm6,zmm3{sae}
+vcmpleph k2{k3},zmm6,zmm3{sae}
+vcmpunordph k2{k3},zmm6,zmm3{sae}
+vcmpneqph k2{k3},zmm6,zmm3{sae}
+vcmpnltph k2{k3},zmm6,zmm3{sae}
+vcmpnleph k2{k3},zmm6,zmm3{sae}
+vcmpordph k2{k3},zmm6,zmm3{sae}
+vcmpeq_uqph k2{k3},zmm6,zmm3{sae}
+vcmpngeph k2{k3},zmm6,zmm3{sae}
+vcmpngtph k2{k3},zmm6,zmm3{sae}
+vcmpfalseph k2{k3},zmm6,zmm3{sae}
+vcmpneq_oqph k2{k3},zmm6,zmm3{sae}
+vcmpgeph k2{k3},zmm6,zmm3{sae}
+vcmpgtph k2{k3},zmm6,zmm3{sae}
+vcmptrueph k2{k3},zmm6,zmm3{sae}
+vcmpeq_osph k2{k3},zmm6,zmm3{sae}
+vcmplt_oqph k2{k3},zmm6,zmm3{sae}
+vcmple_oqph k2{k3},zmm6,zmm3{sae}
+vcmpunord_sph k2{k3},zmm6,zmm3{sae}
+vcmpneq_usph k2{k3},zmm6,zmm3{sae}
+vcmpnlt_uqph k2{k3},zmm6,zmm3{sae}
+vcmpnle_uqph k2{k3},zmm6,zmm3{sae}
+vcmpord_sph k2{k3},zmm6,zmm3{sae}
+vcmpeq_usph k2{k3},zmm6,zmm3{sae}
+vcmpnge_uqph k2{k3},zmm6,zmm3{sae}
+vcmpngt_uqph k2{k3},zmm6,zmm3{sae}
+vcmpfalse_osph k2{k3},zmm6,zmm3{sae}
+vcmpneq_osph k2{k3},zmm6,zmm3{sae}
+vcmpge_oqph k2{k3},zmm6,zmm3{sae}
+vcmpgt_oqph k2{k3},zmm6,zmm3{sae}
+vcmptrue_usph k2{k3},zmm6,zmm3{sae}
+vcmpph k2{k3},zmm6,zmm3,20h{sae}
+
+vcmpeqsh k2{k3},xmm6,xmm3
+vcmpltsh k2{k3},xmm6,xmm3
+vcmplesh k2{k3},xmm6,xmm3
+vcmpunordsh k2{k3},xmm6,xmm3
+vcmpneqsh k2{k3},xmm6,xmm3
+vcmpnltsh k2{k3},xmm6,xmm3
+vcmpnlesh k2{k3},xmm6,xmm3
+vcmpordsh k2{k3},xmm6,xmm3
+vcmpeq_uqsh k2{k3},xmm6,xmm3
+vcmpngesh k2{k3},xmm6,xmm3
+vcmpngtsh k2{k3},xmm6,xmm3
+vcmpfalsesh k2{k3},xmm6,xmm3
+vcmpneq_oqsh k2{k3},xmm6,xmm3
+vcmpgesh k2{k3},xmm6,xmm3
+vcmpgtsh k2{k3},xmm6,xmm3
+vcmptruesh k2{k3},xmm6,xmm3
+vcmpeq_ossh k2{k3},xmm6,xmm3
+vcmplt_oqsh k2{k3},xmm6,xmm3
+vcmple_oqsh k2{k3},xmm6,xmm3
+vcmpunord_ssh k2{k3},xmm6,xmm3
+vcmpneq_ussh k2{k3},xmm6,xmm3
+vcmpnlt_uqsh k2{k3},xmm6,xmm3
+vcmpnle_uqsh k2{k3},xmm6,xmm3
+vcmpord_ssh k2{k3},xmm6,xmm3
+vcmpeq_ussh k2{k3},xmm6,xmm3
+vcmpnge_uqsh k2{k3},xmm6,xmm3
+vcmpngt_uqsh k2{k3},xmm6,xmm3
+vcmpfalse_ossh k2{k3},xmm6,xmm3
+vcmpneq_ossh k2{k3},xmm6,xmm3
+vcmpge_oqsh k2{k3},xmm6,xmm3
+vcmpgt_oqsh k2{k3},xmm6,xmm3
+vcmptrue_ussh k2{k3},xmm6,xmm3
+vcmpsh k2{k3},xmm6,xmm3,20h
+
+vcmpeqps k2,zmm6,zmm3
+vcmpltps k2,zmm6,zmm3
+vcmpleps k2,zmm6,zmm3
+vcmpunordps k2,zmm6,zmm3
+vcmpneqps k2,zmm6,zmm3
+vcmpnltps k2,zmm6,zmm3
+vcmpnleps k2,zmm6,zmm3
+vcmpordps k2,zmm6,zmm3
+vcmpps k2,zmm6,zmm3,8
+
+vcmpeqpd k2,zmm6,zmm3
+vcmpltpd k2,zmm6,zmm3
+vcmplepd k2,zmm6,zmm3
+vcmpunordpd k2,zmm6,zmm3
+vcmpneqpd k2,zmm6,zmm3
+vcmpnltpd k2,zmm6,zmm3
+vcmpnlepd k2,zmm6,zmm3
+vcmpordpd k2,zmm6,zmm3
+vcmppd k2,zmm6,zmm3,8
+
+vpcmpequd k2,zmm6,zmm3
+vpcmpltud k2,zmm6,zmm3
+vpcmpleud k2,zmm6,zmm3
+vpcmp??ud k2,zmm6,zmm3
+vpcmpnequd k2,zmm6,zmm3
+vpcmpnltud k2,zmm6,zmm3
+vpcmpnleud k2,zmm6,zmm3
+vpcmp???ud k2,zmm6,zmm3
+vpcmpud k2,zmm6,zmm3,8
+
+vpcmpeqd k2,zmm6,zmm3
+vpcmpltd k2,zmm6,zmm3
+vpcmpled k2,zmm6,zmm3
+vpcmp??d k2,zmm6,zmm3
+vpcmpneqd k2,zmm6,zmm3
+vpcmpnltd k2,zmm6,zmm3
+vpcmpnled k2,zmm6,zmm3
+vpcmp???d k2,zmm6,zmm3
+vpcmpd k2,zmm6,zmm3,8
 
 imul cx,cx,0FFFFh
 imul ecx,ecx,0FFFFFFFFh

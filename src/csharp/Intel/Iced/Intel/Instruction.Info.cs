@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if INSTR_INFO
 using System.Diagnostics;
@@ -159,6 +139,8 @@ namespace Iced.Intel {
 				case Code.Popad:
 					return 32;
 				case Code.Iretq:
+				case Code.Eretu:
+				case Code.Erets:
 					return 40;
 				case Code.Enterw_imm16_imm8:
 					return -(2 + (Immediate8_2nd & 0x1F) * 2 + Immediate16);
@@ -188,7 +170,7 @@ namespace Iced.Intel {
 		}
 
 		/// <summary>
-		/// Gets the FPU status word's <c>TOP</c> increment and whether it's a conditional or unconditional push/pop
+		/// Gets the FPU status word's <c>TOP</c> increment value and whether it's a conditional or unconditional push/pop
 		/// and whether <c>TOP</c> is written.
 		/// </summary>
 		/// <returns></returns>
@@ -286,12 +268,8 @@ namespace Iced.Intel {
 		/// Gets the CPU or CPUID feature flags
 		/// </summary>
 		public readonly CpuidFeature[] CpuidFeatures {
-			get {
-				var code = Code;
-				uint flags2 = InstructionInfoInternal.InstrInfoTable.Data[(int)code * 2 + 1];
-				var cpuidFeature = (InstructionInfoInternal.CpuidFeatureInternal)(flags2 >> (int)InstructionInfoInternal.InfoFlags2.CpuidFeatureInternalShift & (uint)InstructionInfoInternal.InfoFlags2.CpuidFeatureInternalMask);
-				return InstructionInfoInternal.CpuidFeatureInternalData.ToCpuidFeatures[(int)cpuidFeature];
-			}
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Code.CpuidFeatures();
 		}
 
 		/// <summary>
@@ -371,7 +349,7 @@ namespace Iced.Intel {
 					break;
 				if (Op0Kind != OpKind.Register || Op1Kind != OpKind.Register)
 					break;
-				if (Code.Mnemonic() == Mnemonic.Xor)
+				if (Mnemonic == Mnemonic.Xor)
 					return InstructionInfoInternal.RflagsInfo.C_cos_S_pz_U_a;
 				else
 					return InstructionInfoInternal.RflagsInfo.C_acos_S_pz;
@@ -570,31 +548,96 @@ namespace Iced.Intel {
 			get => Code.IsCallFarIndirect();
 		}
 
+#if MVEX
 		/// <summary>
-		/// Negates the condition code, eg. <c>JE</c> -> <c>JNE</c>. Can be used if it's <c>Jcc</c>, <c>SETcc</c>, <c>CMOVcc</c>, <c>LOOPcc</c>
+		/// Checks if it's a <c>JKccD SHORT</c> or <c>JKccD NEAR</c> instruction
+		/// </summary>
+		/// <returns></returns>
+		public readonly bool IsJkccShortOrNear {
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Code.IsJkccShortOrNear();
+		}
+
+		/// <summary>
+		/// Checks if it's a <c>JKccD NEAR</c> instruction
+		/// </summary>
+		/// <returns></returns>
+		public readonly bool IsJkccNear {
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Code.IsJkccNear();
+		}
+
+		/// <summary>
+		/// Checks if it's a <c>JKccD SHORT</c> instruction
+		/// </summary>
+		/// <returns></returns>
+		public readonly bool IsJkccShort {
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Code.IsJkccShort();
+		}
+#endif
+
+		/// <summary>
+		/// Checks if it's a <c>JCXZ SHORT</c>, <c>JECXZ SHORT</c> or <c>JRCXZ SHORT</c> instruction
+		/// </summary>
+		/// <returns></returns>
+		public readonly bool IsJcxShort {
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Code.IsJcxShort();
+		}
+
+		/// <summary>
+		/// Checks if it's a <c>LOOPcc SHORT</c> instruction
+		/// </summary>
+		/// <returns></returns>
+		public readonly bool IsLoopcc {
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Code.IsLoopcc();
+		}
+
+		/// <summary>
+		/// Checks if it's a <c>LOOP SHORT</c> instruction
+		/// </summary>
+		/// <returns></returns>
+		public readonly bool IsLoop {
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Code.IsLoop();
+		}
+
+		/// <summary>
+		/// Negates the condition code, eg. <c>JE</c> -> <c>JNE</c>. Can be used if it's <c>Jcc</c>, <c>SETcc</c>, <c>CMOVcc</c>, <c>CMPccXADD</c>, <c>LOOPcc</c>
 		/// and does nothing if the instruction doesn't have a condition code.
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void NegateConditionCode() => Code = Code.NegateConditionCode();
+		public void NegateConditionCode() => InternalSetCodeNoCheck(Code.NegateConditionCode());
 
 		/// <summary>
 		/// Converts <c>Jcc/JMP NEAR</c> to <c>Jcc/JMP SHORT</c> and does nothing if it's not a <c>Jcc/JMP NEAR</c> instruction
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ToShortBranch() => Code = Code.ToShortBranch();
+		public void ToShortBranch() => InternalSetCodeNoCheck(Code.ToShortBranch());
 
 		/// <summary>
 		/// Converts <c>Jcc/JMP SHORT</c> to <c>Jcc/JMP NEAR</c> and does nothing if it's not a <c>Jcc/JMP SHORT</c> instruction
 		/// </summary>
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		public void ToNearBranch() => Code = Code.ToNearBranch();
+		public void ToNearBranch() => InternalSetCodeNoCheck(Code.ToNearBranch());
 
 		/// <summary>
-		/// Gets the condition code if it's <c>Jcc</c>, <c>SETcc</c>, <c>CMOVcc</c>, <c>LOOPcc</c> else <see cref="ConditionCode.None"/> is returned
+		/// Gets the condition code if it's <c>Jcc</c>, <c>SETcc</c>, <c>CMOVcc</c>, <c>CMPccXADD</c>, <c>LOOPcc</c> else <see cref="ConditionCode.None"/> is returned
 		/// </summary>
 		public readonly ConditionCode ConditionCode {
 			[MethodImpl(MethodImplOptions.AggressiveInlining)]
 			get => Code.ConditionCode();
+		}
+
+		/// <summary>
+		/// Checks if it's a string instruction such as <c>MOVS</c>, <c>LODS</c>, <c>STOS</c>, etc.
+		/// </summary>
+		/// <returns></returns>
+		public readonly bool IsStringInstruction {
+			[MethodImpl(MethodImplOptions.AggressiveInlining)]
+			get => Code.IsStringInstruction();
 		}
 	}
 }

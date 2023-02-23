@@ -1,31 +1,11 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 namespace Generator.Constants {
 	[TypeGen(TypeGenOrders.NoDeps)]
 	sealed class DecoderTestParserConstantsType {
 		DecoderTestParserConstantsType(GenTypes genTypes) {
-			var type = new ConstantsType(TypeIds.DecoderTestParserConstants, ConstantsTypeFlags.None, null, GetConstants());
+			var type = new ConstantsType(TypeIds.DecoderTestParserConstants, ConstantsTypeFlags.None, default, GetConstants());
 			genTypes.Add(type);
 		}
 
@@ -96,6 +76,24 @@ namespace Generator.Constants {
 				new Constant(ConstantKind.String, "OpKind_Memory", "m", ConstantsTypeFlags.None),
 				new Constant(ConstantKind.String, "DecoderTestOptions_NoEncode", "noencode", ConstantsTypeFlags.None),
 				new Constant(ConstantKind.String, "DecoderTestOptions_NoOptDisableTest", "no_opt_disable_test", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "IP", "ip", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "EvictionHint", "eh", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_RegSwizzleNone", "mvex-dcba", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_RegSwizzleCdab", "mvex-cdab", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_RegSwizzleBadc", "mvex-badc", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_RegSwizzleDacb", "mvex-dacb", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_RegSwizzleAaaa", "mvex-aaaa", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_RegSwizzleBbbb", "mvex-bbbb", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_RegSwizzleCccc", "mvex-cccc", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_RegSwizzleDddd", "mvex-dddd", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_MemConvNone", "mvex-mident", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_MemConvBroadcast1", "mvex-bcst1", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_MemConvBroadcast4", "mvex-bcst4", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_MemConvFloat16", "mvex-f16", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_MemConvUint8", "mvex-u8", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_MemConvSint8", "mvex-s8", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_MemConvUint16", "mvex-u16", ConstantsTypeFlags.None),
+				new Constant(ConstantKind.String, "MVEX_MemConvSint16", "mvex-s16", ConstantsTypeFlags.None),
 			};
 	}
 }

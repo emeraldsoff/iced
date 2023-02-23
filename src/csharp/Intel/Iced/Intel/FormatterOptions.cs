@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if GAS || INTEL || MASM || NASM
 using System;
@@ -46,14 +26,14 @@ namespace Iced.Intel {
 			AlwaysShowScale					= 0x00000800,
 			AlwaysShowSegmentRegister		= 0x00001000,
 			ShowZeroDisplacements			= 0x00002000,
-			LeadingZeroes					= 0x00004000,
+			LeadingZeros					= 0x00004000,
 			UppercaseHex					= 0x00008000,
 			SmallHexNumbersInDecimal		= 0x00010000,
 			AddLeadingZeroToHexNumbers		= 0x00020000,
-			BranchLeadingZeroes				= 0x00040000,
+			BranchLeadingZeros				= 0x00040000,
 			SignedImmediateOperands			= 0x00080000,
 			SignedMemoryDisplacements		= 0x00100000,
-			DisplacementLeadingZeroes		= 0x00200000,
+			DisplacementLeadingZeros		= 0x00200000,
 			RipRelativeAddresses			= 0x00400000,
 			ShowBranchSize					= 0x00800000,
 			UsePseudoOps					= 0x01000000,
@@ -82,7 +62,7 @@ namespace Iced.Intel {
 		/// </summary>
 		public FormatterOptions() {
 			flags1 = Flags1.UppercaseHex | Flags1.SmallHexNumbersInDecimal |
-				Flags1.AddLeadingZeroToHexNumbers | Flags1.BranchLeadingZeroes |
+				Flags1.AddLeadingZeroToHexNumbers | Flags1.BranchLeadingZeros |
 				Flags1.SignedMemoryDisplacements | Flags1.ShowBranchSize |
 				Flags1.UsePseudoOps | Flags1.MasmAddDsPrefix32 |
 				Flags1.MasmSymbolDisplInBrackets | Flags1.MasmDisplInBrackets;
@@ -90,7 +70,7 @@ namespace Iced.Intel {
 		}
 
 		/// <summary>
-		/// Prefixes are upper cased
+		/// Prefixes are uppercased
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -109,7 +89,7 @@ namespace Iced.Intel {
 		}
 
 		/// <summary>
-		/// Mnemonics are upper cased
+		/// Mnemonics are uppercased
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -128,7 +108,7 @@ namespace Iced.Intel {
 		}
 
 		/// <summary>
-		/// Registers are upper cased
+		/// Registers are uppercased
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -147,7 +127,7 @@ namespace Iced.Intel {
 		}
 
 		/// <summary>
-		/// Keywords are upper cased (eg. <c>BYTE PTR</c>, <c>SHORT</c>)
+		/// Keywords are uppercased (eg. <c>BYTE PTR</c>, <c>SHORT</c>)
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -166,7 +146,7 @@ namespace Iced.Intel {
 		}
 
 		/// <summary>
-		/// Upper case decorators, eg. <c>{z}</c>, <c>{sae}</c>, <c>{rd-sae}</c> (but not op mask registers: <c>{k1}</c>)
+		/// Uppercase decorators, eg. <c>{z}</c>, <c>{sae}</c>, <c>{rd-sae}</c> (but not opmask registers: <c>{k1}</c>)
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -185,7 +165,7 @@ namespace Iced.Intel {
 		}
 
 		/// <summary>
-		/// Everything is upper cased, except numbers and their prefixes/suffixes
+		/// Everything is uppercased, except numbers and their prefixes/suffixes
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -488,9 +468,9 @@ namespace Iced.Intel {
 		public string? DigitSeparator { get; set; }
 
 		/// <summary>
-		/// Add leading zeroes to hexadecimal/octal/binary numbers.
-		/// This option has no effect on branch targets and displacements, use <see cref="BranchLeadingZeroes"/>
-		/// and <see cref="DisplacementLeadingZeroes"/>.
+		/// Add leading zeros to hexadecimal/octal/binary numbers.
+		/// This option has no effect on branch targets and displacements, use <see cref="BranchLeadingZeros"/>
+		/// and <see cref="DisplacementLeadingZeros"/>.
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -498,18 +478,35 @@ namespace Iced.Intel {
 		/// <br/>
 		/// <see langword="false"/>: <c>0xA</c>/<c>0Ah</c>
 		/// </summary>
-		public bool LeadingZeroes {
-			get => (flags1 & Flags1.LeadingZeroes) != 0;
+		public bool LeadingZeros {
+			get => (flags1 & Flags1.LeadingZeros) != 0;
 			set {
 				if (value)
-					flags1 |= Flags1.LeadingZeroes;
+					flags1 |= Flags1.LeadingZeros;
 				else
-					flags1 &= ~Flags1.LeadingZeroes;
+					flags1 &= ~Flags1.LeadingZeros;
 			}
 		}
 
 		/// <summary>
-		/// Use upper case hex digits
+		/// Add leading zeros to hexadecimal/octal/binary numbers.
+		/// This option has no effect on branch targets and displacements, use <see cref="BranchLeadingZeros"/>
+		/// and <see cref="DisplacementLeadingZeros"/>.
+		/// <br/>
+		/// Default: <see langword="false"/>
+		/// <br/>
+		/// <see langword="true"/>: <c>0x0000000A</c>/<c>0000000Ah</c>
+		/// <br/>
+		/// <see langword="false"/>: <c>0xA</c>/<c>0Ah</c>
+		/// </summary>
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+		public bool LeadingZeroes {
+			get => LeadingZeros;
+			set => LeadingZeros = value;
+		}
+
+		/// <summary>
+		/// Use uppercase hex digits
 		/// <br/>
 		/// Default: <see langword="true"/>
 		/// <br/>
@@ -573,7 +570,7 @@ namespace Iced.Intel {
 		public NumberBase NumberBase {
 			get => numberBase;
 			set {
-				if ((uint)value > (uint)NumberBase.Binary)
+				if ((uint)value >= (uint)IcedConstants.NumberBaseEnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				numberBase = value;
 			}
@@ -581,7 +578,7 @@ namespace Iced.Intel {
 		NumberBase numberBase = NumberBase.Hexadecimal;
 
 		/// <summary>
-		/// Add leading zeroes to branch offsets. Used by <c>CALL NEAR</c>, <c>CALL FAR</c>, <c>JMP NEAR</c>, <c>JMP FAR</c>, <c>Jcc</c>, <c>LOOP</c>, <c>LOOPcc</c>, <c>XBEGIN</c>
+		/// Add leading zeros to branch offsets. Used by <c>CALL NEAR</c>, <c>CALL FAR</c>, <c>JMP NEAR</c>, <c>JMP FAR</c>, <c>Jcc</c>, <c>LOOP</c>, <c>LOOPcc</c>, <c>XBEGIN</c>
 		/// <br/>
 		/// Default: <see langword="true"/>
 		/// <br/>
@@ -589,14 +586,29 @@ namespace Iced.Intel {
 		/// <br/>
 		/// <see langword="false"/>: <c>je 123h</c>
 		/// </summary>
-		public bool BranchLeadingZeroes {
-			get => (flags1 & Flags1.BranchLeadingZeroes) != 0;
+		public bool BranchLeadingZeros {
+			get => (flags1 & Flags1.BranchLeadingZeros) != 0;
 			set {
 				if (value)
-					flags1 |= Flags1.BranchLeadingZeroes;
+					flags1 |= Flags1.BranchLeadingZeros;
 				else
-					flags1 &= ~Flags1.BranchLeadingZeroes;
+					flags1 &= ~Flags1.BranchLeadingZeros;
 			}
+		}
+
+		/// <summary>
+		/// Add leading zeros to branch offsets. Used by <c>CALL NEAR</c>, <c>CALL FAR</c>, <c>JMP NEAR</c>, <c>JMP FAR</c>, <c>Jcc</c>, <c>LOOP</c>, <c>LOOPcc</c>, <c>XBEGIN</c>
+		/// <br/>
+		/// Default: <see langword="true"/>
+		/// <br/>
+		/// <see langword="true"/>: <c>je 00000123h</c>
+		/// <br/>
+		/// <see langword="false"/>: <c>je 123h</c>
+		/// </summary>
+		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
+		public bool BranchLeadingZeroes {
+			get => BranchLeadingZeros;
+			set => BranchLeadingZeros = value;
 		}
 
 		/// <summary>
@@ -638,7 +650,7 @@ namespace Iced.Intel {
 		}
 
 		/// <summary>
-		/// Add leading zeroes to displacements
+		/// Add leading zeros to displacements
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -646,18 +658,18 @@ namespace Iced.Intel {
 		/// <br/>
 		/// <see langword="false"/>: <c>mov al,[eax+12h]</c>
 		/// </summary>
-		public bool DisplacementLeadingZeroes {
-			get => (flags1 & Flags1.DisplacementLeadingZeroes) != 0;
+		public bool DisplacementLeadingZeros {
+			get => (flags1 & Flags1.DisplacementLeadingZeros) != 0;
 			set {
 				if (value)
-					flags1 |= Flags1.DisplacementLeadingZeroes;
+					flags1 |= Flags1.DisplacementLeadingZeros;
 				else
-					flags1 &= ~Flags1.DisplacementLeadingZeroes;
+					flags1 &= ~Flags1.DisplacementLeadingZeros;
 			}
 		}
 
 		/// <summary>
-		/// Add leading zeroes to displacements
+		/// Add leading zeros to displacements
 		/// <br/>
 		/// Default: <see langword="false"/>
 		/// <br/>
@@ -665,11 +677,10 @@ namespace Iced.Intel {
 		/// <br/>
 		/// <see langword="false"/>: <c>mov al,[eax+12h]</c>
 		/// </summary>
-		[System.Obsolete("Use " + nameof(DisplacementLeadingZeroes) + " instead of this property", true)]
 		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public bool SignExtendMemoryDisplacements {
-			get => DisplacementLeadingZeroes;
-			set => DisplacementLeadingZeroes = value;
+		public bool DisplacementLeadingZeroes {
+			get => DisplacementLeadingZeros;
+			set => DisplacementLeadingZeros = value;
 		}
 
 		/// <summary>
@@ -681,7 +692,7 @@ namespace Iced.Intel {
 		public MemorySizeOptions MemorySizeOptions {
 			get => memorySizeOptions;
 			set {
-				if ((uint)value > (uint)MemorySizeOptions.Never)
+				if ((uint)value >= (uint)IcedConstants.MemorySizeOptionsEnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				memorySizeOptions = value;
 			}
@@ -943,7 +954,7 @@ namespace Iced.Intel {
 		public CC_b CC_b {
 			get => cc_b;
 			set {
-				if (value >= (CC_b)3)
+				if ((uint)value >= IcedConstants.CC_b_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_b = value;
 			}
@@ -958,7 +969,7 @@ namespace Iced.Intel {
 		public CC_ae CC_ae {
 			get => cc_ae;
 			set {
-				if (value >= (CC_ae)3)
+				if ((uint)value >= (uint)IcedConstants.CC_ae_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_ae = value;
 			}
@@ -973,7 +984,7 @@ namespace Iced.Intel {
 		public CC_e CC_e {
 			get => cc_e;
 			set {
-				if (value >= (CC_e)2)
+				if ((uint)value >= (uint)IcedConstants.CC_e_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_e = value;
 			}
@@ -988,7 +999,7 @@ namespace Iced.Intel {
 		public CC_ne CC_ne {
 			get => cc_ne;
 			set {
-				if (value >= (CC_ne)2)
+				if ((uint)value >= (uint)IcedConstants.CC_ne_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_ne = value;
 			}
@@ -1003,7 +1014,7 @@ namespace Iced.Intel {
 		public CC_be CC_be {
 			get => cc_be;
 			set {
-				if (value >= (CC_be)2)
+				if ((uint)value >= (uint)IcedConstants.CC_be_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_be = value;
 			}
@@ -1018,7 +1029,7 @@ namespace Iced.Intel {
 		public CC_a CC_a {
 			get => cc_a;
 			set {
-				if (value >= (CC_a)2)
+				if ((uint)value >= (uint)IcedConstants.CC_a_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_a = value;
 			}
@@ -1033,7 +1044,7 @@ namespace Iced.Intel {
 		public CC_p CC_p {
 			get => cc_p;
 			set {
-				if (value >= (CC_p)2)
+				if ((uint)value >= (uint)IcedConstants.CC_p_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_p = value;
 			}
@@ -1048,7 +1059,7 @@ namespace Iced.Intel {
 		public CC_np CC_np {
 			get => cc_np;
 			set {
-				if (value >= (CC_np)2)
+				if ((uint)value >= (uint)IcedConstants.CC_np_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_np = value;
 			}
@@ -1063,7 +1074,7 @@ namespace Iced.Intel {
 		public CC_l CC_l {
 			get => cc_l;
 			set {
-				if (value >= (CC_l)2)
+				if ((uint)value >= (uint)IcedConstants.CC_l_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_l = value;
 			}
@@ -1078,7 +1089,7 @@ namespace Iced.Intel {
 		public CC_ge CC_ge {
 			get => cc_ge;
 			set {
-				if (value >= (CC_ge)2)
+				if ((uint)value >= (uint)IcedConstants.CC_ge_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_ge = value;
 			}
@@ -1093,7 +1104,7 @@ namespace Iced.Intel {
 		public CC_le CC_le {
 			get => cc_le;
 			set {
-				if (value >= (CC_le)2)
+				if ((uint)value >= (uint)IcedConstants.CC_le_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_le = value;
 			}
@@ -1108,124 +1119,12 @@ namespace Iced.Intel {
 		public CC_g CC_g {
 			get => cc_g;
 			set {
-				if (value >= (CC_g)2)
+				if ((uint)value >= (uint)IcedConstants.CC_g_EnumCount)
 					ThrowHelper.ThrowArgumentOutOfRangeException_value();
 				cc_g = value;
 			}
 		}
 		CC_g cc_g = CC_g.g;
-
-		/// <summary>
-		/// Prefixes are upper cased
-		/// <br/>
-		/// Default: <see langword="false"/>
-		/// <br/>
-		/// <see langword="true"/>: <c>REP stosd</c>
-		/// <br/>
-		/// <see langword="false"/>: <c>rep stosd</c>
-		/// </summary>
-		[System.Obsolete("Use " + nameof(UppercasePrefixes) + " instead of this property", true)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public bool UpperCasePrefixes {
-			get => UppercasePrefixes;
-			set => UppercasePrefixes = value;
-		}
-
-		/// <summary>
-		/// Mnemonics are upper cased
-		/// <br/>
-		/// Default: <see langword="false"/>
-		/// <br/>
-		/// <see langword="true"/>: <c>MOV rcx,rax</c>
-		/// <br/>
-		/// <see langword="false"/>: <c>mov rcx,rax</c>
-		/// </summary>
-		[System.Obsolete("Use " + nameof(UppercaseMnemonics) + " instead of this property", true)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public bool UpperCaseMnemonics {
-			get => UppercaseMnemonics;
-			set => UppercaseMnemonics = value;
-		}
-
-		/// <summary>
-		/// Registers are upper cased
-		/// <br/>
-		/// Default: <see langword="false"/>
-		/// <br/>
-		/// <see langword="true"/>: <c>mov RCX,[RAX+RDX*8]</c>
-		/// <br/>
-		/// <see langword="false"/>: <c>mov rcx,[rax+rdx*8]</c>
-		/// </summary>
-		[System.Obsolete("Use " + nameof(UppercaseRegisters) + " instead of this property", true)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public bool UpperCaseRegisters {
-			get => UppercaseRegisters;
-			set => UppercaseRegisters = value;
-		}
-
-		/// <summary>
-		/// Keywords are upper cased (eg. <c>BYTE PTR</c>, <c>SHORT</c>)
-		/// <br/>
-		/// Default: <see langword="false"/>
-		/// <br/>
-		/// <see langword="true"/>: <c>mov BYTE PTR [rcx],12h</c>
-		/// <br/>
-		/// <see langword="false"/>: <c>mov byte ptr [rcx],12h</c>
-		/// </summary>
-		[System.Obsolete("Use " + nameof(UppercaseKeywords) + " instead of this property", true)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public bool UpperCaseKeywords {
-			get => UppercaseKeywords;
-			set => UppercaseKeywords = value;
-		}
-
-		/// <summary>
-		/// Upper case decorators, eg. <c>{z}</c>, <c>{sae}</c>, <c>{rd-sae}</c> (but not op mask registers: <c>{k1}</c>)
-		/// <br/>
-		/// Default: <see langword="false"/>
-		/// <br/>
-		/// <see langword="true"/>: <c>vunpcklps xmm2{k5}{Z},xmm6,dword bcst [rax+4]</c>
-		/// <br/>
-		/// <see langword="false"/>: <c>vunpcklps xmm2{k5}{z},xmm6,dword bcst [rax+4]</c>
-		/// </summary>
-		[System.Obsolete("Use " + nameof(UppercaseDecorators) + " instead of this property", true)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public bool UpperCaseDecorators {
-			get => UppercaseDecorators;
-			set => UppercaseDecorators = value;
-		}
-
-		/// <summary>
-		/// Everything is upper cased, except numbers and their prefixes/suffixes
-		/// <br/>
-		/// Default: <see langword="false"/>
-		/// <br/>
-		/// <see langword="true"/>: <c>MOV EAX,GS:[RCX*4+0ffh]</c>
-		/// <br/>
-		/// <see langword="false"/>: <c>mov eax,gs:[rcx*4+0ffh]</c>
-		/// </summary>
-		[System.Obsolete("Use " + nameof(UppercaseAll) + " instead of this property", true)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public bool UpperCaseAll {
-			get => UppercaseAll;
-			set => UppercaseAll = value;
-		}
-
-		/// <summary>
-		/// Use upper case hex digits
-		/// <br/>
-		/// Default: <see langword="true"/>
-		/// <br/>
-		/// <see langword="true"/>: <c>0xFF</c>
-		/// <br/>
-		/// <see langword="false"/>: <c>0xff</c>
-		/// </summary>
-		[System.Obsolete("Use " + nameof(UppercaseHex) + " instead of this property", true)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public bool UpperCaseHex {
-			get => UppercaseHex;
-			set => UppercaseHex= value;
-		}
 
 #if GAS
 		/// <summary>

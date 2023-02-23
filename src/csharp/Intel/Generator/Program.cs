@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -75,10 +55,10 @@ namespace Generator {
 	}
 
 	sealed class CommandLineOptions {
-		public readonly HashSet<TargetLanguage> Languages = new HashSet<TargetLanguage>();
+		public readonly HashSet<TargetLanguage> Languages = new();
 		public GeneratorFlags GeneratorFlags = GeneratorFlags.None;
-		public readonly HashSet<string> IncludeCpuid = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-		public readonly HashSet<string> ExcludeCpuid = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
+		public readonly HashSet<string> IncludeCpuid = new(StringComparer.OrdinalIgnoreCase);
+		public readonly HashSet<string> ExcludeCpuid = new(StringComparer.OrdinalIgnoreCase);
 	}
 
 	static class Program {
@@ -113,7 +93,7 @@ namespace Generator {
 		}
 
 		static IEnumerable<GeneratorInfo> Filter(List<GeneratorInfo> genInfos, CommandLineOptions options) {
-			var okLang = new bool[Enum.GetValues(typeof(TargetLanguage)).Length];
+			var okLang = new bool[Enum.GetValues<TargetLanguage>().Length];
 			if (options.Languages.Count == 0) {
 				for (int i = 0; i < okLang.Length; i++)
 					okLang[i] = true;
@@ -146,6 +126,8 @@ Options:
         rs (Rust)
         rsjs (Rust + JS)
         py (Python)
+        lua (Lua)
+        java (Java)
 --no-formatter
     Don't include any formatter
 --no-gas
@@ -166,6 +148,10 @@ Options:
     Don't include XOP instructions
 --no-3dnow
     Don't include 3DNow! instructions
+--no-mvex
+    Don't include MVEX instructions
+--no-knc
+    Don't include KNC instructions (MVEX + KNC VEX)
 --no-padlock
     Don't include Centaur (VIA) PadLock instructions
 --no-cyrix
@@ -179,7 +165,7 @@ Options:
 		}
 
 		static bool TryParseCommandLine(string[] args, [NotNullWhen(true)] out CommandLineOptions? options, [NotNullWhen(false)] out string? error) {
-			if (Enum.GetValues(typeof(TargetLanguage)).Length != 5)
+			if (Enum.GetValues<TargetLanguage>().Length != 7)
 				throw new InvalidOperationException("Enum updated, update help message and this method");
 			options = new CommandLineOptions();
 			for (int i = 0; i < args.Length; i++) {
@@ -210,6 +196,12 @@ Options:
 						break;
 					case "py":
 						options.Languages.Add(TargetLanguage.Python);
+						break;
+					case "lua":
+						options.Languages.Add(TargetLanguage.Lua);
+						break;
+					case "java":
+						options.Languages.Add(TargetLanguage.Java);
 						break;
 					default:
 						error = $"Unknown language: {value}";
@@ -257,6 +249,15 @@ Options:
 					options.GeneratorFlags |= GeneratorFlags.No3DNow;
 					// Remove FEMMS too
 					options.ExcludeCpuid.Add(nameof(CpuidFeature.D3NOW));
+					break;
+
+				case "--no-mvex":
+					options.GeneratorFlags |= GeneratorFlags.NoMVEX;
+					break;
+
+				case "--no-knc":
+					options.GeneratorFlags |= GeneratorFlags.NoMVEX;
+					options.ExcludeCpuid.Add(nameof(CpuidFeature.KNC));
 					break;
 
 				case "--no-padlock":
@@ -311,7 +312,7 @@ Options:
 
 		static GeneratorContext CreateGeneratorContext(GeneratorFlags flags, HashSet<string> includeCpuid, HashSet<string> excludeCpuid) {
 			var dir = Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(Path.GetDirectoryName(typeof(Program).Assembly.Location)))))));
-			if (dir is null || !File.Exists(Path.Combine(dir, "csharp", "Iced.sln")))
+			if (dir is null || !File.Exists(Path.Combine(dir, "csharp", "Intel", "Iced.sln")))
 				throw new InvalidOperationException();
 			return new GeneratorContext(dir, flags, includeCpuid, excludeCpuid);
 		}

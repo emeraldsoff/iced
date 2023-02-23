@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use wasm_bindgen::prelude::*;
 
@@ -348,5 +328,37 @@ pub enum CpuidFeature {
 	AVX_VNNI = 154,
 	/// CPUID.0C0000000H:EAX >= 0C0000001H AND CPUID.0C0000001H:EDX.GMI\[Bits 5:4\] = 11B (\[4\] = exists, \[5\] = enabled)
 	PADLOCK_GMI = 155,
+	/// CPUID.(EAX=07H, ECX=01H):EAX.FRED\[bit 17\]
+	FRED = 156,
+	/// CPUID.(EAX=07H, ECX=01H):EAX.LKGS\[bit 18\]
+	LKGS = 157,
+	/// CPUID.(EAX=07H, ECX=0H):EDX.AVX512-FP16\[bit 23\]
+	AVX512_FP16 = 158,
+	/// Undocumented Intel `RDUDBG` and `WRUDBG` instructions
+	UDBG = 159,
+	/// Intel Knights Corner
+	KNC = 160,
+	/// Undocumented instruction
+	PADLOCK_UNDOC = 161,
+	/// CPUID.8000001FH:EAX.RMPQUERY\[bit 6\]
+	RMPQUERY = 162,
+	/// CPUID.(EAX=07H, ECX=1H):EAX.RAO-INT\[bit 3\]
+	RAO_INT = 163,
+	/// CPUID.(EAX=07H, ECX=1H):EDX.PREFETCHITI\[bit 14\]
+	PREFETCHITI = 164,
+	/// CPUID.(EAX=07H, ECX=1H):EAX.AMX-FP16\[bit 21\]
+	AMX_FP16 = 165,
+	/// CPUID.(EAX=07H, ECX=1H):EAX.CMPCCXADD\[bit 7\]
+	CMPCCXADD = 166,
+	/// CPUID.(EAX=07H, ECX=1H):EAX.AVX-IFMA\[bit 23\]
+	AVX_IFMA = 167,
+	/// CPUID.(EAX=07H, ECX=1H):EDX.AVX-NE-CONVERT\[bit 5\]
+	AVX_NE_CONVERT = 168,
+	/// CPUID.(EAX=07H, ECX=1H):EDX.AVX-VNNI-INT8\[bit 4\]
+	AVX_VNNI_INT8 = 169,
+	/// CPUID.(EAX=07H, ECX=1H):EAX.MSRLIST\[bit 27\]
+	MSRLIST = 170,
+	/// CPUID.(EAX=07H, ECX=1H):EAX.WRMSRNS\[bit 19\]
+	WRMSRNS = 171,
 }
 // GENERATOR-END: Enum

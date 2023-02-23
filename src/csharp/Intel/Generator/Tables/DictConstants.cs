@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using Generator.Constants.Encoder;
 using Generator.Enums;
@@ -81,6 +61,7 @@ namespace Generator.Tables {
 				(OpCodeInfoConstants.Encoding_EVEX, genTypes[TypeIds.EncodingKind][nameof(EncodingKind.EVEX)]),
 				(OpCodeInfoConstants.Encoding_XOP, genTypes[TypeIds.EncodingKind][nameof(EncodingKind.XOP)]),
 				(OpCodeInfoConstants.Encoding_3DNOW, genTypes[TypeIds.EncodingKind][nameof(EncodingKind.D3NOW)]),
+				(OpCodeInfoConstants.Encoding_MVEX, genTypes[TypeIds.EncodingKind][nameof(EncodingKind.MVEX)]),
 			};
 		public static (string value, EnumValue flags)[] MandatoryPrefixTable(GenTypes genTypes) =>
 			new (string value, EnumValue flags)[] {
@@ -96,9 +77,11 @@ namespace Generator.Tables {
 				(OpCodeInfoConstants.Table_0F, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.T0F)]),
 				(OpCodeInfoConstants.Table_0F38, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.T0F38)]),
 				(OpCodeInfoConstants.Table_0F3A, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.T0F3A)]),
-				(OpCodeInfoConstants.Table_XOP8, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.XOP8)]),
-				(OpCodeInfoConstants.Table_XOP9, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.XOP9)]),
-				(OpCodeInfoConstants.Table_XOPA, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.XOPA)]),
+				(OpCodeInfoConstants.Table_MAP5, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.MAP5)]),
+				(OpCodeInfoConstants.Table_MAP6, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.MAP6)]),
+				(OpCodeInfoConstants.Table_MAP8, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.MAP8)]),
+				(OpCodeInfoConstants.Table_MAP9, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.MAP9)]),
+				(OpCodeInfoConstants.Table_MAP10, genTypes[TypeIds.OpCodeTableKind][nameof(OpCodeTableKind.MAP10)]),
 			};
 	}
 

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -60,10 +40,19 @@ namespace Generator.Decoder {
 			}
 		}
 
+		public (string name, object?[] handlers)[] MVEX {
+			get {
+				if (!filtered)
+					throw new InvalidOperationException();
+				return mvex;
+			}
+		}
+
 		(string name, object?[] handlers)[] legacy;
 		(string name, object?[] handlers)[] vex;
 		(string name, object?[] handlers)[] evex;
 		(string name, object?[] handlers)[] xop;
+		(string name, object?[] handlers)[] mvex;
 		bool filtered;
 
 		DecoderTables(GenTypes genTypes) {
@@ -71,6 +60,7 @@ namespace Generator.Decoder {
 			vex = DecoderTable_VEX.CreateHandlers(genTypes);
 			evex = DecoderTable_EVEX.CreateHandlers(genTypes);
 			xop = DecoderTable_XOP.CreateHandlers(genTypes);
+			mvex = DecoderTable_MVEX.CreateHandlers(genTypes);
 			genTypes.AddObject(TypeIds.DecoderTables, this);
 		}
 
@@ -79,6 +69,7 @@ namespace Generator.Decoder {
 			vex = new DecoderTableFilter(genTypes, filteredCodeValues, vex, EncodingKind.VEX).Filter();
 			xop = new DecoderTableFilter(genTypes, filteredCodeValues, xop, EncodingKind.XOP).Filter();
 			evex = new DecoderTableFilter(genTypes, filteredCodeValues, evex, EncodingKind.EVEX).Filter();
+			mvex = new DecoderTableFilter(genTypes, filteredCodeValues, mvex, EncodingKind.MVEX).Filter();
 			filtered = true;
 		}
 	}

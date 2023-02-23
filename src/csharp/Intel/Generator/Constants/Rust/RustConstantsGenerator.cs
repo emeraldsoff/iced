@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -51,7 +31,7 @@ namespace Generator.Constants.Rust {
 			constantsWriter = new RustConstantsWriter(genTypes, idConverter, new RustDocCommentWriter(idConverter), new RustDeprecatedWriter(idConverter));
 
 			var dirs = generatorContext.Types.Dirs;
-			toPartialFileInfo = new Dictionary<TypeId, PartialConstantsFileInfo?>();
+			toPartialFileInfo = new();
 			toPartialFileInfo.Add(TypeIds.IcedConstants, new PartialConstantsFileInfo("IcedConstants", dirs.GetRustFilename("iced_constants.rs")));
 			toPartialFileInfo.Add(TypeIds.DecoderTestParserConstants, new PartialConstantsFileInfo("DecoderTestText", dirs.GetRustFilename("decoder", "tests", "test_parser.rs"), true));
 			toPartialFileInfo.Add(TypeIds.DecoderConstants, new PartialConstantsFileInfo("DecoderConstants", dirs.GetRustFilename("test_utils", "decoder_constants.rs")));
@@ -93,7 +73,7 @@ namespace Generator.Constants.Rust {
 					throw new InvalidOperationException();
 				newConstants[i] = new Constant(ConstantKind.UInt32, constant.RawName, (uint)i, ConstantsTypeFlags.None);
 			}
-			return new ConstantsType(constantsType.RawName, constantsType.TypeId, ConstantsTypeFlags.None, null, newConstants);
+			return new ConstantsType(constantsType.RawName, constantsType.TypeId, ConstantsTypeFlags.None, default, newConstants);
 		}
 
 		void WriteMacro(FileWriter writer, ConstantsType newType, ConstantsType origType) {
@@ -116,7 +96,7 @@ namespace Generator.Constants.Rust {
 						var newConstant = newConstants[i];
 						if (newConstant.Kind != ConstantKind.UInt32)
 							throw new InvalidOperationException();
-						writer.WriteLine($"h.insert(\"{(string)origConstant.RefValue!}\", {newType.Name(idConverter)}::{newConstant.Name(idConverter)});");
+						writer.WriteLine($"let _ = h.insert(\"{(string)origConstant.RefValue!}\", {newType.Name(idConverter)}::{newConstant.Name(idConverter)});");
 					}
 					writer.WriteLine("h");
 				}

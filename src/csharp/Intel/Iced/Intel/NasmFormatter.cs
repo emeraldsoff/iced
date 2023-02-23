@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if NASM
 using System;
@@ -38,13 +18,6 @@ namespace Iced.Intel {
 		/// </summary>
 		public override FormatterOptions Options => options;
 
-		/// <summary>
-		/// Gets the nasm formatter options
-		/// </summary>
-		[System.Obsolete("Use " + nameof(Options) + " instead of this property", true)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public FormatterOptions NasmOptions => options;
-
 		readonly FormatterOptions options;
 		readonly ISymbolResolver? symbolResolver;
 		readonly IFormatterOptionsProvider? optionsProvider;
@@ -56,6 +29,10 @@ namespace Iced.Intel {
 		readonly FormatterString[] addrSizeStrings;
 		readonly FormatterString[]?[] branchInfos;
 		readonly string[] scaleNumbers;
+#if MVEX
+		readonly FormatterString[] mvexRegMemConsts32;
+		readonly FormatterString[] mvexRegMemConsts64;
+#endif
 		readonly FormatterString[] memSizeInfos;
 		readonly FormatterString[] farMemSizeInfos;
 
@@ -90,6 +67,10 @@ namespace Iced.Intel {
 			addrSizeStrings = s_addrSizeStrings;
 			branchInfos = s_branchInfos;
 			scaleNumbers = s_scaleNumbers;
+#if MVEX
+			mvexRegMemConsts32 = s_mvexRegMemConsts32;
+			mvexRegMemConsts64 = s_mvexRegMemConsts64;
+#endif
 			memSizeInfos = s_memSizeInfos;
 			farMemSizeInfos = s_farMemSizeInfos;
 		}
@@ -100,7 +81,6 @@ namespace Iced.Intel {
 		static readonly FormatterString str_lock = new FormatterString("lock");
 		static readonly FormatterString str_notrack = new FormatterString("notrack");
 		static readonly FormatterString str_qword = new FormatterString("qword");
-		static readonly FormatterString str_rd_sae = new FormatterString("rd-sae");
 		static readonly FormatterString str_rel = new FormatterString("rel");
 		static readonly FormatterString str_rep = new FormatterString("rep");
 		static readonly FormatterString[] str_repe = new FormatterString[2] {
@@ -112,9 +92,14 @@ namespace Iced.Intel {
 			new FormatterString("repnz"),
 		};
 		static readonly FormatterString str_rn_sae = new FormatterString("rn-sae");
+		static readonly FormatterString str_rd_sae = new FormatterString("rd-sae");
 		static readonly FormatterString str_ru_sae = new FormatterString("ru-sae");
 		static readonly FormatterString str_rz_sae = new FormatterString("rz-sae");
 		static readonly FormatterString str_sae = new FormatterString("sae");
+		static readonly FormatterString str_rn = new FormatterString("rn");
+		static readonly FormatterString str_rd = new FormatterString("rd");
+		static readonly FormatterString str_ru = new FormatterString("ru");
+		static readonly FormatterString str_rz = new FormatterString("rz");
 		static readonly FormatterString str_to = new FormatterString("to");
 		static readonly FormatterString str_word = new FormatterString("word");
 		static readonly FormatterString str_xacquire = new FormatterString("xacquire");
@@ -157,6 +142,47 @@ namespace Iced.Intel {
 		static readonly string[] s_scaleNumbers = new string[4] {
 			"1", "2", "4", "8",
 		};
+#if MVEX
+		static readonly FormatterString[] s_mvexRegMemConsts32 = new FormatterString[IcedConstants.MvexRegMemConvEnumCount] {
+			new FormatterString(""),
+			new FormatterString(""),
+			new FormatterString("cdab"),
+			new FormatterString("badc"),
+			new FormatterString("dacb"),
+			new FormatterString("aaaa"),
+			new FormatterString("bbbb"),
+			new FormatterString("cccc"),
+			new FormatterString("dddd"),
+			new FormatterString(""),
+			new FormatterString("1to16"),
+			new FormatterString("4to16"),
+			new FormatterString("float16"),
+			new FormatterString("uint8"),
+			new FormatterString("sint8"),
+			new FormatterString("uint16"),
+			new FormatterString("sint16"),
+		};
+		static readonly FormatterString[] s_mvexRegMemConsts64 = new FormatterString[IcedConstants.MvexRegMemConvEnumCount] {
+			new FormatterString(""),
+			new FormatterString(""),
+			new FormatterString("cdab"),
+			new FormatterString("badc"),
+			new FormatterString("dacb"),
+			new FormatterString("aaaa"),
+			new FormatterString("bbbb"),
+			new FormatterString("cccc"),
+			new FormatterString("dddd"),
+			new FormatterString(""),
+			new FormatterString("1to8"),
+			new FormatterString("4to8"),
+			new FormatterString("float16"),
+			new FormatterString("uint8"),
+			new FormatterString("sint8"),
+			new FormatterString("uint16"),
+			new FormatterString("sint16"),
+		};
+		static readonly FormatterString str_eh = new FormatterString("eh");
+#endif
 
 		/// <summary>
 		/// Formats the mnemonic and/or any prefixes
@@ -309,7 +335,7 @@ namespace Iced.Intel {
 					((uint)InstrOpInfoFlags.SizeOverrideMask << (int)InstrOpInfoFlags.OpSizeShift) |
 					((uint)InstrOpInfoFlags.SizeOverrideMask << (int)InstrOpInfoFlags.AddrSizeShift) |
 					(uint)InstrOpInfoFlags.BndPrefix;
-				if (((uint)prefixSeg | instruction.HasAnyOf_Xacquire_Xrelease_Lock_Rep_Repne_Prefix | ((uint)opInfo.Flags & PrefixFlags)) != 0) {
+				if (((uint)prefixSeg | instruction.HasAnyOf_Lock_Rep_Repne_Prefix | ((uint)opInfo.Flags & PrefixFlags)) != 0) {
 					FormatterString prefix;
 
 					prefix = opSizeStrings[((int)opInfo.Flags >> (int)InstrOpInfoFlags.OpSizeShift) & (int)InstrOpInfoFlags.SizeOverrideMask];
@@ -433,6 +459,10 @@ namespace Iced.Intel {
 				case InstrOpKind.RdSae:
 				case InstrOpKind.RuSae:
 				case InstrOpKind.RzSae:
+				case InstrOpKind.Rn:
+				case InstrOpKind.Rd:
+				case InstrOpKind.Ru:
+				case InstrOpKind.Rz:
 				case InstrOpKind.DeclareByte:
 				case InstrOpKind.DeclareWord:
 				case InstrOpKind.DeclareDword:
@@ -445,7 +475,6 @@ namespace Iced.Intel {
 				case InstrOpKind.MemorySegDI:
 				case InstrOpKind.MemorySegEDI:
 				case InstrOpKind.MemorySegRDI:
-				case InstrOpKind.Memory64:
 				case InstrOpKind.Memory:
 					return false;
 
@@ -484,6 +513,16 @@ namespace Iced.Intel {
 			if (output is null)
 				ThrowHelper.ThrowArgumentNullException_output();
 
+#if MVEX
+			int mvexRmOperand;
+			if (IcedConstants.IsMvex(instruction.Code)) {
+				var opCount = instruction.OpCount;
+				Debug.Assert(opCount != 0);
+				mvexRmOperand = instruction.GetOpKind(opCount - 1) == OpKind.Immediate8 ? opCount - 2 : opCount - 1;
+			}
+			else
+				mvexRmOperand = -1;
+#endif
 			int instructionOperand = opInfo.GetInstructionIndex(operand);
 
 			string s;
@@ -539,11 +578,11 @@ namespace Iced.Intel {
 					flowControl = FormatterUtils.GetFlowControl(instruction);
 					FormatFlowControl(output, opInfo.Flags, operandOptions);
 					if (opKind == InstrOpKind.NearBranch32)
-						s = numberFormatter.FormatUInt32(options, numberOptions, instruction.NearBranch32, numberOptions.LeadingZeroes);
+						s = numberFormatter.FormatUInt32(options, numberOptions, instruction.NearBranch32, numberOptions.LeadingZeros);
 					else if (opKind == InstrOpKind.NearBranch64)
-						s = numberFormatter.FormatUInt64(options, numberOptions, instruction.NearBranch64, numberOptions.LeadingZeroes);
+						s = numberFormatter.FormatUInt64(options, numberOptions, instruction.NearBranch64, numberOptions.LeadingZeros);
 					else
-						s = numberFormatter.FormatUInt16(options, numberOptions, instruction.NearBranch16, numberOptions.LeadingZeroes);
+						s = numberFormatter.FormatUInt16(options, numberOptions, instruction.NearBranch16, numberOptions.LeadingZeros);
 					output.WriteNumber(instruction, operand, instructionOperand, s, imm64, numberKind, FormatterUtils.IsCall(flowControl) ? FormatterTextKind.FunctionAddress : FormatterTextKind.LabelAddress);
 				}
 				break;
@@ -567,7 +606,7 @@ namespace Iced.Intel {
 					FormatFlowControl(output, opInfo.Flags, operandOptions);
 					Debug.Assert(operand + 1 == 1);
 					if (!symbolResolver.TryGetSymbol(instruction, operand + 1, instructionOperand, instruction.FarBranchSelector, 2, out var selectorSymbol)) {
-						s = numberFormatter.FormatUInt16(options, numberOptions, instruction.FarBranchSelector, numberOptions.LeadingZeroes);
+						s = numberFormatter.FormatUInt16(options, numberOptions, instruction.FarBranchSelector, numberOptions.LeadingZeros);
 						output.WriteNumber(instruction, operand, instructionOperand, s, instruction.FarBranchSelector, NumberKind.UInt16, FormatterTextKind.SelectorValue);
 					}
 					else
@@ -578,13 +617,13 @@ namespace Iced.Intel {
 				else {
 					flowControl = FormatterUtils.GetFlowControl(instruction);
 					FormatFlowControl(output, opInfo.Flags, operandOptions);
-					s = numberFormatter.FormatUInt16(options, numberOptions, instruction.FarBranchSelector, numberOptions.LeadingZeroes);
+					s = numberFormatter.FormatUInt16(options, numberOptions, instruction.FarBranchSelector, numberOptions.LeadingZeros);
 					output.WriteNumber(instruction, operand, instructionOperand, s, instruction.FarBranchSelector, NumberKind.UInt16, FormatterTextKind.SelectorValue);
 					output.Write(":", FormatterTextKind.Punctuation);
 					if (opKind == InstrOpKind.FarBranch32)
-						s = numberFormatter.FormatUInt32(options, numberOptions, instruction.FarBranch32, numberOptions.LeadingZeroes);
+						s = numberFormatter.FormatUInt32(options, numberOptions, instruction.FarBranch32, numberOptions.LeadingZeros);
 					else
-						s = numberFormatter.FormatUInt16(options, numberOptions, instruction.FarBranch16, numberOptions.LeadingZeroes);
+						s = numberFormatter.FormatUInt16(options, numberOptions, instruction.FarBranch16, numberOptions.LeadingZeros);
 					output.WriteNumber(instruction, operand, instructionOperand, s, imm64, numberKind, FormatterUtils.IsCall(flowControl) ? FormatterTextKind.FunctionAddress : FormatterTextKind.LabelAddress);
 				}
 				break;
@@ -757,9 +796,6 @@ namespace Iced.Intel {
 				FormatMemory(output, instruction, operand, instructionOperand, opInfo.MemorySize, Register.ES, Register.RDI, Register.None, 0, 0, 0, 8, opInfo.Flags);
 				break;
 
-			case InstrOpKind.Memory64:
-				break;
-
 			case InstrOpKind.Memory:
 				int displSize = instruction.MemoryDisplSize;
 				var baseReg = instruction.MemoryBase;
@@ -793,19 +829,49 @@ namespace Iced.Intel {
 				FormatDecorator(output, instruction, operand, instructionOperand, str_rz_sae, DecoratorKind.RoundingControl);
 				break;
 
+			case InstrOpKind.Rn:
+				FormatDecorator(output, instruction, operand, instructionOperand, str_rn, DecoratorKind.RoundingControl);
+				break;
+
+			case InstrOpKind.Rd:
+				FormatDecorator(output, instruction, operand, instructionOperand, str_rd, DecoratorKind.RoundingControl);
+				break;
+
+			case InstrOpKind.Ru:
+				FormatDecorator(output, instruction, operand, instructionOperand, str_ru, DecoratorKind.RoundingControl);
+				break;
+
+			case InstrOpKind.Rz:
+				FormatDecorator(output, instruction, operand, instructionOperand, str_rz, DecoratorKind.RoundingControl);
+				break;
+
 			default:
 				throw new InvalidOperationException();
 			}
 
-			if (operand == 0) {
+			if (operand == 0 && instruction.HasOpMask_or_ZeroingMasking) {
 				if (instruction.HasOpMask) {
 					output.Write("{", FormatterTextKind.Punctuation);
-					FormatRegister(output, instruction, operand, instructionOperand, (int)instruction.OpMask);
+					FormatRegister(output, instruction, operand, instructionOperand, instruction.OpMask);
 					output.Write("}", FormatterTextKind.Punctuation);
 				}
 				if (instruction.ZeroingMasking)
 					FormatDecorator(output, instruction, operand, instructionOperand, str_z, DecoratorKind.ZeroingMasking);
 			}
+#if MVEX
+			if (mvexRmOperand == operand) {
+				var conv = instruction.MvexRegMemConv;
+				if (conv != MvexRegMemConv.None) {
+					var mvex = new MvexInfo(instruction.Code);
+					if (mvex.ConvFn != MvexConvFn.None) {
+						var tbl = mvex.IsConvFn32 ? mvexRegMemConsts32 : mvexRegMemConsts64;
+						var fs = tbl[(int)conv];
+						if (fs.Length != 0)
+							FormatDecorator(output, instruction, operand, instructionOperand, fs, DecoratorKind.SwizzleMemConv);
+					}
+				}
+			}
+#endif
 		}
 
 		void ShowSignExtendInfo(FormatterOutput output, InstrOpInfoFlags flags) {
@@ -862,17 +928,15 @@ namespace Iced.Intel {
 		}
 
 		[MethodImpl(MethodImplOptions.AggressiveInlining)]
-		string ToRegisterString(int regNum) {
-			Debug.Assert((uint)regNum < (uint)allRegisters.Length);
-			var regStr = allRegisters[(int)regNum];
+		string ToRegisterString(Register reg) {
+			Debug.Assert((uint)reg < (uint)allRegisters.Length);
+			var regStr = allRegisters[(int)reg];
 			return regStr.Get(options.UppercaseRegisters || options.UppercaseAll);
 		}
 
 		[MethodImpl(MethodImplOptions.NoInlining)]
-		void FormatRegister(FormatterOutput output, in Instruction instruction, int operand, int instructionOperand, int regNum) {
-			Static.Assert(Registers.ExtraRegisters == 0 ? 0 : -1);
-			output.WriteRegister(instruction, operand, instructionOperand, ToRegisterString(regNum), (Register)regNum);
-		}
+		void FormatRegister(FormatterOutput output, in Instruction instruction, int operand, int instructionOperand, Register reg) =>
+			output.WriteRegister(instruction, operand, instructionOperand, ToRegisterString(reg), (Register)reg);
 
 		void FormatMemory(FormatterOutput output, in Instruction instruction, int operand, int instructionOperand, MemorySize memSize, Register segReg, Register baseReg, Register indexReg, int scale, int displSize, long displ, int addrSize, InstrOpInfoFlags flags) {
 			Debug.Assert((uint)scale < (uint)scaleNumbers.Length);
@@ -953,13 +1017,13 @@ namespace Iced.Intel {
 			bool noTrackPrefix = segOverride == Register.DS && FormatterUtils.IsNotrackPrefixBranch(instruction.Code) &&
 				!((codeSize == CodeSize.Code16 || codeSize == CodeSize.Code32) && (baseReg == Register.BP || baseReg == Register.EBP || baseReg == Register.ESP));
 			if (options.AlwaysShowSegmentRegister || (segOverride != Register.None && !noTrackPrefix && FormatterUtils.ShowSegmentPrefix(Register.None, instruction, options))) {
-				FormatRegister(output, instruction, operand, instructionOperand, (int)segReg);
+				FormatRegister(output, instruction, operand, instructionOperand, segReg);
 				output.Write(":", FormatterTextKind.Punctuation);
 			}
 
 			bool needPlus = false;
 			if (baseReg != Register.None) {
-				FormatRegister(output, instruction, operand, instructionOperand, (int)baseReg);
+				FormatRegister(output, instruction, operand, instructionOperand, baseReg);
 				needPlus = true;
 			}
 
@@ -974,7 +1038,7 @@ namespace Iced.Intel {
 				needPlus = true;
 
 				if (!useScale)
-					FormatRegister(output, instruction, operand, instructionOperand, (int)indexReg);
+					FormatRegister(output, instruction, operand, instructionOperand, indexReg);
 				else if (options.ScaleBeforeIndex) {
 					output.WriteNumber(instruction, operand, instructionOperand, scaleNumbers[scale], 1U << scale, NumberKind.Int32, FormatterTextKind.Number);
 					if (options.SpaceBetweenMemoryMulOperators)
@@ -982,10 +1046,10 @@ namespace Iced.Intel {
 					output.Write("*", FormatterTextKind.Operator);
 					if (options.SpaceBetweenMemoryMulOperators)
 						output.Write(" ", FormatterTextKind.Text);
-					FormatRegister(output, instruction, operand, instructionOperand, (int)indexReg);
+					FormatRegister(output, instruction, operand, instructionOperand, indexReg);
 				}
 				else {
-					FormatRegister(output, instruction, operand, instructionOperand, (int)indexReg);
+					FormatRegister(output, instruction, operand, instructionOperand, indexReg);
 					if (options.SpaceBetweenMemoryMulOperators)
 						output.Write(" ", FormatterTextKind.Text);
 					output.Write("*", FormatterTextKind.Operator);
@@ -1028,9 +1092,8 @@ namespace Iced.Intel {
 						}
 						else
 							output.Write("+", FormatterTextKind.Operator);
-						if (numberOptions.DisplacementLeadingZeroes) {
-							Debug.Assert(displSize <= 8);
-							displSize = 8;
+						if (numberOptions.DisplacementLeadingZeros) {
+							displSize = 4;
 						}
 					}
 					else if (addrSize == 4) {
@@ -1042,8 +1105,7 @@ namespace Iced.Intel {
 						}
 						else
 							output.Write("+", FormatterTextKind.Operator);
-						if (numberOptions.DisplacementLeadingZeroes) {
-							Debug.Assert(displSize <= 4);
+						if (numberOptions.DisplacementLeadingZeros) {
 							displSize = 4;
 						}
 					}
@@ -1057,8 +1119,7 @@ namespace Iced.Intel {
 						}
 						else
 							output.Write("+", FormatterTextKind.Operator);
-						if (numberOptions.DisplacementLeadingZeroes) {
-							Debug.Assert(displSize <= 2);
+						if (numberOptions.DisplacementLeadingZeros) {
 							displSize = 2;
 						}
 					}
@@ -1071,19 +1132,19 @@ namespace Iced.Intel {
 				NumberKind displKind;
 				string s;
 				if (displSize <= 1 && (ulong)displ <= byte.MaxValue) {
-					s = numberFormatter.FormatUInt8(options, numberOptions, (byte)displ);
+					s = numberFormatter.FormatDisplUInt8(options, numberOptions, (byte)displ);
 					displKind = isSigned ? NumberKind.Int8 : NumberKind.UInt8;
 				}
 				else if (displSize <= 2 && (ulong)displ <= ushort.MaxValue) {
-					s = numberFormatter.FormatUInt16(options, numberOptions, (ushort)displ);
+					s = numberFormatter.FormatDisplUInt16(options, numberOptions, (ushort)displ);
 					displKind = isSigned ? NumberKind.Int16 : NumberKind.UInt16;
 				}
 				else if (displSize <= 4 && (ulong)displ <= uint.MaxValue) {
-					s = numberFormatter.FormatUInt32(options, numberOptions, (uint)displ);
+					s = numberFormatter.FormatDisplUInt32(options, numberOptions, (uint)displ);
 					displKind = isSigned ? NumberKind.Int32 : NumberKind.UInt32;
 				}
 				else if (displSize <= 8) {
-					s = numberFormatter.FormatUInt64(options, numberOptions, (ulong)displ);
+					s = numberFormatter.FormatDisplUInt64(options, numberOptions, (ulong)displ);
 					displKind = isSigned ? NumberKind.Int64 : NumberKind.UInt64;
 				}
 				else
@@ -1099,6 +1160,10 @@ namespace Iced.Intel {
 			var bcstTo = allMemorySizes[(int)memSize].bcstTo;
 			if (bcstTo.Length != 0)
 				FormatDecorator(output, instruction, operand, instructionOperand, bcstTo, DecoratorKind.Broadcast);
+#if MVEX
+			if (instruction.IsMvexEvictionHint)
+				FormatDecorator(output, instruction, operand, instructionOperand, str_eh, DecoratorKind.EvictionHint);
+#endif
 		}
 
 		void FormatMemorySize(FormatterOutput output, MemorySize memSize, InstrOpInfoFlags flags, FormatterOperandOptions operandOptions) {
@@ -1119,7 +1184,7 @@ namespace Iced.Intel {
 				if ((flags & InstrOpInfoFlags.ShowNoMemSize_ForceSize) == 0)
 					return;
 			}
-			else if (memSizeOptions == MemorySizeOptions.Minimum) {
+			else if (memSizeOptions == MemorySizeOptions.Minimal) {
 				if ((flags & InstrOpInfoFlags.ShowMinMemSize_ForceSize) == 0)
 					return;
 			}
@@ -1143,7 +1208,7 @@ namespace Iced.Intel {
 		/// </summary>
 		/// <param name="register">Register</param>
 		/// <returns></returns>
-		public override string Format(Register register) => ToRegisterString((int)register);
+		public override string Format(Register register) => ToRegisterString(register);
 
 		/// <summary>
 		/// Formats a <see cref="sbyte"/>

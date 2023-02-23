@@ -1,31 +1,18 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 import copy
+from typing import Callable
 import pytest
 from iced_x86 import *
 
-def test_eq_ne_hash():
+def test_ctor_signed_and_unsigned_displ() -> None:
+	m1 = MemoryOperand(displ=-1)
+	m2 = MemoryOperand.ctor_u64(displ=0xFFFF_FFFF_FFFF_FFFF)
+	assert m1 == m2
+	MemoryOperand.ctor_u64(displ=0xFFFF_FFFF)
+
+def test_eq_ne_hash() -> None:
 	mem1 = MemoryOperand()
 	mem2 = MemoryOperand(Register.NONE, Register.NONE, 1, 0, 0, False, Register.NONE)
 	mem3 = MemoryOperand(index=Register.RAX)
@@ -56,7 +43,7 @@ def test_eq_ne_hash():
 	lambda mem: copy.deepcopy(mem),
 	lambda mem: mem.copy(),
 ])
-def test_copy_deepcopy_mcopy(copy_mem):
+def test_copy_deepcopy_mcopy(copy_mem: Callable[[MemoryOperand], MemoryOperand]) -> None:
 	mem = MemoryOperand(Register.RCX, Register.RDI, 8, 0x1234_5678, 8, True, Register.GS)
 	mem2 = copy_mem(mem)
 	assert mem is not mem2
@@ -66,14 +53,14 @@ def test_copy_deepcopy_mcopy(copy_mem):
 	assert not (mem != mem2)
 	assert hash(mem) == hash(mem2)
 
-def test_ctor():
+def test_ctor() -> None:
 	mem1 = MemoryOperand(base=Register.RCX, index=Register.ZMM13, scale=2, displ=-0x1234_5678, displ_size=8, is_broadcast=True, seg=Register.FS)
 	mem2 = MemoryOperand(seg=Register.FS, is_broadcast=True, displ_size=8, displ=-0x1234_5678, scale=2, index=Register.ZMM13, base=Register.RCX)
 	assert mem1 == mem2
 	assert not (mem1 != mem2)
 	assert hash(mem1) == hash(mem2)
 
-def test_displ_size():
+def test_displ_size() -> None:
 	mem1 = MemoryOperand(Register.EBP, displ=0x1234_5678)
 
 	mem2 = MemoryOperand(Register.EBP, displ=0x1234_5678, displ_size=0)
@@ -91,10 +78,10 @@ def test_displ_size():
 	assert not (mem1 == mem2)
 
 @pytest.mark.parametrize("create", [
-	lambda: MemoryOperand(base=1234),
-	lambda: MemoryOperand(index=1234),
-	lambda: MemoryOperand(seg=1234),
+	lambda: MemoryOperand(base=1234), # type: ignore
+	lambda: MemoryOperand(index=1234), # type: ignore
+	lambda: MemoryOperand(seg=1234), # type: ignore
 ])
-def test_invalid_reg_enum_arg(create):
+def test_invalid_reg_enum_arg(create: Callable[[], MemoryOperand]) -> None:
 	with pytest.raises(ValueError):
 		create()

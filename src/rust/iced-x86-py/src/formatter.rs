@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use crate::enum_utils::{
 	to_cc_a, to_cc_ae, to_cc_b, to_cc_be, to_cc_e, to_cc_g, to_cc_ge, to_cc_l, to_cc_le, to_cc_ne, to_cc_np, to_cc_p, to_memory_size_options,
@@ -65,8 +45,8 @@ pub(crate) enum FormatterSyntax {
 ///     formatter.uppercase_mnemonics = True
 ///     disasm = formatter.format(instr)
 ///     assert disasm == "VCVTNE2PS2BF16 zmm2{k5}{z},zmm6,dword bcst [rax+4]"
-#[pyclass(module = "_iced_x86_py")]
-#[text_signature = "(syntax, /)"]
+#[pyclass(module = "iced_x86._iced_x86_py")]
+#[pyo3(text_signature = "(syntax, /)")]
 pub(crate) struct Formatter {
 	fmt_output: String,
 	formatter: Box<dyn iced_x86::Formatter>,
@@ -100,7 +80,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, instruction, /)"]
+	#[pyo3(text_signature = "($self, instruction, /)")]
 	fn format(&mut self, instruction: &Instruction) -> &str {
 		self.fmt_output.clear();
 		self.formatter.format(&instruction.instr, &mut self.fmt_output);
@@ -115,11 +95,11 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, instruction, options, /)"]
+	#[pyo3(text_signature = "($self, instruction, options, /)")]
 	#[args(options = 0)]
 	fn format_mnemonic(&mut self, instruction: &Instruction, options: u32) -> &str {
 		// #[args] line assumption
-		const_assert_eq!(0, iced_x86::FormatMnemonicOptions::NONE);
+		const _: () = assert!(iced_x86::FormatMnemonicOptions::NONE == 0);
 
 		self.fmt_output.clear();
 		self.formatter.format_mnemonic_options(&instruction.instr, &mut self.fmt_output, options);
@@ -133,7 +113,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     int: Operand count
-	#[text_signature = "($self, instruction, /)"]
+	#[pyo3(text_signature = "($self, instruction, /)")]
 	fn operand_count(&mut self, instruction: &Instruction) -> u32 {
 		self.formatter.operand_count(&instruction.instr)
 	}
@@ -151,7 +131,7 @@ impl Formatter {
 	///
 	/// Raises:
 	///     ValueError: If `operand` is invalid
-	#[text_signature = "($self, instruction, operand, /)"]
+	#[pyo3(text_signature = "($self, instruction, operand, /)")]
 	fn op_access(&mut self, instruction: &Instruction, operand: u32) -> PyResult<Option<u32>> {
 		self.formatter
 			.op_access(&instruction.instr, operand)
@@ -171,7 +151,7 @@ impl Formatter {
 	///
 	/// Raises:
 	///     ValueError: If `operand` is invalid
-	#[text_signature = "($self, instruction, operand, /)"]
+	#[pyo3(text_signature = "($self, instruction, operand, /)")]
 	fn get_instruction_operand(&mut self, instruction: &Instruction, operand: u32) -> PyResult<Option<u32>> {
 		self.formatter.get_instruction_operand(&instruction.instr, operand).map_err(to_value_error)
 	}
@@ -189,7 +169,7 @@ impl Formatter {
 	///
 	/// Raises:
 	///     ValueError: If `instruction_operand` is invalid
-	#[text_signature = "($self, instruction, instruction_operand, /)"]
+	#[pyo3(text_signature = "($self, instruction, instruction_operand, /)")]
 	fn get_formatter_operand(&mut self, instruction: &Instruction, instruction_operand: u32) -> PyResult<Option<u32>> {
 		self.formatter.get_formatter_operand(&instruction.instr, instruction_operand).map_err(to_value_error)
 	}
@@ -205,7 +185,7 @@ impl Formatter {
 	///
 	/// Raises:
 	///     ValueError: If `operand` is invalid
-	#[text_signature = "($self, instruction, operand, /)"]
+	#[pyo3(text_signature = "($self, instruction, operand, /)")]
 	fn format_operand(&mut self, instruction: &Instruction, operand: u32) -> PyResult<&str> {
 		self.fmt_output.clear();
 		self.formatter.format_operand(&instruction.instr, &mut self.fmt_output, operand).map_err(to_value_error)?;
@@ -219,7 +199,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, instruction, /)"]
+	#[pyo3(text_signature = "($self, instruction, /)")]
 	fn format_operand_separator(&mut self, instruction: &Instruction) -> &str {
 		self.fmt_output.clear();
 		self.formatter.format_operand_separator(&instruction.instr, &mut self.fmt_output);
@@ -233,7 +213,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, instruction, /)"]
+	#[pyo3(text_signature = "($self, instruction, /)")]
 	fn format_all_operands(&mut self, instruction: &Instruction) -> &str {
 		self.fmt_output.clear();
 		self.formatter.format_all_operands(&instruction.instr, &mut self.fmt_output);
@@ -247,7 +227,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, register, /)"]
+	#[pyo3(text_signature = "($self, register, /)")]
 	fn format_register(&mut self, register: u32) -> PyResult<&str> {
 		Ok(self.formatter.format_register(to_register(register)?))
 	}
@@ -259,7 +239,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn format_i8(&mut self, value: i8) -> &str {
 		self.formatter.format_i8(value)
 	}
@@ -271,7 +251,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn format_i16(&mut self, value: i16) -> &str {
 		self.formatter.format_i16(value)
 	}
@@ -283,7 +263,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn format_i32(&mut self, value: i32) -> &str {
 		self.formatter.format_i32(value)
 	}
@@ -295,7 +275,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn format_i64(&mut self, value: i64) -> &str {
 		self.formatter.format_i64(value)
 	}
@@ -307,7 +287,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn format_u8(&mut self, value: u8) -> &str {
 		self.formatter.format_u8(value)
 	}
@@ -319,7 +299,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn format_u16(&mut self, value: u16) -> &str {
 		self.formatter.format_u16(value)
 	}
@@ -331,7 +311,7 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn format_u32(&mut self, value: u32) -> &str {
 		self.formatter.format_u32(value)
 	}
@@ -343,18 +323,18 @@ impl Formatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, value, /)"]
+	#[pyo3(text_signature = "($self, value, /)")]
 	fn format_u64(&mut self, value: u64) -> &str {
 		self.formatter.format_u64(value)
 	}
 
-	/// bool: Prefixes are upper cased
+	/// bool: Prefixes are uppercased
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``REP stosd``
-	/// ✔️          ``False``   ``rep stosd``
+	/// 👍          ``False``   ``rep stosd``
 	/// =========== ========== ================================================
 	#[getter]
 	fn uppercase_prefixes(&self) -> bool {
@@ -366,13 +346,13 @@ impl Formatter {
 		self.formatter.options_mut().set_uppercase_prefixes(new_value);
 	}
 
-	/// bool: Mnemonics are upper cased
+	/// bool: Mnemonics are uppercased
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``MOV rcx,rax``
-	/// ✔️          ``False``   ``mov rcx,rax``
+	/// 👍          ``False``   ``mov rcx,rax``
 	/// =========== ========== ================================================
 	#[getter]
 	fn uppercase_mnemonics(&self) -> bool {
@@ -384,13 +364,13 @@ impl Formatter {
 		self.formatter.options_mut().set_uppercase_mnemonics(new_value);
 	}
 
-	/// bool: Registers are upper cased
+	/// bool: Registers are uppercased
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov RCX,[RAX+RDX*8]``
-	/// ✔️          ``False``   ``mov rcx,[rax+rdx*8]``
+	/// 👍          ``False``   ``mov rcx,[rax+rdx*8]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn uppercase_registers(&self) -> bool {
@@ -402,13 +382,13 @@ impl Formatter {
 		self.formatter.options_mut().set_uppercase_registers(new_value);
 	}
 
-	/// bool: Keywords are upper cased (eg. ``BYTE PTR``, ``SHORT``)
+	/// bool: Keywords are uppercased (eg. ``BYTE PTR``, ``SHORT``)
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov BYTE PTR [rcx],12h``
-	/// ✔️          ``False``   ``mov byte ptr [rcx],12h``
+	/// 👍          ``False``   ``mov byte ptr [rcx],12h``
 	/// =========== ========== ================================================
 	#[getter]
 	fn uppercase_keywords(&self) -> bool {
@@ -420,13 +400,13 @@ impl Formatter {
 		self.formatter.options_mut().set_uppercase_keywords(new_value);
 	}
 
-	/// bool: Upper case decorators, eg. ``{z}``, ``{sae}``, ``{rd-sae}`` (but not op mask registers: ``{k1}``)
+	/// bool: Uppercase decorators, eg. ``{z}``, ``{sae}``, ``{rd-sae}`` (but not opmask registers: ``{k1}``)
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``vunpcklps xmm2{k5}{Z},xmm6,dword bcst [rax+4]``
-	/// ✔️          ``False``   ``vunpcklps xmm2{k5}{z},xmm6,dword bcst [rax+4]``
+	/// 👍          ``False``   ``vunpcklps xmm2{k5}{z},xmm6,dword bcst [rax+4]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn uppercase_decorators(&self) -> bool {
@@ -438,13 +418,13 @@ impl Formatter {
 		self.formatter.options_mut().set_uppercase_decorators(new_value);
 	}
 
-	/// bool: Everything is upper cased, except numbers and their prefixes/suffixes
+	/// bool: Everything is uppercased, except numbers and their prefixes/suffixes
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``MOV EAX,GS:[RCX*4+0ffh]``
-	/// ✔️          ``False``   ``mov eax,gs:[rcx*4+0ffh]``
+	/// 👍          ``False``   ``mov eax,gs:[rcx*4+0ffh]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn uppercase_all(&self) -> bool {
@@ -462,7 +442,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``0``      ``mov•rcx,rbp``
+	/// 👍          ``0``      ``mov•rcx,rbp``
 	/// \           ``8``      ``mov•••••rcx,rbp``
 	/// =========== ========== ================================================
 	#[getter]
@@ -494,7 +474,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov rax, rcx``
-	/// ✔️          ``False``   ``mov rax,rcx``
+	/// 👍          ``False``   ``mov rax,rcx``
 	/// =========== ========== ================================================
 	#[getter]
 	fn space_after_operand_separator(&self) -> bool {
@@ -512,7 +492,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[ rcx+rdx ]``
-	/// ✔️          ``False``   ``mov eax,[rcx+rdx]``
+	/// 👍          ``False``   ``mov eax,[rcx+rdx]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn space_after_memory_bracket(&self) -> bool {
@@ -530,7 +510,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[rcx + rdx*8 - 80h]``
-	/// ✔️          ``False``   ``mov eax,[rcx+rdx*8-80h]``
+	/// 👍          ``False``   ``mov eax,[rcx+rdx*8-80h]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn space_between_memory_add_operators(&self) -> bool {
@@ -548,7 +528,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[rcx+rdx * 8-80h]``
-	/// ✔️          ``False``   ``mov eax,[rcx+rdx*8-80h]``
+	/// 👍          ``False``   ``mov eax,[rcx+rdx*8-80h]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn space_between_memory_mul_operators(&self) -> bool {
@@ -566,7 +546,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[8*rdx]``
-	/// ✔️          ``False``   ``mov eax,[rdx*8]``
+	/// 👍          ``False``   ``mov eax,[rdx*8]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn scale_before_index(&self) -> bool {
@@ -584,7 +564,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[rbx+rcx*1]``
-	/// ✔️          ``False``   ``mov eax,[rbx+rcx]``
+	/// 👍          ``False``   ``mov eax,[rbx+rcx]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn always_show_scale(&self) -> bool {
@@ -604,7 +584,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,ds:[ecx]``
-	/// ✔️          ``False``   ``mov eax,[ecx]``
+	/// 👍          ``False``   ``mov eax,[ecx]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn always_show_segment_register(&self) -> bool {
@@ -622,7 +602,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[rcx*2+0]``
-	/// ✔️          ``False``   ``mov eax,[rcx*2]``
+	/// 👍          ``False``   ``mov eax,[rcx*2]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn show_zero_displacements(&self) -> bool {
@@ -666,7 +646,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``0``      ``0x12345678``
-	/// ✔️          ``4``      ``0x1234_5678``
+	/// 👍          ``4``      ``0x1234_5678``
 	/// =========== ========== ================================================
 	#[getter]
 	fn hex_digit_group_size(&self) -> u32 {
@@ -710,7 +690,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``0``      ``12345678``
-	/// ✔️          ``3``      ``12_345_678``
+	/// 👍          ``3``      ``12_345_678``
 	/// =========== ========== ================================================
 	#[getter]
 	fn decimal_digit_group_size(&self) -> u32 {
@@ -754,7 +734,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``0``      ``12345670``
-	/// ✔️          ``4``      ``1234_5670``
+	/// 👍          ``4``      ``1234_5670``
 	/// =========== ========== ================================================
 	#[getter]
 	fn octal_digit_group_size(&self) -> u32 {
@@ -798,7 +778,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``0``      ``11010111``
-	/// ✔️          ``4``      ``1101_0111``
+	/// 👍          ``4``      ``1101_0111``
 	/// =========== ========== ================================================
 	#[getter]
 	fn binary_digit_group_size(&self) -> u32 {
@@ -815,7 +795,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``""``     ``0x12345678``
+	/// 👍          ``""``     ``0x12345678``
 	/// \           ``"_"``    ``0x1234_5678``
 	/// =========== ========== ================================================
 	#[getter]
@@ -828,33 +808,33 @@ impl Formatter {
 		self.formatter.options_mut().set_digit_separator_string(new_value);
 	}
 
-	/// bool: Add leading zeroes to hexadecimal/octal/binary numbers.
+	/// bool: Add leading zeros to hexadecimal/octal/binary numbers.
 	///
-	/// This option has no effect on branch targets and displacements, use :class:`Formatter.branch_leading_zeroes`
-	/// and :class:`Formatter.displacement_leading_zeroes`.
+	/// This option has no effect on branch targets and displacements, use :class:`Formatter.branch_leading_zeros`
+	/// and :class:`Formatter.displacement_leading_zeros`.
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``0x0000000A``/``0000000Ah``
-	/// ✔️          ``False``   ``0xA``/``0Ah``
+	/// 👍          ``False``   ``0xA``/``0Ah``
 	/// =========== ========== ================================================
 	#[getter]
-	fn leading_zeroes(&self) -> bool {
-		self.formatter.options().leading_zeroes()
+	fn leading_zeros(&self) -> bool {
+		self.formatter.options().leading_zeros()
 	}
 
 	#[setter]
-	fn set_leading_zeroes(&mut self, new_value: bool) {
-		self.formatter.options_mut().set_leading_zeroes(new_value);
+	fn set_leading_zeros(&mut self, new_value: bool) {
+		self.formatter.options_mut().set_leading_zeros(new_value);
 	}
 
-	/// bool: Use upper case hex digits
+	/// bool: Use uppercase hex digits
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``0xFF``
+	/// 👍          ``True``   ``0xFF``
 	/// \           ``False``   ``0xff``
 	/// =========== ========== ================================================
 	#[getter]
@@ -872,7 +852,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``9``
+	/// 👍          ``True``   ``9``
 	/// \           ``False``   ``0x9``
 	/// =========== ========== ================================================
 	#[getter]
@@ -890,7 +870,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``0FFh``
+	/// 👍          ``True``   ``0FFh``
 	/// \           ``False``   ``FFh``
 	/// =========== ========== ================================================
 	#[getter]
@@ -932,22 +912,22 @@ impl Formatter {
 		Ok(())
 	}
 
-	/// bool: Add leading zeroes to branch offsets. Used by ``CALL NEAR``, ``CALL FAR``, ``JMP NEAR``, ``JMP FAR``, ``Jcc``, ``LOOP``, ``LOOPcc``, ``XBEGIN``
+	/// bool: Add leading zeros to branch offsets. Used by ``CALL NEAR``, ``CALL FAR``, ``JMP NEAR``, ``JMP FAR``, ``Jcc``, ``LOOP``, ``LOOPcc``, ``XBEGIN``
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``je 00000123h``
+	/// 👍          ``True``   ``je 00000123h``
 	/// \           ``False``   ``je 123h``
 	/// =========== ========== ================================================
 	#[getter]
-	fn branch_leading_zeroes(&self) -> bool {
-		self.formatter.options().branch_leading_zeroes()
+	fn branch_leading_zeros(&self) -> bool {
+		self.formatter.options().branch_leading_zeros()
 	}
 
 	#[setter]
-	fn set_branch_leading_zeroes(&mut self, new_value: bool) {
-		self.formatter.options_mut().set_branch_leading_zeroes(new_value);
+	fn set_branch_leading_zeros(&mut self, new_value: bool) {
+		self.formatter.options_mut().set_branch_leading_zeros(new_value);
 	}
 
 	/// bool: Show immediate operands as signed numbers
@@ -956,7 +936,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,-1``
-	/// ✔️          ``False``   ``mov eax,FFFFFFFF``
+	/// 👍          ``False``   ``mov eax,FFFFFFFF``
 	/// =========== ========== ================================================
 	#[getter]
 	fn signed_immediate_operands(&self) -> bool {
@@ -973,7 +953,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``mov al,[eax-2000h]``
+	/// 👍          ``True``   ``mov al,[eax-2000h]``
 	/// \           ``False``   ``mov al,[eax+0FFFFE000h]``
 	/// =========== ========== ================================================
 	#[getter]
@@ -986,22 +966,22 @@ impl Formatter {
 		self.formatter.options_mut().set_signed_memory_displacements(new_value);
 	}
 
-	/// bool: Add leading zeroes to displacements
+	/// bool: Add leading zeros to displacements
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov al,[eax+00000012h]``
-	/// ✔️          ``False``   ``mov al,[eax+12h]``
+	/// 👍          ``False``   ``mov al,[eax+12h]``
 	/// =========== ========== ================================================
 	#[getter]
-	fn displacement_leading_zeroes(&self) -> bool {
-		self.formatter.options().displacement_leading_zeroes()
+	fn displacement_leading_zeros(&self) -> bool {
+		self.formatter.options().displacement_leading_zeros()
 	}
 
 	#[setter]
-	fn set_displacement_leading_zeroes(&mut self, new_value: bool) {
-		self.formatter.options_mut().set_displacement_leading_zeroes(new_value);
+	fn set_displacement_leading_zeros(&mut self, new_value: bool) {
+		self.formatter.options_mut().set_displacement_leading_zeros(new_value);
 	}
 
 	/// :class:`MemorySizeOptions`: Options that control if the memory size (eg. ``DWORD PTR``) is shown or not.
@@ -1026,7 +1006,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[rip+12345678h]``
-	/// ✔️          ``False``   ``mov eax,[1029384756AFBECDh]``
+	/// 👍          ``False``   ``mov eax,[1029384756AFBECDh]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn rip_relative_addresses(&self) -> bool {
@@ -1043,7 +1023,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``je short 1234h``
+	/// 👍          ``True``   ``je short 1234h``
 	/// \           ``False``   ``je 1234h``
 	/// =========== ========== ================================================
 	#[getter]
@@ -1061,7 +1041,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``vcmpnltsd xmm2,xmm6,xmm3``
+	/// 👍          ``True``   ``vcmpnltsd xmm2,xmm6,xmm3``
 	/// \           ``False``   ``vcmpsd xmm2,xmm6,xmm3,5``
 	/// =========== ========== ================================================
 	#[getter]
@@ -1080,7 +1060,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[myfield (12345678)]``
-	/// ✔️          ``False``   ``mov eax,[myfield]``
+	/// 👍          ``False``   ``mov eax,[myfield]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn show_symbol_address(&self) -> bool {
@@ -1098,7 +1078,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,ecx``
-	/// ✔️          ``False``   ``mov %eax,%ecx``
+	/// 👍          ``False``   ``mov %eax,%ecx``
 	/// =========== ========== ================================================
 	#[getter]
 	fn gas_naked_registers(&self) -> bool {
@@ -1116,7 +1096,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``movl %eax,%ecx``
-	/// ✔️          ``False``   ``mov %eax,%ecx``
+	/// 👍          ``False``   ``mov %eax,%ecx``
 	/// =========== ========== ================================================
 	#[getter]
 	fn gas_show_mnemonic_size_suffix(&self) -> bool {
@@ -1134,7 +1114,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``(%eax, %ecx, 2)``
-	/// ✔️          ``False``   ``(%eax,%ecx,2)``
+	/// 👍          ``False``   ``(%eax,%ecx,2)``
 	/// =========== ========== ================================================
 	#[getter]
 	fn gas_space_after_memory_operand_comma(&self) -> bool {
@@ -1151,7 +1131,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``mov eax,ds:[12345678]``
+	/// 👍          ``True``   ``mov eax,ds:[12345678]``
 	/// \           ``False``   ``mov eax,[12345678]``
 	/// =========== ========== ================================================
 	#[getter]
@@ -1169,7 +1149,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``[ecx+symbol]`` / ``[symbol]``
+	/// 👍          ``True``   ``[ecx+symbol]`` / ``[symbol]``
 	/// \           ``False``   ``symbol[ecx]`` / ``symbol``
 	/// =========== ========== ================================================
 	#[getter]
@@ -1187,7 +1167,7 @@ impl Formatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``[ecx+1234h]``
+	/// 👍          ``True``   ``[ecx+1234h]``
 	/// \           ``False``   ``1234h[ecx]``
 	/// =========== ========== ================================================
 	#[getter]
@@ -1206,7 +1186,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``or rcx,byte -1``
-	/// ✔️          ``False``   ``or rcx,-1``
+	/// 👍          ``False``   ``or rcx,-1``
 	/// =========== ========== ================================================
 	#[getter]
 	fn nasm_show_sign_extended_immediate_size(&self) -> bool {
@@ -1224,7 +1204,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``fadd st(0),st(3)``
-	/// ✔️          ``False``   ``fadd st,st(3)``
+	/// 👍          ``False``   ``fadd st,st(3)``
 	/// =========== ========== ================================================
 	#[getter]
 	fn prefer_st0(&self) -> bool {
@@ -1242,7 +1222,7 @@ impl Formatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``es rep add eax,ecx``
-	/// ✔️          ``False``   ``add eax,ecx``
+	/// 👍          ``False``   ``add eax,ecx``
 	/// =========== ========== ================================================
 	#[getter]
 	fn show_useless_prefixes(&self) -> bool {

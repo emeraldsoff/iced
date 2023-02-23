@@ -1,29 +1,10 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Text;
 using Generator.Enums;
+using Generator.Enums.Encoder;
 
 namespace Generator.Tables {
 	readonly struct CodeFormatter {
@@ -36,11 +17,15 @@ namespace Generator.Tables {
 		readonly string? codeMemorySizeSuffix;
 		readonly EnumValue memSize;
 		readonly EnumValue memSizeBcst;
-		readonly InstructionDefFlags1 flags;
+		readonly InstructionDefFlags1 flags1;
+		readonly MvexInfoFlags1 mvexFlags;
 		readonly EncodingKind encoding;
 		readonly OpCodeOperandKindDef[] opKinds;
+		readonly bool isKnc;
 
-		public CodeFormatter(StringBuilder sb, RegisterDef[] regDefs, MemorySizeDefs memSizeTbl, string codeMnemonic, string? codeSuffix, string? codeMemorySize, string? codeMemorySizeSuffix, EnumValue memSize, EnumValue memSizeBcst, InstructionDefFlags1 flags, EncodingKind encoding, OpCodeOperandKindDef[] opKinds) {
+		public CodeFormatter(StringBuilder sb, RegisterDef[] regDefs, MemorySizeDefs memSizeTbl, string codeMnemonic, string? codeSuffix,
+			string? codeMemorySize, string? codeMemorySizeSuffix, EnumValue memSize, EnumValue memSizeBcst, InstructionDefFlags1 flags1,
+			MvexInfoFlags1 mvexFlags, EncodingKind encoding, OpCodeOperandKindDef[] opKinds, bool isKnc) {
 			if (codeMnemonic == string.Empty)
 				throw new ArgumentOutOfRangeException(nameof(codeMnemonic));
 			this.sb = sb;
@@ -52,9 +37,11 @@ namespace Generator.Tables {
 			this.codeMemorySizeSuffix = codeMemorySizeSuffix;
 			this.memSize = memSize;
 			this.memSizeBcst = memSizeBcst;
-			this.flags = flags;
+			this.flags1 = flags1;
+			this.mvexFlags = mvexFlags;
 			this.encoding = encoding;
 			this.opKinds = opKinds;
+			this.isKnc = isKnc;
 		}
 
 		MemorySize GetMemorySize(bool isBroadcast) => (MemorySize)(isBroadcast ? memSizeBcst.Value : memSize.Value);
@@ -68,6 +55,8 @@ namespace Generator.Tables {
 				break;
 			case EncodingKind.VEX:
 				sb.Append("VEX_");
+				if (isKnc)
+					sb.Append("KNC_");
 				break;
 			case EncodingKind.EVEX:
 				sb.Append("EVEX_");
@@ -77,6 +66,9 @@ namespace Generator.Tables {
 				break;
 			case EncodingKind.D3NOW:
 				sb.Append("D3NOW_");
+				break;
+			case EncodingKind.MVEX:
+				sb.Append("MVEX_");
 				break;
 			default:
 				throw new InvalidOperationException();
@@ -157,10 +149,14 @@ namespace Generator.Tables {
 						else if (def.MIB)
 							sb.Append("mib");
 						else if (def.Vsib) {
-							var sz = def.Vsib32 ? "32" : "64";
-							// x, y, z
-							var reg = regDefs[(int)def.Register].Name.ToLowerInvariant()[0..1];
-							sb.Append($"vm{sz}{reg}");
+							if (encoding == EncodingKind.MVEX)
+								sb.Append("mvt");
+							else {
+								var sz = def.Vsib32 ? "32" : "64";
+								// x, y, z
+								var reg = regDefs[(int)def.Register].Name.ToLowerInvariant()[0..1];
+								sb.Append($"vm{sz}{reg}");
+							}
 						}
 						else
 							WriteMemory();
@@ -177,16 +173,16 @@ namespace Generator.Tables {
 					}
 
 					if (i == 0) {
-						if ((flags & InstructionDefFlags1.OpMaskRegister) != 0) {
+						if ((flags1 & InstructionDefFlags1.OpMaskRegister) != 0) {
 							sb.Append("_k1");
-							if ((flags & InstructionDefFlags1.ZeroingMasking) != 0)
+							if ((flags1 & InstructionDefFlags1.ZeroingMasking) != 0)
 								sb.Append('z');
 						}
 					}
-					if (i == opKinds.Length - 1) {
-						if ((flags & InstructionDefFlags1.SuppressAllExceptions) != 0)
+					if (i == opKinds.Length - 1 && encoding != EncodingKind.MVEX) {
+						if ((flags1 & InstructionDefFlags1.SuppressAllExceptions) != 0)
 							sb.Append("_sae");
-						if ((flags & InstructionDefFlags1.RoundingControl) != 0)
+						if ((flags1 & InstructionDefFlags1.RoundingControl) != 0)
 							sb.Append("_er");
 					}
 				}
@@ -245,13 +241,16 @@ namespace Generator.Tables {
 
 		void WriteMemory() {
 			WriteMemory(isBroadcast: false);
-			if ((flags & InstructionDefFlags1.Broadcast) != 0)
+			if ((flags1 & InstructionDefFlags1.Broadcast) != 0)
 				WriteMemory(isBroadcast: true);
 		}
 
 		void WriteMemory(bool isBroadcast) {
 			var memorySize = GetMemorySize(isBroadcast);
-			sb.Append(isBroadcast ? 'b' : 'm');
+			if (encoding == EncodingKind.MVEX)
+				sb.Append((mvexFlags & MvexInfoFlags1.EvictionHint) != 0 ? "mt" : "m");
+			else
+				sb.Append(isBroadcast ? 'b' : 'm');
 			WriteMemorySize(memorySize);
 		}
 

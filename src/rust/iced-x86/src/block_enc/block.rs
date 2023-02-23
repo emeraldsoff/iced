@@ -1,31 +1,9 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::iced_error::IcedError;
-use super::instr::*;
-use super::*;
+use crate::block_enc::*;
+use crate::iced_error::IcedError;
 use alloc::rc::Rc;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
 use core::cell::RefCell;
 
@@ -38,33 +16,36 @@ pub(super) struct Block {
 	valid_data: Vec<Rc<RefCell<BlockData>>>,
 	valid_data_address: u64,
 	valid_data_address_aligned: u64,
+	// start and end indexes (exclusive) of its instructions, eg. all_instrs[x.0..x.1]
+	instr_indexes: (usize, usize),
 }
 
 impl Block {
-	pub(super) fn new(block_encoder: &BlockEncoder, rip: u64, reloc_infos: Option<Vec<RelocInfo>>) -> Self {
-		Self {
-			encoder: Encoder::new(block_encoder.bitness()),
+	pub(super) fn new(bitness: u32, rip: u64, reloc_infos: Option<Vec<RelocInfo>>, start_index: usize, end_index: usize) -> Result<Self, IcedError> {
+		Ok(Self {
+			encoder: Encoder::try_new(bitness)?,
 			rip,
 			reloc_infos,
 			data_vec: Vec::new(),
-			alignment: block_encoder.bitness() as u64 / 8,
+			alignment: bitness as u64 / 8,
 			valid_data: Vec::new(),
 			valid_data_address: 0,
 			valid_data_address_aligned: 0,
-		}
+			instr_indexes: (start_index, end_index),
+		})
+	}
+
+	pub(super) const fn is_in_block(&self, instr_index: usize) -> bool {
+		self.instr_indexes.0 <= instr_index && instr_index < self.instr_indexes.1
 	}
 
 	pub(super) fn alloc_pointer_location(&mut self) -> Rc<RefCell<BlockData>> {
 		let data = Rc::new(RefCell::new(BlockData { data: 0, address: 0, address_initd: false, is_valid: true }));
-		self.data_vec.push(Rc::clone(&data));
+		self.data_vec.push(data.clone());
 		data
 	}
 
-	pub(super) fn initialize_data(&mut self, instructions: &[Rc<RefCell<dyn Instr>>]) {
-		let base_addr = match instructions.last() {
-			Some(instr) => instr.borrow().ip().wrapping_add(instr.borrow().size() as u64),
-			None => self.rip,
-		};
+	pub(super) fn initialize_data(&mut self, base_addr: u64) {
 		self.valid_data_address = base_addr;
 
 		let mut addr = base_addr.wrapping_add(self.alignment).wrapping_sub(1) & !self.alignment.wrapping_sub(1);
@@ -75,7 +56,7 @@ impl Block {
 			}
 			data.borrow_mut().address = addr;
 			data.borrow_mut().address_initd = true;
-			self.valid_data.push(Rc::clone(data));
+			self.valid_data.push(data.clone());
 			addr = addr.wrapping_add(self.alignment);
 		}
 	}
@@ -84,7 +65,7 @@ impl Block {
 		if self.valid_data.is_empty() {
 			return Ok(());
 		}
-		for _ in 0..self.valid_data_address_aligned - self.valid_data_address {
+		for _ in 0..self.valid_data_address_aligned.wrapping_sub(self.valid_data_address) {
 			self.encoder.write_byte_internal(0xCC);
 		}
 		match self.alignment {
@@ -135,7 +116,7 @@ impl Block {
 		self.valid_data.clear();
 	}
 
-	pub(super) fn can_add_reloc_infos(&self) -> bool {
+	pub(super) const fn can_add_reloc_infos(&self) -> bool {
 		self.reloc_infos.is_some()
 	}
 
@@ -154,7 +135,7 @@ pub(super) struct BlockData {
 }
 
 impl BlockData {
-	pub(super) fn address(&self) -> Result<u64, IcedError> {
+	pub(super) const fn address(&self) -> Result<u64, IcedError> {
 		if self.is_valid && self.address_initd {
 			Ok(self.address)
 		} else {

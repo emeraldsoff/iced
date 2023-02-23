@@ -1,55 +1,32 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 mod enums;
 mod fmt_data;
 mod fmt_tbl;
 mod info;
 mod mem_size_tbl;
-mod regs;
 #[cfg(test)]
 mod tests;
 
-use self::enums::*;
-use self::fmt_tbl::ALL_INFOS;
-use self::info::*;
-use self::mem_size_tbl::Info;
-use self::mem_size_tbl::MEM_SIZE_TBL;
-use self::regs::*;
-use super::super::iced_error::IcedError;
-use super::super::*;
-use super::fmt_consts::*;
-use super::fmt_utils::*;
-use super::fmt_utils_all::*;
-use super::instruction_internal::get_address_size_in_bytes;
-use super::num_fmt::*;
-use super::regs_tbl::REGS_TBL;
-use super::*;
-#[cfg(not(feature = "std"))]
+use crate::formatter::fmt_consts::*;
+use crate::formatter::fmt_utils::*;
+use crate::formatter::fmt_utils_all::*;
+use crate::formatter::instruction_internal::get_address_size_in_bytes;
+use crate::formatter::masm::enums::*;
+use crate::formatter::masm::fmt_tbl::ALL_INFOS;
+use crate::formatter::masm::info::*;
+use crate::formatter::masm::mem_size_tbl::Info;
+use crate::formatter::masm::mem_size_tbl::MEM_SIZE_TBL;
+use crate::formatter::num_fmt::*;
+use crate::formatter::regs_tbl_ls::REGS_TBL;
+use crate::formatter::*;
+use crate::iced_constants::IcedConstants;
+use crate::iced_error::IcedError;
+use crate::instruction_internal;
+use crate::*;
 use alloc::boxed::Box;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-use core::{mem, u16, u32, u8};
 
 /// Masm formatter
 ///
@@ -69,7 +46,7 @@ use core::{mem, u16, u32, u8};
 /// assert_eq!("VCVTNE2PS2BF16 zmm2{k5}{z},zmm6,dword bcst [rax+4]", output);
 /// ```
 ///
-/// Using a symbol resolver:
+/// # Using a symbol resolver
 ///
 /// ```
 /// use iced_x86::*;
@@ -81,8 +58,8 @@ use core::{mem, u16, u32, u8};
 ///
 /// struct MySymbolResolver { map: HashMap<u64, String> }
 /// impl SymbolResolver for MySymbolResolver {
-///     fn symbol(&mut self, instruction: &Instruction, operand: u32, instruction_operand: Option<u32>,
-///          address: u64, address_size: u32) -> Option<SymbolResult> {
+///     fn symbol(&mut self, _instruction: &Instruction, _operand: u32, _instruction_operand: Option<u32>,
+///          address: u64, _address_size: u32) -> Option<SymbolResult> {
 ///         if let Some(symbol_string) = self.map.get(&address) {
 ///             // The 'address' arg is the address of the symbol and doesn't have to be identical
 ///             // to the 'address' arg passed to symbol(). If it's different from the input
@@ -123,9 +100,9 @@ impl Default for MasmFormatter {
 // Read-only data which is needed a couple of times due to borrow checker
 struct SelfData {
 	options: FormatterOptions,
-	all_registers: &'static Vec<FormatterString>,
-	instr_infos: &'static Vec<Box<dyn InstrInfo + Sync + Send>>,
-	all_memory_sizes: &'static Vec<Info>,
+	all_registers: &'static [FormatterString; IcedConstants::REGISTER_ENUM_COUNT],
+	instr_infos: &'static [Box<dyn InstrInfo + Send + Sync>; IcedConstants::CODE_ENUM_COUNT],
+	all_memory_sizes: &'static [Info; IcedConstants::MEMORY_SIZE_ENUM_COUNT],
 	str_: &'static FormatterConstants,
 	vec_: &'static FormatterArrayConstants,
 }
@@ -150,11 +127,11 @@ impl MasmFormatter {
 		Self {
 			d: SelfData {
 				options: FormatterOptions::with_masm(),
-				all_registers: &*REGS_TBL,
-				instr_infos: &*ALL_INFOS,
-				all_memory_sizes: &*MEM_SIZE_TBL,
-				str_: &*FORMATTER_CONSTANTS,
-				vec_: &*ARRAY_CONSTS,
+				all_registers: &REGS_TBL,
+				instr_infos: &ALL_INFOS,
+				all_memory_sizes: &MEM_SIZE_TBL,
+				str_: &FORMATTER_CONSTANTS,
+				vec_: &ARRAY_CONSTS,
 			},
 			number_formatter: NumberFormatter::new(),
 			symbol_resolver,
@@ -163,13 +140,13 @@ impl MasmFormatter {
 	}
 
 	fn format_mnemonic(
-		&mut self, instruction: &Instruction, output: &mut dyn FormatterOutput, op_info: &InstrOpInfo, column: &mut u32, mnemonic_options: u32,
+		&mut self, instruction: &Instruction, output: &mut dyn FormatterOutput, op_info: &InstrOpInfo<'_>, column: &mut u32, mnemonic_options: u32,
 	) {
 		let mut need_space = false;
 		if (mnemonic_options & FormatMnemonicOptions::NO_PREFIXES) == 0 && (op_info.flags & InstrOpInfoFlags::MNEMONIC_IS_DIRECTIVE as u16) == 0 {
 			let prefix_seg = instruction.segment_prefix();
 			if ((prefix_seg as u32)
-				| super::super::instruction_internal::internal_has_any_of_xacquire_xrelease_lock_rep_repne_prefix(instruction)
+				| instruction_internal::internal_has_any_of_lock_rep_repne_prefix(instruction)
 				| ((op_info.flags as u32) & (InstrOpInfoFlags::JCC_NOT_TAKEN | InstrOpInfoFlags::JCC_TAKEN | InstrOpInfoFlags::BND_PREFIX)))
 				!= 0
 			{
@@ -302,7 +279,7 @@ impl MasmFormatter {
 		}
 	}
 
-	fn show_segment_prefix(&self, instruction: &Instruction, op_info: &InstrOpInfo) -> bool {
+	fn show_segment_prefix(&self, instruction: &Instruction, op_info: &InstrOpInfo<'_>) -> bool {
 		if (op_info.flags & (InstrOpInfoFlags::JCC_NOT_TAKEN | InstrOpInfoFlags::JCC_TAKEN) as u16) != 0 {
 			return false;
 		}
@@ -356,7 +333,6 @@ impl MasmFormatter {
 				| InstrOpKind::MemorySegDI
 				| InstrOpKind::MemorySegEDI
 				| InstrOpKind::MemorySegRDI
-				| InstrOpKind::Memory64
 				| InstrOpKind::Memory => return false,
 			}
 		}
@@ -376,7 +352,7 @@ impl MasmFormatter {
 		*need_space = true;
 	}
 
-	fn format_operands(&mut self, instruction: &Instruction, output: &mut dyn FormatterOutput, op_info: &InstrOpInfo) {
+	fn format_operands(&mut self, instruction: &Instruction, output: &mut dyn FormatterOutput, op_info: &InstrOpInfo<'_>) {
 		for i in 0..op_info.op_count as u32 {
 			if i > 0 {
 				output.write(",", FormatterTextKind::Punctuation);
@@ -388,8 +364,23 @@ impl MasmFormatter {
 		}
 	}
 
-	fn format_operand(&mut self, instruction: &Instruction, output: &mut dyn FormatterOutput, op_info: &InstrOpInfo, operand: u32) {
+	fn format_operand(&mut self, instruction: &Instruction, output: &mut dyn FormatterOutput, op_info: &InstrOpInfo<'_>, operand: u32) {
 		debug_assert!(operand < op_info.op_count as u32);
+
+		#[cfg(feature = "mvex")]
+		let mvex_rm_operand = {
+			if IcedConstants::is_mvex(instruction.code()) {
+				let op_count = instruction.op_count();
+				debug_assert_ne!(op_count, 0);
+				if instruction.op_kind(op_count.wrapping_sub(1)) == OpKind::Immediate8 {
+					op_count.wrapping_sub(2)
+				} else {
+					op_count.wrapping_sub(1)
+				}
+			} else {
+				u32::MAX
+			}
+		};
 
 		let instruction_operand = op_info.instruction_index(operand);
 
@@ -404,14 +395,9 @@ impl MasmFormatter {
 		let number_kind;
 		let op_kind = op_info.op_kind(operand);
 		match op_kind {
-			InstrOpKind::Register => MasmFormatter::format_register_internal(
-				&self.d,
-				output,
-				instruction,
-				operand,
-				instruction_operand,
-				op_info.op_register(operand) as u32,
-			),
+			InstrOpKind::Register => {
+				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, op_info.op_register(operand))
+			}
 
 			InstrOpKind::NearBranch16 | InstrOpKind::NearBranch32 | InstrOpKind::NearBranch64 => {
 				if op_kind == InstrOpKind::NearBranch64 {
@@ -462,25 +448,25 @@ impl MasmFormatter {
 						options_provider.operand_options(instruction, operand, instruction_operand, &mut operand_options, &mut number_options);
 					}
 					let s = if op_kind == InstrOpKind::NearBranch32 {
-						self.number_formatter.format_u32_zeroes(
+						self.number_formatter.format_u32_zeros(
 							&self.d.options,
 							&number_options,
 							instruction.near_branch32(),
-							number_options.leading_zeroes,
+							number_options.leading_zeros,
 						)
 					} else if op_kind == InstrOpKind::NearBranch64 {
-						self.number_formatter.format_u64_zeroes(
+						self.number_formatter.format_u64_zeros(
 							&self.d.options,
 							&number_options,
 							instruction.near_branch64(),
-							number_options.leading_zeroes,
+							number_options.leading_zeros,
 						)
 					} else {
-						self.number_formatter.format_u16_zeroes(
+						self.number_formatter.format_u16_zeros(
 							&self.d.options,
 							&number_options,
 							instruction.near_branch16(),
-							number_options.leading_zeroes,
+							number_options.leading_zeros,
 						)
 					};
 					output.write_number(
@@ -510,7 +496,7 @@ impl MasmFormatter {
 				} else {
 					FormatterOperandOptionsFlags::NO_BRANCH_SIZE
 				});
-				let mut vec: Vec<SymResTextPart> = Vec::new();
+				let mut vec: Vec<SymResTextPart<'_>> = Vec::new();
 				if let Some(ref symbol) = if let Some(ref mut symbol_resolver) = self.symbol_resolver {
 					to_owned(symbol_resolver.symbol(instruction, operand, instruction_operand, imm64 as u32 as u64, imm_size), &mut vec)
 				} else {
@@ -541,11 +527,11 @@ impl MasmFormatter {
 							self.d.options.show_symbol_address(),
 						);
 					} else {
-						let s = self.number_formatter.format_u16_zeroes(
+						let s = self.number_formatter.format_u16_zeros(
 							&self.d.options,
 							&number_options,
 							instruction.far_branch_selector(),
-							number_options.leading_zeroes,
+							number_options.leading_zeros,
 						);
 						output.write_number(
 							instruction,
@@ -577,11 +563,11 @@ impl MasmFormatter {
 					if let Some(ref mut options_provider) = self.options_provider {
 						options_provider.operand_options(instruction, operand, instruction_operand, &mut operand_options, &mut number_options);
 					}
-					let s = self.number_formatter.format_u16_zeroes(
+					let s = self.number_formatter.format_u16_zeros(
 						&self.d.options,
 						&number_options,
 						instruction.far_branch_selector(),
-						number_options.leading_zeroes,
+						number_options.leading_zeros,
 					);
 					output.write_number(
 						instruction,
@@ -594,18 +580,18 @@ impl MasmFormatter {
 					);
 					output.write(":", FormatterTextKind::Punctuation);
 					let s = if op_kind == InstrOpKind::FarBranch32 {
-						self.number_formatter.format_u32_zeroes(
+						self.number_formatter.format_u32_zeros(
 							&self.d.options,
 							&number_options,
 							instruction.far_branch32(),
-							number_options.leading_zeroes,
+							number_options.leading_zeros,
 						)
 					} else {
-						self.number_formatter.format_u16_zeroes(
+						self.number_formatter.format_u16_zeros(
 							&self.d.options,
 							&number_options,
 							instruction.far_branch16(),
-							number_options.leading_zeroes,
+							number_options.leading_zeros,
 						)
 					};
 					output.write_number(
@@ -628,7 +614,7 @@ impl MasmFormatter {
 				} else if op_kind == InstrOpKind::Immediate8_2nd {
 					imm8 = instruction.immediate8_2nd();
 				} else {
-					imm8 = instruction.try_get_declare_byte_value(operand as usize).unwrap_or_default();
+					imm8 = instruction.get_declare_byte_value(operand as usize);
 				}
 				operand_options = FormatterOperandOptions::default();
 				if let Some(ref symbol) = if let Some(ref mut symbol_resolver) = self.symbol_resolver {
@@ -683,7 +669,7 @@ impl MasmFormatter {
 				} else if op_kind == InstrOpKind::Immediate8to16 {
 					imm16 = instruction.immediate8to16() as u16;
 				} else {
-					imm16 = instruction.try_get_declare_word_value(operand as usize).unwrap_or_default();
+					imm16 = instruction.get_declare_word_value(operand as usize);
 				}
 				operand_options = FormatterOperandOptions::default();
 				if let Some(ref symbol) = if let Some(ref mut symbol_resolver) = self.symbol_resolver {
@@ -738,7 +724,7 @@ impl MasmFormatter {
 				} else if op_kind == InstrOpKind::Immediate8to32 {
 					imm32 = instruction.immediate8to32() as u32;
 				} else {
-					imm32 = instruction.try_get_declare_dword_value(operand as usize).unwrap_or_default();
+					imm32 = instruction.get_declare_dword_value(operand as usize);
 				}
 				operand_options = FormatterOperandOptions::default();
 				if let Some(ref symbol) = if let Some(ref mut symbol_resolver) = self.symbol_resolver {
@@ -795,7 +781,7 @@ impl MasmFormatter {
 				} else if op_kind == InstrOpKind::Immediate64 {
 					imm64 = instruction.immediate64();
 				} else {
-					imm64 = instruction.try_get_declare_qword_value(operand as usize).unwrap_or_default();
+					imm64 = instruction.get_declare_qword_value(operand as usize);
 				}
 				operand_options = FormatterOperandOptions::default();
 				if let Some(ref symbol) = if let Some(ref mut symbol_resolver) = self.symbol_resolver {
@@ -969,7 +955,6 @@ impl MasmFormatter {
 				8,
 				op_info.flags as u32,
 			),
-			InstrOpKind::Memory64 => {}
 
 			InstrOpKind::Memory => {
 				let displ_size = instruction.memory_displ_size();
@@ -988,7 +973,7 @@ impl MasmFormatter {
 					instruction.memory_segment(),
 					base_reg,
 					index_reg,
-					super::super::instruction_internal::internal_get_memory_index_scale(instruction),
+					instruction_internal::internal_get_memory_index_scale(instruction),
 					displ_size,
 					displ,
 					addr_size,
@@ -997,10 +982,10 @@ impl MasmFormatter {
 			}
 		}
 
-		if operand == 0 && super::super::instruction_internal::internal_has_op_mask_or_zeroing_masking(instruction) {
+		if operand == 0 && instruction_internal::internal_has_op_mask_or_zeroing_masking(instruction) {
 			if instruction.has_op_mask() {
 				output.write("{", FormatterTextKind::Punctuation);
-				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, instruction.op_mask() as u32);
+				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, instruction.op_mask());
 				output.write("}", FormatterTextKind::Punctuation);
 			}
 			if instruction.zeroing_masking() {
@@ -1015,26 +1000,28 @@ impl MasmFormatter {
 				);
 			}
 		}
-		if operand + 1 == op_info.op_count as u32 && super::super::instruction_internal::internal_has_rounding_control_or_sae(instruction) {
+		if operand + 1 == op_info.op_count as u32 && instruction_internal::internal_has_rounding_control_or_sae(instruction) {
 			let rc = instruction.rounding_control();
 			if rc != RoundingControl::None && can_show_rounding_control(instruction, &self.d.options) {
-				const_assert_eq!(0, RoundingControl::None as u32);
-				const_assert_eq!(1, RoundingControl::RoundToNearest as u32);
-				const_assert_eq!(2, RoundingControl::RoundDown as u32);
-				const_assert_eq!(3, RoundingControl::RoundUp as u32);
-				const_assert_eq!(4, RoundingControl::RoundTowardZero as u32);
-				output.write(" ", FormatterTextKind::Text);
+				let dec_str = if IcedConstants::is_mvex(instruction.code()) {
+					if instruction.suppress_all_exceptions() {
+						self.d.vec_.masm_rc_sae_strings[rc as usize]
+					} else {
+						self.d.vec_.masm_rc_strings[rc as usize]
+					}
+				} else {
+					self.d.vec_.masm_rc_sae_strings[rc as usize]
+				};
 				MasmFormatter::format_decorator(
 					&self.d.options,
 					output,
 					instruction,
 					operand,
 					instruction_operand,
-					self.d.vec_.masm_rc_strings[rc as usize - 1],
+					dec_str,
 					DecoratorKind::RoundingControl,
 				);
 			} else if instruction.suppress_all_exceptions() {
-				output.write(" ", FormatterTextKind::Text);
 				MasmFormatter::format_decorator(
 					&self.d.options,
 					output,
@@ -1044,6 +1031,20 @@ impl MasmFormatter {
 					&self.d.str_.sae,
 					DecoratorKind::SuppressAllExceptions,
 				);
+			}
+		}
+		#[cfg(feature = "mvex")]
+		if mvex_rm_operand == operand {
+			let conv = instruction.mvex_reg_mem_conv();
+			if conv != MvexRegMemConv::None {
+				let mvex = crate::mvex::get_mvex_info(instruction.code());
+				if mvex.conv_fn != MvexConvFn::None {
+					let tbl = if mvex.is_conv_fn_32() { &self.d.vec_.mvex_reg_mem_consts_32 } else { &self.d.vec_.mvex_reg_mem_consts_64 };
+					let s = tbl[conv as usize];
+					if s.len() != 0 {
+						Self::format_decorator(&self.d.options, output, instruction, operand, instruction_operand, s, DecoratorKind::SwizzleMemConv);
+					}
+				}
 			}
 		}
 	}
@@ -1064,27 +1065,19 @@ impl MasmFormatter {
 	}
 
 	#[inline]
-	fn get_reg_str(d: &SelfData, mut reg_num: u32) -> &'static str {
-		if d.options.prefer_st0() && reg_num == Registers::REGISTER_ST {
-			reg_num = Register::ST0 as u32;
+	fn get_reg_str(d: &SelfData, mut reg: Register) -> &'static str {
+		if d.options.prefer_st0() && reg == REGISTER_ST {
+			reg = Register::ST0;
 		}
-		debug_assert!((reg_num as usize) < d.all_registers.len());
-		let reg_str = &d.all_registers[reg_num as usize];
+		let reg_str = &d.all_registers[reg as usize];
 		reg_str.get(d.options.uppercase_registers() || d.options.uppercase_all())
 	}
 
 	#[inline]
 	fn format_register_internal(
-		d: &SelfData, output: &mut dyn FormatterOutput, instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, reg_num: u32,
+		d: &SelfData, output: &mut dyn FormatterOutput, instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, reg: Register,
 	) {
-		const_assert_eq!(1, Registers::EXTRA_REGISTERS);
-		output.write_register(
-			instruction,
-			operand,
-			instruction_operand,
-			MasmFormatter::get_reg_str(d, reg_num),
-			if reg_num == Registers::REGISTER_ST { Register::ST0 } else { unsafe { mem::transmute(reg_num as u8) } },
-		);
+		output.write_register(instruction, operand, instruction_operand, MasmFormatter::get_reg_str(d, reg), reg);
 	}
 
 	#[allow(clippy::too_many_arguments)]
@@ -1108,7 +1101,7 @@ impl MasmFormatter {
 			if self.d.options.rip_relative_addresses() {
 				displ = displ.wrapping_sub(instruction.next_ip() as i64);
 			} else {
-				debug_assert_eq!(Register::None, index_reg);
+				debug_assert_eq!(index_reg, Register::None);
 				base_reg = Register::None;
 			}
 			displ_size = 8;
@@ -1117,7 +1110,7 @@ impl MasmFormatter {
 			if self.d.options.rip_relative_addresses() {
 				displ = (displ as u32).wrapping_sub(instruction.next_ip32()) as i32 as i64;
 			} else {
-				debug_assert_eq!(Register::None, index_reg);
+				debug_assert_eq!(index_reg, Register::None);
 				base_reg = Register::None;
 			}
 			displ_size = 4;
@@ -1169,7 +1162,7 @@ impl MasmFormatter {
 			|| (seg_override != Register::None && !notrack_prefix && show_segment_prefix(Register::None, instruction, &self.d.options))
 			|| (is1632 && !has_mem_reg && symbol.is_none() && self.d.options.masm_add_ds_prefix32())
 		{
-			MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, seg_reg as u32);
+			MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, seg_reg);
 			output.write(":", FormatterTextKind::Punctuation);
 		}
 		if !displ_in_brackets {
@@ -1198,7 +1191,7 @@ impl MasmFormatter {
 		}
 
 		let mut need_plus = if base_reg != Register::None {
-			MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, base_reg as u32);
+			MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, base_reg);
 			true
 		} else {
 			false
@@ -1217,7 +1210,7 @@ impl MasmFormatter {
 			need_plus = true;
 
 			if !use_scale {
-				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, index_reg as u32);
+				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, index_reg);
 			} else if self.d.options.scale_before_index() {
 				output.write_number(
 					instruction,
@@ -1235,9 +1228,9 @@ impl MasmFormatter {
 				if self.d.options.space_between_memory_mul_operators() {
 					output.write(" ", FormatterTextKind::Text);
 				}
-				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, index_reg as u32);
+				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, index_reg);
 			} else {
-				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, index_reg as u32);
+				MasmFormatter::format_register_internal(&self.d, output, instruction, operand, instruction_operand, index_reg);
 				if self.d.options.space_between_memory_mul_operators() {
 					output.write(" ", FormatterTextKind::Text);
 				}
@@ -1282,15 +1275,27 @@ impl MasmFormatter {
 			}
 			output.write("]", FormatterTextKind::Punctuation);
 		}
+		#[cfg(feature = "mvex")]
+		if instruction.is_mvex_eviction_hint() {
+			Self::format_decorator(
+				&self.d.options,
+				output,
+				instruction,
+				operand,
+				instruction_operand,
+				&self.d.str_.mvex.eh,
+				DecoratorKind::EvictionHint,
+			);
+		}
 	}
 
 	#[allow(clippy::too_many_arguments)]
 	fn format_memory_displ(
-		d: &SelfData, number_formatter: &mut NumberFormatter, number_options: &mut NumberFormattingOptions, output: &mut dyn FormatterOutput,
-		instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, symbol: &Option<SymbolResult>, abs_addr: u64, mut displ: i64,
+		d: &SelfData, number_formatter: &mut NumberFormatter, number_options: &mut NumberFormattingOptions<'_>, output: &mut dyn FormatterOutput,
+		instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, symbol: &Option<SymbolResult<'_>>, abs_addr: u64, mut displ: i64,
 		mut displ_size: u32, addr_size: u32, need_plus: bool, force_displ: bool,
 	) {
-		if let &Some(ref symbol) = symbol {
+		if let Some(symbol) = symbol {
 			if need_plus {
 				if d.options.space_between_memory_add_operators() {
 					output.write(" ", FormatterTextKind::Text);
@@ -1339,9 +1344,8 @@ impl MasmFormatter {
 					} else {
 						output.write("+", FormatterTextKind::Operator);
 					}
-					if number_options.displacement_leading_zeroes {
-						debug_assert!(displ_size <= 8);
-						displ_size = 8;
+					if number_options.displacement_leading_zeros {
+						displ_size = 4;
 					}
 				} else if addr_size == 4 {
 					if !number_options.signed_number {
@@ -1352,12 +1356,11 @@ impl MasmFormatter {
 					} else {
 						output.write("+", FormatterTextKind::Operator);
 					}
-					if number_options.displacement_leading_zeroes {
-						debug_assert!(displ_size <= 4);
+					if number_options.displacement_leading_zeros {
 						displ_size = 4;
 					}
 				} else {
-					debug_assert_eq!(2, addr_size);
+					debug_assert_eq!(addr_size, 2);
 					if !number_options.signed_number {
 						output.write("+", FormatterTextKind::Operator);
 					} else if (displ as i16) < 0 {
@@ -1366,8 +1369,7 @@ impl MasmFormatter {
 					} else {
 						output.write("+", FormatterTextKind::Operator);
 					}
-					if number_options.displacement_leading_zeroes {
-						debug_assert!(displ_size <= 2);
+					if number_options.displacement_leading_zeros {
 						displ_size = 2;
 					}
 				}
@@ -1379,20 +1381,23 @@ impl MasmFormatter {
 			}
 
 			let (s, displ_kind) = if displ_size <= 1 && displ as u64 <= u8::MAX as u64 {
-				(number_formatter.format_u8(&d.options, number_options, displ as u8), if is_signed { NumberKind::Int8 } else { NumberKind::UInt8 })
+				(
+					number_formatter.format_displ_u8(&d.options, number_options, displ as u8),
+					if is_signed { NumberKind::Int8 } else { NumberKind::UInt8 },
+				)
 			} else if displ_size <= 2 && displ as u64 <= u16::MAX as u64 {
 				(
-					number_formatter.format_u16(&d.options, number_options, displ as u16),
+					number_formatter.format_displ_u16(&d.options, number_options, displ as u16),
 					if is_signed { NumberKind::Int16 } else { NumberKind::UInt16 },
 				)
 			} else if displ_size <= 4 && displ as u64 <= u32::MAX as u64 {
 				(
-					number_formatter.format_u32(&d.options, number_options, displ as u32),
+					number_formatter.format_displ_u32(&d.options, number_options, displ as u32),
 					if is_signed { NumberKind::Int32 } else { NumberKind::UInt32 },
 				)
 			} else if displ_size <= 8 {
 				(
-					number_formatter.format_u64(&d.options, number_options, displ as u64),
+					number_formatter.format_displ_u64(&d.options, number_options, displ as u64),
 					if is_signed { NumberKind::Int64 } else { NumberKind::UInt64 },
 				)
 			} else {
@@ -1402,9 +1407,10 @@ impl MasmFormatter {
 		}
 	}
 
+	#[allow(clippy::unwrap_used)]
 	fn format_memory_size(
-		d: &SelfData, output: &mut dyn FormatterOutput, instruction: &Instruction, symbol: &Option<SymbolResult>, mem_size: MemorySize, flags: u32,
-		operand_options: FormatterOperandOptions,
+		d: &SelfData, output: &mut dyn FormatterOutput, instruction: &Instruction, symbol: &Option<SymbolResult<'_>>, mem_size: MemorySize,
+		flags: u32, operand_options: FormatterOperandOptions,
 	) {
 		let mem_size_options = operand_options.memory_size_options();
 		if mem_size_options == MemorySizeOptions::Never {
@@ -1458,7 +1464,7 @@ impl MasmFormatter {
 			} else if (flags & InstrOpInfoFlags::SHOW_NO_MEM_SIZE_FORCE_SIZE) == 0 && !mem_info.is_broadcast {
 				return;
 			}
-		} else if mem_size_options == MemorySizeOptions::Minimum {
+		} else if mem_size_options == MemorySizeOptions::Minimal {
 			if symbol.is_some() && symbol.as_ref().unwrap().symbol_size.is_some() {
 				if MasmFormatter::is_same_mem_size(d, mem_size_strings, mem_info.is_broadcast, symbol.as_ref().unwrap()) {
 					return;
@@ -1468,7 +1474,7 @@ impl MasmFormatter {
 				return;
 			}
 		} else {
-			debug_assert_eq!(MemorySizeOptions::Always, mem_size_options);
+			debug_assert_eq!(mem_size_options, MemorySizeOptions::Always);
 		}
 
 		for &name in mem_size_strings {
@@ -1477,7 +1483,7 @@ impl MasmFormatter {
 		}
 	}
 
-	fn is_same_mem_size(d: &SelfData, mem_size_strings: &[&FormatterString], is_broadcast: bool, symbol: &SymbolResult) -> bool {
+	fn is_same_mem_size(d: &SelfData, mem_size_strings: &[&FormatterString], is_broadcast: bool, symbol: &SymbolResult<'_>) -> bool {
 		if is_broadcast {
 			return false;
 		}
@@ -1649,7 +1655,7 @@ impl Formatter for MasmFormatter {
 	#[must_use]
 	#[inline]
 	fn format_register(&mut self, register: Register) -> &str {
-		MasmFormatter::get_reg_str(&self.d, register as u32)
+		MasmFormatter::get_reg_str(&self.d, register)
 	}
 
 	#[must_use]
@@ -1710,49 +1716,49 @@ impl Formatter for MasmFormatter {
 
 	#[must_use]
 	#[inline]
-	fn format_i8_options(&mut self, value: i8, number_options: &NumberFormattingOptions) -> &str {
+	fn format_i8_options(&mut self, value: i8, number_options: &NumberFormattingOptions<'_>) -> &str {
 		self.number_formatter.format_i8(&self.d.options, number_options, value)
 	}
 
 	#[must_use]
 	#[inline]
-	fn format_i16_options(&mut self, value: i16, number_options: &NumberFormattingOptions) -> &str {
+	fn format_i16_options(&mut self, value: i16, number_options: &NumberFormattingOptions<'_>) -> &str {
 		self.number_formatter.format_i16(&self.d.options, number_options, value)
 	}
 
 	#[must_use]
 	#[inline]
-	fn format_i32_options(&mut self, value: i32, number_options: &NumberFormattingOptions) -> &str {
+	fn format_i32_options(&mut self, value: i32, number_options: &NumberFormattingOptions<'_>) -> &str {
 		self.number_formatter.format_i32(&self.d.options, number_options, value)
 	}
 
 	#[must_use]
 	#[inline]
-	fn format_i64_options(&mut self, value: i64, number_options: &NumberFormattingOptions) -> &str {
+	fn format_i64_options(&mut self, value: i64, number_options: &NumberFormattingOptions<'_>) -> &str {
 		self.number_formatter.format_i64(&self.d.options, number_options, value)
 	}
 
 	#[must_use]
 	#[inline]
-	fn format_u8_options(&mut self, value: u8, number_options: &NumberFormattingOptions) -> &str {
+	fn format_u8_options(&mut self, value: u8, number_options: &NumberFormattingOptions<'_>) -> &str {
 		self.number_formatter.format_u8(&self.d.options, number_options, value)
 	}
 
 	#[must_use]
 	#[inline]
-	fn format_u16_options(&mut self, value: u16, number_options: &NumberFormattingOptions) -> &str {
+	fn format_u16_options(&mut self, value: u16, number_options: &NumberFormattingOptions<'_>) -> &str {
 		self.number_formatter.format_u16(&self.d.options, number_options, value)
 	}
 
 	#[must_use]
 	#[inline]
-	fn format_u32_options(&mut self, value: u32, number_options: &NumberFormattingOptions) -> &str {
+	fn format_u32_options(&mut self, value: u32, number_options: &NumberFormattingOptions<'_>) -> &str {
 		self.number_formatter.format_u32(&self.d.options, number_options, value)
 	}
 
 	#[must_use]
 	#[inline]
-	fn format_u64_options(&mut self, value: u64, number_options: &NumberFormattingOptions) -> &str {
+	fn format_u64_options(&mut self, value: u64, number_options: &NumberFormattingOptions<'_>) -> &str {
 		self.number_formatter.format_u64(&self.d.options, number_options, value)
 	}
 }

@@ -1,7 +1,9 @@
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
+
 #if ENCODER && BLOCK_ENCODER && CODE_ASSEMBLER
 using System;
 using Iced.Intel;
-using Iced.UnitTests.Intel.EncoderTests;
 using Xunit;
 using static Iced.Intel.AssemblerRegisters;
 
@@ -19,12 +21,12 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 
 		[Fact]
 		public void xbegin_label() {
-			TestAssembler(c => c.xbegin(CreateAndEmitLabel(c)), AssignLabel(Instruction.CreateXbegin(Bitness, 1), 1), LocalOpCodeFlags.Branch);
+			TestAssembler(c => c.xbegin(CreateAndEmitLabel(c)), AssignLabel(Instruction.CreateXbegin(Bitness, FirstLabelId), FirstLabelId), TestInstrFlags.Branch);
 		}
 
 		[Fact]
 		public void xbegin_offset() {
-			TestAssembler(c => c.xbegin(12752), Instruction.CreateXbegin(Bitness, 12752), LocalOpCodeFlags.BranchUlong | LocalOpCodeFlags.IgnoreCode);
+			TestAssembler(c => c.xbegin(12752), Instruction.CreateXbegin(Bitness, 12752), TestInstrFlags.BranchU64 | TestInstrFlags.IgnoreCode);
 		}
 
 		[Fact]
@@ -32,7 +34,7 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 			var c = new Assembler(Bitness);
 			Assert.Equal(Bitness, c.Bitness);
 			Assert.True(c.PreferVex);
-			Assert.True(c.PreferBranchShort);
+			Assert.True(c.PreferShortBranch);
 			Assert.Empty(c.Instructions);
 			Assert.True(c.CurrentLabel.IsEmpty);
 		}
@@ -44,10 +46,10 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 			c.add(rax, rcx);
 			_ = c.@lock;
 			c.PreferVex = false;
-			c.PreferBranchShort = false;
+			c.PreferShortBranch = false;
 			c.Reset();
 			Assert.False(c.PreferVex);
-			Assert.False(c.PreferBranchShort);
+			Assert.False(c.PreferShortBranch);
 			Assert.Empty(c.Instructions);
 			Assert.True(c.CurrentLabel.IsEmpty);
 			var writer = new CodeWriterImpl();
@@ -94,18 +96,16 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 			Assert.Empty(result.Result);
 		}
 
-#if !NO_EVEX
 		[Fact]
 		void Test_opmask_registers() {
-			TestAssembler(c => c.vmovups(zmm0.k1, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K1), LocalOpCodeFlags.PreferEvex);
-			TestAssembler(c => c.vmovups(zmm0.k2, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K2), LocalOpCodeFlags.PreferEvex);
-			TestAssembler(c => c.vmovups(zmm0.k3, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K3), LocalOpCodeFlags.PreferEvex);
-			TestAssembler(c => c.vmovups(zmm0.k4, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K4), LocalOpCodeFlags.PreferEvex);
-			TestAssembler(c => c.vmovups(zmm0.k5, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K5), LocalOpCodeFlags.PreferEvex);
-			TestAssembler(c => c.vmovups(zmm0.k6, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K6), LocalOpCodeFlags.PreferEvex);
-			TestAssembler(c => c.vmovups(zmm0.k7, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K7), LocalOpCodeFlags.PreferEvex);
+			TestAssembler(c => c.vmovups(zmm0.k1, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K1), TestInstrFlags.PreferEvex);
+			TestAssembler(c => c.vmovups(zmm0.k2, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K2), TestInstrFlags.PreferEvex);
+			TestAssembler(c => c.vmovups(zmm0.k3, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K3), TestInstrFlags.PreferEvex);
+			TestAssembler(c => c.vmovups(zmm0.k4, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K4), TestInstrFlags.PreferEvex);
+			TestAssembler(c => c.vmovups(zmm0.k5, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K5), TestInstrFlags.PreferEvex);
+			TestAssembler(c => c.vmovups(zmm0.k6, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K6), TestInstrFlags.PreferEvex);
+			TestAssembler(c => c.vmovups(zmm0.k7, zmm1), ApplyK(Instruction.Create(Code.EVEX_Vmovups_zmm_k1z_zmmm512, zmm0, zmm1), Register.K7), TestInstrFlags.PreferEvex);
 		}
-#endif
 
 		[Fact]
 		public void TestDeclareData_db_array() {
@@ -185,7 +185,7 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 			}
 			{
 				var assembler = new Assembler(Bitness);
-				var label = assembler.CreateLabel(("BadLabel"));
+				var label = assembler.CreateLabel("BadLabel");
 				assembler.Label(ref label);
 				var writer = new CodeWriterImpl();
 				var ex = Assert.Throws<InvalidOperationException>(() => assembler.Assemble(writer, 0));
@@ -248,11 +248,21 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 				inst.HasRepePrefix = true;
 				TestAssembler(c => c.repe.stosd(), inst);
 			}
+			{
+				var inst = Instruction.CreateStosd(Bitness);
+				inst.HasRepePrefix = true;
+				TestAssembler(c => c.repz.stosd(), inst);
+			}
 
 			{
 				var inst = Instruction.CreateStosd(Bitness);
 				inst.HasRepnePrefix = true;
 				TestAssembler(c => c.repne.stosd(), inst);
+			}
+			{
+				var inst = Instruction.CreateStosd(Bitness);
+				inst.HasRepnePrefix = true;
+				TestAssembler(c => c.repnz.stosd(), inst);
 			}
 
 			{
@@ -287,7 +297,6 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 			}
 		}
 
-#if !NO_EVEX
 		[Fact]
 		public void TestOperandModifiers() {
 			{
@@ -295,55 +304,55 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 				inst.ZeroingMasking = true;
 				inst.OpMask = Register.K1;
 				inst.IsBroadcast = true;
-				TestAssembler(c => c.vunpcklps(xmm2.k1.z, xmm6, __dword_bcst[rax]), inst, LocalOpCodeFlags.PreferEvex);
+				TestAssembler(c => c.vunpcklps(xmm2.k1.z, xmm6, __dword_bcst[rax]), inst, TestInstrFlags.PreferEvex);
 			}
 			{
 				var inst = Instruction.Create(Code.EVEX_Vunpcklps_xmm_k1z_xmm_xmmm128b32, xmm2, xmm6, __[rax].ToMemoryOperand(64));
 				inst.ZeroingMasking = true;
 				inst.OpMask = Register.K2;
 				inst.IsBroadcast = true;
-				TestAssembler(c => c.vunpcklps(xmm2.k2.z, xmm6, __dword_bcst[rax]), inst, LocalOpCodeFlags.PreferEvex);
+				TestAssembler(c => c.vunpcklps(xmm2.k2.z, xmm6, __dword_bcst[rax]), inst, TestInstrFlags.PreferEvex);
 			}
 			{
 				var inst = Instruction.Create(Code.EVEX_Vunpcklps_xmm_k1z_xmm_xmmm128b32, xmm2, xmm6, __[rax].ToMemoryOperand(64));
 				inst.ZeroingMasking = true;
 				inst.OpMask = Register.K3;
 				inst.IsBroadcast = true;
-				TestAssembler(c => c.vunpcklps(xmm2.k3.z, xmm6, __dword_bcst[rax]), inst, LocalOpCodeFlags.PreferEvex);
+				TestAssembler(c => c.vunpcklps(xmm2.k3.z, xmm6, __dword_bcst[rax]), inst, TestInstrFlags.PreferEvex);
 			}
 			{
 				var inst = Instruction.Create(Code.EVEX_Vunpcklps_xmm_k1z_xmm_xmmm128b32, xmm2, xmm6, __[rax].ToMemoryOperand(64));
 				inst.ZeroingMasking = true;
 				inst.OpMask = Register.K4;
 				inst.IsBroadcast = true;
-				TestAssembler(c => c.vunpcklps(xmm2.k4.z, xmm6, __dword_bcst[rax]), inst, LocalOpCodeFlags.PreferEvex);
+				TestAssembler(c => c.vunpcklps(xmm2.k4.z, xmm6, __dword_bcst[rax]), inst, TestInstrFlags.PreferEvex);
 			}
 			{
 				var inst = Instruction.Create(Code.EVEX_Vunpcklps_xmm_k1z_xmm_xmmm128b32, xmm2, xmm6, __[rax].ToMemoryOperand(64));
 				inst.ZeroingMasking = true;
 				inst.OpMask = Register.K5;
 				inst.IsBroadcast = true;
-				TestAssembler(c => c.vunpcklps(xmm2.k5.z, xmm6, __dword_bcst[rax]), inst, LocalOpCodeFlags.PreferEvex);
+				TestAssembler(c => c.vunpcklps(xmm2.k5.z, xmm6, __dword_bcst[rax]), inst, TestInstrFlags.PreferEvex);
 			}
 			{
 				var inst = Instruction.Create(Code.EVEX_Vunpcklps_xmm_k1z_xmm_xmmm128b32, xmm2, xmm6, __[rax].ToMemoryOperand(64));
 				inst.ZeroingMasking = true;
 				inst.OpMask = Register.K6;
 				inst.IsBroadcast = true;
-				TestAssembler(c => c.vunpcklps(xmm2.k6.z, xmm6, __dword_bcst[rax]), inst, LocalOpCodeFlags.PreferEvex);
+				TestAssembler(c => c.vunpcklps(xmm2.k6.z, xmm6, __dword_bcst[rax]), inst, TestInstrFlags.PreferEvex);
 			}
 			{
 				var inst = Instruction.Create(Code.EVEX_Vunpcklps_xmm_k1z_xmm_xmmm128b32, xmm2, xmm6, __[rax].ToMemoryOperand(64));
 				inst.ZeroingMasking = true;
 				inst.OpMask = Register.K7;
 				inst.IsBroadcast = true;
-				TestAssembler(c => c.vunpcklps(xmm2.k7.z, xmm6, __dword_bcst[rax]), inst, LocalOpCodeFlags.PreferEvex);
+				TestAssembler(c => c.vunpcklps(xmm2.k7.z, xmm6, __dword_bcst[rax]), inst, TestInstrFlags.PreferEvex);
 			}
 
 			{
 				var inst = Instruction.Create(Code.EVEX_Vcvttss2si_r64_xmmm32_sae, rax, xmm1);
 				inst.SuppressAllExceptions = true;
-				TestAssembler(c => c.vcvttss2si(rax, xmm1.sae), inst, LocalOpCodeFlags.PreferEvex);
+				TestAssembler(c => c.vcvttss2si(rax, xmm1.sae), inst, TestInstrFlags.PreferEvex);
 			}
 			{
 				var inst = Instruction.Create(Code.EVEX_Vaddpd_zmm_k1z_zmm_zmmm512b64_er, zmm1, zmm2, zmm3);
@@ -372,7 +381,74 @@ namespace Iced.UnitTests.Intel.AssemblerTests {
 				TestAssembler(c => c.vaddpd(zmm1.k3.z, zmm2, zmm3.rz_sae), inst);
 			}
 		}
-#endif
+
+		[Fact]
+		void TestVexEvexPrefixes() {
+			var a = new Assembler(64);
+
+			a.PreferVex = true;
+			Assert.True(a.PreferVex);
+			a.vaddpd(xmm1, xmm2, xmm3);
+			a.vex.vaddpd(xmm1, xmm2, xmm3);
+			a.vaddpd(xmm1, xmm2, xmm3);
+			a.evex.vaddpd(xmm1, xmm2, xmm3);
+			a.vaddpd(xmm1, xmm2, xmm3);
+			Assert.True(a.PreferVex);
+
+			a.PreferVex = false;
+			Assert.False(a.PreferVex);
+			a.vaddpd(xmm1, xmm2, xmm3);
+			a.vex.vaddpd(xmm1, xmm2, xmm3);
+			a.vaddpd(xmm1, xmm2, xmm3);
+			a.evex.vaddpd(xmm1, xmm2, xmm3);
+			a.vaddpd(xmm1, xmm2, xmm3);
+			Assert.False(a.PreferVex);
+
+			var writer = new CodeWriterImpl();
+			a.Assemble(writer, 0);
+			var bytes = writer.ToArray();
+			Assert.Equal(new byte[] {
+				0xC5, 0xE9, 0x58, 0xCB,
+				0xC5, 0xE9, 0x58, 0xCB,
+				0xC5, 0xE9, 0x58, 0xCB,
+				0x62, 0xF1, 0xED, 0x08, 0x58, 0xCB,
+				0xC5, 0xE9, 0x58, 0xCB,
+				0x62, 0xF1, 0xED, 0x08, 0x58, 0xCB,
+				0xC5, 0xE9, 0x58, 0xCB,
+				0x62, 0xF1, 0xED, 0x08, 0x58, 0xCB,
+				0x62, 0xF1, 0xED, 0x08, 0x58, 0xCB,
+				0x62, 0xF1, 0xED, 0x08, 0x58, 0xCB,
+			}, bytes);
+		}
+
+		[Fact]
+		void Test_zero_bytes() {
+			var a = new Assembler(64);
+
+			var lblf = a.CreateLabel();
+			var lbll = a.CreateLabel();
+			var lbl1 = a.CreateLabel();
+			var lbl2 = a.CreateLabel();
+
+			a.Label(ref lblf);
+			a.zero_bytes();
+
+			a.je(lbl1);
+			a.je(lbl2);
+			a.Label(ref lbl1);
+			a.zero_bytes();
+			a.Label(ref lbl2);
+			a.nop();
+			a.@lock.rep.zero_bytes();
+
+			a.Label(ref lbll);
+			a.zero_bytes();
+
+			var writer = new CodeWriterImpl();
+			a.Assemble(writer, 0);
+			var bytes = writer.ToArray();
+			Assert.Equal(new byte[] { 0x74, 0x02, 0x74, 0x00, 0x90 }, bytes);
+		}
 	}
 }
 #endif

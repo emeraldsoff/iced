@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -62,10 +42,10 @@ namespace Generator.InstructionInfo.Rust {
 			using (var writer = new FileWriter(TargetLanguage.Rust, FileUtils.OpenWrite(filename))) {
 				writer.WriteFileHeader();
 				writer.WriteLine(RustConstants.AttributeNoRustFmt);
-				writer.WriteLine($"pub(crate) static TABLE: [u32; {infos.Length * 2}] = [");
+				writer.WriteLine($"pub(crate) static TABLE: [(u32, u32); {infos.Length}] = [");
 				using (writer.Indent()) {
 					foreach (var info in infos)
-						writer.WriteLine($"{NumberFormatter.FormatHexUInt32WithSep(info.dword1)}, {NumberFormatter.FormatHexUInt32WithSep(info.dword2)},// {info.def.Code.Name(idConverter)}");
+						writer.WriteLine($"({NumberFormatter.FormatHexUInt32WithSep(info.dword1)}, {NumberFormatter.FormatHexUInt32WithSep(info.dword2)}),// {info.def.Code.Name(idConverter)}");
 				}
 				writer.WriteLine("];");
 			}
@@ -109,13 +89,13 @@ namespace Generator.InstructionInfo.Rust {
 			using (var writer = new FileWriter(TargetLanguage.Rust, FileUtils.OpenWrite(filename))) {
 				writer.WriteFileHeader();
 				var cpuidFeatureTypeStr = genTypes[TypeIds.CpuidFeature].Name(idConverter);
-				writer.WriteLine($"use super::super::{cpuidFeatureTypeStr};");
+				writer.WriteLine($"use crate::{cpuidFeatureTypeStr};");
 				writer.WriteLine();
 				writer.WriteLine(RustConstants.AttributeNoRustFmt);
 				writer.WriteLine($"pub(crate) static CPUID: [&[{cpuidFeatureTypeStr}]; {cpuidFeatures.Length}] = [");
 				using (writer.Indent()) {
 					foreach (var info in cpuidFeatures)
-						writer.WriteLine($"&[{string.Join(", ", info.cpuidFeatures.Select(a => $"{cpuidFeatureTypeStr}::{a.Name(idConverter)}"))}],// {info.cpuidInternal.Name(idConverter)}");
+						writer.WriteLine($"&[{string.Join(", ", info.cpuidFeatures.Select(a => idConverter.ToDeclTypeAndValue(a)))}],// {info.cpuidInternal.Name(idConverter)}");
 				}
 				writer.WriteLine("];");
 			}
@@ -143,7 +123,7 @@ namespace Generator.InstructionInfo.Rust {
 				using (writer.Indent()) {
 					foreach (var value in opInfo.Values) {
 						var v = ToOpAccess(value);
-						writer.WriteLine($"{opAccessTypeStr}::{v.Name(idConverter)},");
+						writer.WriteLine($"{idConverter.ToDeclTypeAndValue(v)},");
 					}
 				}
 				writer.WriteLine("];");
@@ -226,16 +206,15 @@ namespace Generator.InstructionInfo.Rust {
 					var rreg = (RegisterRangeImplAccStatement)stmt;
 					writer.WriteLine($"for reg_num in ({GetEnumName(rreg.RegisterFirst)} as u32)..(({GetEnumName(rreg.RegisterLast)} as u32) + 1) {{");
 					using (writer.Indent())
-						writer.WriteLine($"Self::add_register(flags, info, unsafe {{ mem::transmute(reg_num as u8) }}, {GetOpAccessString(rreg.Access)});");
+						writer.WriteLine($"Self::add_register(flags, info, unsafe {{ mem::transmute(reg_num as RegisterUnderlyingType) }}, {GetOpAccessString(rreg.Access)});");
 					writer.WriteLine("}");
 					break;
 				case ImplAccStatementKind.ShiftMask:
 					arg1 = (IntArgImplAccStatement)stmt;
-					writer.WriteLine($"Self::command_shift_mask(instruction, info, 0x{arg1.Arg:X});");
 					break;
 				case ImplAccStatementKind.ShiftMask1FMod:
 					arg1 = (IntArgImplAccStatement)stmt;
-					writer.WriteLine($"Self::command_shift_mask_mod(instruction, info, {Verify_9_or_17(arg1.Arg)});");
+					Verify_9_or_17(arg1.Arg);
 					break;
 				case ImplAccStatementKind.ZeroRegRflags:
 					writer.WriteLine("Self::command_clear_rflags(instruction, info, flags);");
@@ -320,6 +299,10 @@ namespace Generator.InstructionInfo.Rust {
 					arg1 = (IntArgImplAccStatement)stmt;
 					writer.WriteLine($"Self::command_xstore(instruction, info, flags, {Verify_2_4_or_8(arg1.Arg)});");
 					break;
+				case ImplAccStatementKind.MemDispl:
+					arg1 = (IntArgImplAccStatement)stmt;
+					writer.WriteLine($"Self::command_mem_displ(info, flags, {(int)arg1.Arg});");
+					break;
 				default:
 					throw new InvalidOperationException();
 				}
@@ -363,7 +346,7 @@ namespace Generator.InstructionInfo.Rust {
 		string GetOpAccessString(OpAccess access) => GetEnumName(opAccessType[access.ToString()]);
 		string GetCodeSizeString(CodeSize codeSize) => GetEnumName(codeSizeType[codeSize.ToString()]);
 
-		string GetEnumName(EnumValue value) => value.DeclaringType.Name(idConverter) + "::" + value.Name(idConverter);
+		string GetEnumName(EnumValue value) => idConverter.ToDeclTypeAndValue(value);
 
 		void GenerateTable((EncodingKind encoding, InstructionDef[] defs)[] tdefs, string id, string filename) {
 			new FileUpdater(TargetLanguage.Rust, id, filename).Generate(writer => {
@@ -372,7 +355,7 @@ namespace Generator.InstructionInfo.Rust {
 						writer.WriteLine(feature);
 					var bar = string.Empty;
 					foreach (var def in defs) {
-						writer.WriteLine($"{bar}{def.Code.DeclaringType.Name(idConverter)}::{def.Code.Name(idConverter)}");
+						writer.WriteLine($"{bar}{idConverter.ToDeclTypeAndValue(def.Code)}");
 						bar = "| ";
 					}
 					writer.WriteLine("=> true,");
@@ -395,13 +378,18 @@ namespace Generator.InstructionInfo.Rust {
 			GenerateTable(defs, "TileStrideIndexTable", filename);
 		}
 
+		protected override void GenerateIsStringOpTable((EncodingKind encoding, InstructionDef[] defs)[] defs) {
+			var filename = genTypes.Dirs.GetRustFilename("code.rs");
+			GenerateTable(defs, "IsStringOpTable", filename);
+		}
+
 		protected override void GenerateFpuStackIncrementInfoTable((FpuStackInfo info, InstructionDef[] defs)[] tdefs) {
 			var filename = genTypes.Dirs.GetRustFilename("instruction.rs");
 			new FileUpdater(TargetLanguage.Rust, "FpuStackIncrementInfoTable", filename).Generate(writer => {
 				foreach (var (info, defs) in tdefs) {
 					var bar = string.Empty;
 					foreach (var def in defs) {
-						writer.WriteLine($"{bar}{def.Code.DeclaringType.Name(idConverter)}::{def.Code.Name(idConverter)}");
+						writer.WriteLine($"{bar}{idConverter.ToDeclTypeAndValue(def.Code)}");
 						bar = "| ";
 					}
 					var conditionalStr = info.Conditional ? "true" : "false";
@@ -429,7 +417,7 @@ namespace Generator.InstructionInfo.Rust {
 					for (int i = 0; i < defs.Length; i++) {
 						var def = defs[i];
 						var finalExpr = i + 1 == defs.Length ? expr : string.Empty;
-						writer.WriteLine($"{bar}{def.Code.DeclaringType.Name(idConverter)}::{def.Code.Name(idConverter)}{finalExpr}");
+						writer.WriteLine($"{bar}{idConverter.ToDeclTypeAndValue(def.Code)}{finalExpr}");
 						bar = "| ";
 					}
 				}

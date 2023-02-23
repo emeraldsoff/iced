@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -27,6 +7,7 @@ using System.Diagnostics.CodeAnalysis;
 using System.IO;
 using System.Linq;
 using Generator.Enums;
+using Generator.Enums.Python;
 using Generator.IO;
 
 namespace Generator.Misc.Python {
@@ -43,6 +24,11 @@ namespace Generator.Misc.Python {
 		public void Generate() {
 			var classes = new List<PyClass>();
 			foreach (var filename in Directory.GetFiles(genTypes.Dirs.GetPythonRustDir(), "*.rs")) {
+				// mypy fix: we can't use Python enums (too slow). mypy complains because our enums are
+				// ints, so we create dummy classes in lib.rs that the enum *.py files reference.
+				// Ignore all of them.
+				if (Path.GetFileName(filename) == "lib.rs")
+					continue;
 				var parser = new PyClassParser(filename);
 				classes.AddRange(parser.ParseFile());
 			}
@@ -121,11 +107,11 @@ namespace Generator.Misc.Python {
 					if (reqEnumFields.TryGetValue(enumType, out var fields)) {
 						writer.WriteLine($"class {pythonName}({baseClass}):");
 						using (writer.Indent()) {
-							bool uppercaseRawName = PythonUtils.UppercaseEnum(enumType.TypeId.Id1);
+							bool uppercaseRawName = Enums.EnumUtils.UppercaseTypeFields(enumType.TypeId.Id1);
 							foreach (var value in enumType.Values) {
 								if (fields.Contains(value)) {
 									fields.Remove(value);
-									var (valueName, numStr) = PythonUtils.GetEnumNameValue(idConverter, value, uppercaseRawName);
+									var (valueName, numStr) = Enums.EnumUtils.GetEnumNameValue(idConverter, value, uppercaseRawName);
 									writer.WriteLine($"{valueName} = {numStr}");
 								}
 								if (fields.Count == 0)
@@ -369,11 +355,15 @@ namespace Generator.Misc.Python {
 				return "bool";
 			case "&str" or "String":
 				return "str";
-			case "PyRef<Self>" or "PyRefMut<Self>" or "Self":
+			case "PyRef<'_, Self>" or "PyRefMut<'_, Self>" or "Self":
 				return pyClass.Name;
 			case "&PyAny":
 				return "Any";
 			default:
+				if (ParseUtils.TryRemovePrefixSuffix(rustType, "PyRef<'_, ", ">", out extractedType))
+					return extractedType;
+				if (ParseUtils.TryRemovePrefixSuffix(rustType, "PyRefMut<'_, ", ">", out extractedType))
+					return extractedType;
 				if (ParseUtils.TryRemovePrefixSuffix(rustType, "IterNextOutput<", ", ()>", out extractedType))
 					return extractedType;
 				break;

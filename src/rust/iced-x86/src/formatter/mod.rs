@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 mod enums;
@@ -48,71 +28,85 @@ mod nasm;
 mod num_fmt;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 mod num_fmt_opts;
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 mod pseudo_ops;
 mod regs_tbl;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
+mod regs_tbl_ls;
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 mod string_output;
 mod strings_data;
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 mod strings_tbl;
 mod symres;
 #[cfg(test)]
 pub(crate) mod tests;
 
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-pub use self::enums::*;
-pub use self::enums_shared::*;
+pub use crate::formatter::enums::*;
+pub use crate::formatter::enums_shared::*;
 #[cfg(feature = "fast_fmt")]
-pub use self::fast::*;
+pub use crate::formatter::fast::*;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-pub use self::fmt_opt_provider::*;
+pub use crate::formatter::fmt_opt_provider::*;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-pub use self::fmt_opts::*;
+pub use crate::formatter::fmt_opts::*;
 #[cfg(feature = "gas")]
-pub use self::gas::*;
+pub use crate::formatter::gas::*;
 #[cfg(feature = "intel")]
-pub use self::intel::*;
+pub use crate::formatter::intel::*;
 #[cfg(feature = "masm")]
-pub use self::masm::*;
+pub use crate::formatter::masm::*;
 #[cfg(feature = "nasm")]
-pub use self::nasm::*;
+pub use crate::formatter::nasm::*;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-use self::num_fmt::NumberFormatter;
+use crate::formatter::num_fmt::NumberFormatter;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-pub use self::num_fmt_opts::*;
+pub use crate::formatter::num_fmt_opts::*;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-pub use self::string_output::*;
-pub use self::symres::*;
-use super::*;
-#[cfg(not(feature = "std"))]
+pub use crate::formatter::string_output::*;
+pub use crate::formatter::symres::*;
+use crate::*;
 use alloc::string::String;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-use core::{i16, i32};
+
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm"))]
+#[allow(deprecated)]
+const REGISTER_ST: Register = Register::DontUse0;
+
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-use core::{i8, u16, u32, u8};
+fn r_to_r16(reg: Register) -> Register {
+	if Register::EAX <= reg && reg <= Register::R15 {
+		Register::try_from((((reg as u32 - Register::AX as u32) & 0xF) + Register::AX as u32) as usize).unwrap_or(reg)
+	} else {
+		reg
+	}
+}
+
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
+fn r64_to_r32(reg: Register) -> Register {
+	if Register::RAX <= reg && reg <= Register::R15 {
+		Register::try_from((reg as u32 - Register::RAX as u32 + Register::EAX as u32) as usize).unwrap_or(reg)
+	} else {
+		reg
+	}
+}
 
 #[derive(Debug, Default, Clone)]
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 struct FormatterString {
 	lower: String,
-	#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 	upper: String,
 }
 
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 impl FormatterString {
 	#[must_use]
 	fn new(lower: String) -> Self {
-		debug_assert_eq!(lower, lower.to_lowercase());
-		#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-		{
-			Self { upper: lower.to_uppercase(), lower }
-		}
-		#[cfg(not(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm")))]
-		{
-			Self { lower }
-		}
+		debug_assert_eq!(lower.to_lowercase(), lower);
+		Self { upper: lower.to_uppercase(), lower }
 	}
 
-	#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 	#[must_use]
 	fn with_strings(strings: Vec<String>) -> Vec<Self> {
 		strings.into_iter().map(FormatterString::new).collect()
@@ -120,18 +114,10 @@ impl FormatterString {
 
 	#[must_use]
 	fn new_str(lower: &str) -> Self {
-		debug_assert_eq!(lower, lower.to_lowercase());
-		#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-		{
-			Self { lower: String::from(lower), upper: lower.to_uppercase() }
-		}
-		#[cfg(not(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm")))]
-		{
-			Self { lower: String::from(lower) }
-		}
+		debug_assert_eq!(lower.to_lowercase(), lower);
+		Self { lower: String::from(lower), upper: lower.to_uppercase() }
 	}
 
-	#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 	#[must_use]
 	#[inline]
 	fn len(&self) -> usize {
@@ -145,7 +131,6 @@ impl FormatterString {
 		self.lower.is_empty()
 	}
 
-	#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 	#[must_use]
 	#[inline]
 	fn get(&self, upper: bool) -> &str {
@@ -154,13 +139,6 @@ impl FormatterString {
 		} else {
 			&self.lower
 		}
-	}
-
-	#[cfg(feature = "fast_fmt")]
-	#[must_use]
-	#[inline]
-	fn lower(&self) -> &str {
-		&self.lower
 	}
 }
 
@@ -267,12 +245,12 @@ pub trait FormatterOutput {
 	/// - `symbol`: Symbol
 	#[inline]
 	#[allow(unused_variables)]
-	fn write_symbol(&mut self, instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, address: u64, symbol: &SymbolResult) {
+	fn write_symbol(&mut self, instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, address: u64, symbol: &SymbolResult<'_>) {
 		match symbol.text {
 			SymResTextInfo::Text(ref part) => {
 				let s = match &part.text {
 					&SymResString::Str(s) => s,
-					&SymResString::String(ref s) => s.as_str(),
+					SymResString::String(s) => s.as_str(),
 				};
 				self.write(s, part.color);
 			}
@@ -281,7 +259,7 @@ pub trait FormatterOutput {
 				for part in v.iter() {
 					let s = match &part.text {
 						&SymResString::Str(s) => s,
-						&SymResString::String(ref s) => s.as_str(),
+						SymResString::String(s) => s.as_str(),
 					};
 					self.write(s, part.color);
 				}
@@ -297,7 +275,7 @@ impl FormatterOutputMethods {
 	#[allow(clippy::too_many_arguments)]
 	fn write1(
 		output: &mut dyn FormatterOutput, instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, options: &FormatterOptions,
-		number_formatter: &mut NumberFormatter, number_options: &NumberFormattingOptions, address: u64, symbol: &SymbolResult,
+		number_formatter: &mut NumberFormatter, number_options: &NumberFormattingOptions<'_>, address: u64, symbol: &SymbolResult<'_>,
 		show_symbol_address: bool,
 	) {
 		FormatterOutputMethods::write2(
@@ -319,7 +297,7 @@ impl FormatterOutputMethods {
 	#[allow(clippy::too_many_arguments)]
 	fn write2(
 		output: &mut dyn FormatterOutput, instruction: &Instruction, operand: u32, instruction_operand: Option<u32>, options: &FormatterOptions,
-		number_formatter: &mut NumberFormatter, number_options: &NumberFormattingOptions, address: u64, symbol: &SymbolResult,
+		number_formatter: &mut NumberFormatter, number_options: &NumberFormattingOptions<'_>, address: u64, symbol: &SymbolResult<'_>,
 		show_symbol_address: bool, write_minus_if_signed: bool, spaces_between_op: bool,
 	) {
 		let mut displ = address.wrapping_sub(symbol.address) as i64;
@@ -363,7 +341,7 @@ impl FormatterOutputMethods {
 			if spaces_between_op {
 				output.write(" ", FormatterTextKind::Text);
 			}
-			let s = number_formatter.format_u64_zeroes(options, number_options, displ as u64, false);
+			let s = number_formatter.format_u64_zeros(options, number_options, displ as u64, false);
 			output.write_number(instruction, operand, instruction_operand, s, orig_displ, number_kind, FormatterTextKind::Number);
 		}
 		if show_symbol_address {
@@ -371,13 +349,13 @@ impl FormatterOutputMethods {
 			output.write("(", FormatterTextKind::Punctuation);
 			let s = if address <= u16::MAX as u64 {
 				number_kind = NumberKind::UInt16;
-				number_formatter.format_u16_zeroes(options, number_options, address as u16, true)
+				number_formatter.format_u16_zeros(options, number_options, address as u16, true)
 			} else if address <= u32::MAX as u64 {
 				number_kind = NumberKind::UInt32;
-				number_formatter.format_u32_zeroes(options, number_options, address as u32, true)
+				number_formatter.format_u32_zeros(options, number_options, address as u32, true)
 			} else {
 				number_kind = NumberKind::UInt64;
-				number_formatter.format_u64_zeroes(options, number_options, address, true)
+				number_formatter.format_u64_zeros(options, number_options, address, true)
 			};
 			output.write_number(instruction, operand, instruction_operand, s, address, number_kind, FormatterTextKind::Number);
 			output.write(")", FormatterTextKind::Punctuation);
@@ -591,7 +569,7 @@ pub trait Formatter: private::Sealed {
 	/// - `value`: Value
 	/// - `number_options`: Options
 	#[must_use]
-	fn format_i8_options(&mut self, value: i8, number_options: &NumberFormattingOptions) -> &str;
+	fn format_i8_options(&mut self, value: i8, number_options: &NumberFormattingOptions<'_>) -> &str;
 
 	/// Formats a `i16`
 	///
@@ -600,7 +578,7 @@ pub trait Formatter: private::Sealed {
 	/// - `value`: Value
 	/// - `number_options`: Options
 	#[must_use]
-	fn format_i16_options(&mut self, value: i16, number_options: &NumberFormattingOptions) -> &str;
+	fn format_i16_options(&mut self, value: i16, number_options: &NumberFormattingOptions<'_>) -> &str;
 
 	/// Formats a `i32`
 	///
@@ -609,7 +587,7 @@ pub trait Formatter: private::Sealed {
 	/// - `value`: Value
 	/// - `number_options`: Options
 	#[must_use]
-	fn format_i32_options(&mut self, value: i32, number_options: &NumberFormattingOptions) -> &str;
+	fn format_i32_options(&mut self, value: i32, number_options: &NumberFormattingOptions<'_>) -> &str;
 
 	/// Formats a `i64`
 	///
@@ -618,7 +596,7 @@ pub trait Formatter: private::Sealed {
 	/// - `value`: Value
 	/// - `number_options`: Options
 	#[must_use]
-	fn format_i64_options(&mut self, value: i64, number_options: &NumberFormattingOptions) -> &str;
+	fn format_i64_options(&mut self, value: i64, number_options: &NumberFormattingOptions<'_>) -> &str;
 
 	/// Formats a `u8`
 	///
@@ -627,7 +605,7 @@ pub trait Formatter: private::Sealed {
 	/// - `value`: Value
 	/// - `number_options`: Options
 	#[must_use]
-	fn format_u8_options(&mut self, value: u8, number_options: &NumberFormattingOptions) -> &str;
+	fn format_u8_options(&mut self, value: u8, number_options: &NumberFormattingOptions<'_>) -> &str;
 
 	/// Formats a `u16`
 	///
@@ -636,7 +614,7 @@ pub trait Formatter: private::Sealed {
 	/// - `value`: Value
 	/// - `number_options`: Options
 	#[must_use]
-	fn format_u16_options(&mut self, value: u16, number_options: &NumberFormattingOptions) -> &str;
+	fn format_u16_options(&mut self, value: u16, number_options: &NumberFormattingOptions<'_>) -> &str;
 
 	/// Formats a `u32`
 	///
@@ -645,7 +623,7 @@ pub trait Formatter: private::Sealed {
 	/// - `value`: Value
 	/// - `number_options`: Options
 	#[must_use]
-	fn format_u32_options(&mut self, value: u32, number_options: &NumberFormattingOptions) -> &str;
+	fn format_u32_options(&mut self, value: u32, number_options: &NumberFormattingOptions<'_>) -> &str;
 
 	/// Formats a `u64`
 	///
@@ -654,23 +632,24 @@ pub trait Formatter: private::Sealed {
 	/// - `value`: Value
 	/// - `number_options`: Options
 	#[must_use]
-	fn format_u64_options(&mut self, value: u64, number_options: &NumberFormattingOptions) -> &str;
+	fn format_u64_options(&mut self, value: u64, number_options: &NumberFormattingOptions<'_>) -> &str;
 }
 
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 mod private {
 	pub trait Sealed {}
 	#[cfg(feature = "gas")]
-	impl Sealed for super::gas::GasFormatter {}
+	impl Sealed for crate::GasFormatter {}
 	#[cfg(feature = "intel")]
-	impl Sealed for super::intel::IntelFormatter {}
+	impl Sealed for crate::IntelFormatter {}
 	#[cfg(feature = "masm")]
-	impl Sealed for super::masm::MasmFormatter {}
+	impl Sealed for crate::MasmFormatter {}
 	#[cfg(feature = "nasm")]
-	impl Sealed for super::nasm::NasmFormatter {}
+	impl Sealed for crate::NasmFormatter {}
 }
 
-fn to_owned<'a>(sym_res: Option<SymbolResult>, vec: &'a mut Vec<SymResTextPart<'a>>) -> Option<SymbolResult<'a>> {
+#[allow(clippy::manual_map)] // It's wrong
+fn to_owned<'a>(sym_res: Option<SymbolResult<'_>>, vec: &'a mut Vec<SymResTextPart<'a>>) -> Option<SymbolResult<'a>> {
 	match sym_res {
 		None => None,
 		Some(sym_res) => Some(sym_res.to_owned(vec)),
@@ -678,86 +657,87 @@ fn to_owned<'a>(sym_res: Option<SymbolResult>, vec: &'a mut Vec<SymResTextPart<'
 }
 
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-fn get_mnemonic_cc<'a, 'b>(options: &'a FormatterOptions, cc_index: u32, mnemonics: &'b [FormatterString]) -> &'b FormatterString {
+fn get_mnemonic_cc<'a>(options: &FormatterOptions, cc_index: u32, mnemonics: &'a [FormatterString]) -> &'a FormatterString {
+	use crate::iced_constants::IcedConstants;
 	let index = match cc_index {
 		// o
 		0 => {
-			debug_assert_eq!(1, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), 1);
 			0
 		}
 		// no
 		1 => {
-			debug_assert_eq!(1, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), 1);
 			0
 		}
 		// b, c, nae
 		2 => {
-			debug_assert_eq!(3, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_B_ENUM_COUNT);
 			options.cc_b() as usize
 		}
 		// ae, nb, nc
 		3 => {
-			debug_assert_eq!(3, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_AE_ENUM_COUNT);
 			options.cc_ae() as usize
 		}
 		// e, z
 		4 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_E_ENUM_COUNT);
 			options.cc_e() as usize
 		}
 		// ne, nz
 		5 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_NE_ENUM_COUNT);
 			options.cc_ne() as usize
 		}
 		// be, na
 		6 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_BE_ENUM_COUNT);
 			options.cc_be() as usize
 		}
 		// a, nbe
 		7 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_A_ENUM_COUNT);
 			options.cc_a() as usize
 		}
 		// s
 		8 => {
-			debug_assert_eq!(1, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), 1);
 			0
 		}
 		// ns
 		9 => {
-			debug_assert_eq!(1, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), 1);
 			0
 		}
 		// p, pe
 		10 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_P_ENUM_COUNT);
 			options.cc_p() as usize
 		}
 		// np, po
 		11 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_NP_ENUM_COUNT);
 			options.cc_np() as usize
 		}
 		// l, nge
 		12 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_L_ENUM_COUNT);
 			options.cc_l() as usize
 		}
 		// ge, nl
 		13 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_GE_ENUM_COUNT);
 			options.cc_ge() as usize
 		}
 		// le, ng
 		14 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_LE_ENUM_COUNT);
 			options.cc_le() as usize
 		}
 		// g, nle
 		15 => {
-			debug_assert_eq!(2, mnemonics.len());
+			debug_assert_eq!(mnemonics.len(), IcedConstants::CC_G_ENUM_COUNT);
 			options.cc_g() as usize
 		}
 		_ => unreachable!(),

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -78,6 +58,7 @@ namespace IcedFuzzer.Core {
 		public FuzzerInstruction Instruction { get; }
 		public FuzzerEncodingKind Encoding { get; }
 		public UsedRegs UsedRegs { get; }
+		public bool UselessPrefixes => Fuzzer.UselessPrefixes;
 		uint immIndex;
 		uint nonZeroImmIndex;
 
@@ -394,6 +375,9 @@ namespace IcedFuzzer.Core {
 		};
 
 		public override IEnumerable<FuzzerGenResult> Generate(FuzzerGenContext context) {
+			if (!context.UselessPrefixes)
+				yield break;
+
 			bool canUseMPREX;
 			MandatoryPrefix realMP;
 			switch (context.Encoding) {
@@ -624,6 +608,9 @@ namespace IcedFuzzer.Core {
 		}
 
 		public override IEnumerable<FuzzerGenResult> Generate(FuzzerGenContext context) {
+			if (!context.UselessPrefixes)
+				yield break;
+
 			int instrLength = GetInstructionLength(context);
 			const int maxLength = 15;
 			int prefixes = instrLength <= maxLength ? maxLength - instrLength : 0;
@@ -649,9 +636,24 @@ namespace IcedFuzzer.Core {
 	// It doesn't gen the same gpr in a reg op and a mem op, eg. `mov eax,[eax]`, but it
 	// does gen it if they're both reg ops, eg. `mov eax,eax`.
 	sealed class SameRegsFuzzerGen : FuzzerGen {
-		static FuzzerRegisterClass? GetUniqueOperandRegClass(FuzzerInstruction instr) {
-			if (!instr.RequiresUniqueRegNums)
-				return null;
+		static (FuzzerRegisterClass?, Func<int, int, bool>) GetUniqueOperandRegClass(FuzzerInstruction instr) {
+			int count = 0;
+			Func<int, int, bool> isInvalid = (_, _) => false;
+			if (instr.RequiresUniqueRegNums) {
+				count++;
+				// Always invalid
+				isInvalid = (_, _) => true;
+			}
+			if (instr.RequiresUniqueDestRegNum) {
+				count++;
+				// Invalid if dst equals src1 or src2
+				isInvalid = (op0Index, _) => op0Index == 0;
+			}
+			if (count > 1)
+				throw ThrowHelpers.Unreachable;
+			if (count == 0)
+				return (null, isInvalid);
+
 			const uint VEC_REG = 0x01;
 			const uint TMM_REG = 0x02;
 			uint regs = 0;
@@ -665,22 +667,23 @@ namespace IcedFuzzer.Core {
 					break;
 				}
 			}
-			return regs switch {
+			var regClass = regs switch {
 				VEC_REG => FuzzerRegisterClass.Vector,
 				TMM_REG => FuzzerRegisterClass.TMM,
 				_ => throw ThrowHelpers.Unreachable,
 			};
+			return (regClass, isInvalid);
 		}
 
 		public override IEnumerable<FuzzerGenResult> Generate(FuzzerGenContext context) {
-			var uniqueOpRegClass = GetUniqueOperandRegClass(context.Instruction);
+			var (uniqueOpRegClass, isInvalid) = GetUniqueOperandRegClass(context.Instruction);
 			var ops = context.Instruction.Operands;
-			for (int i = 0; i < ops.Length; i++) {
-				var op0 = ops[i];
+			for (int op0Index = 0; op0Index < ops.Length; op0Index++) {
+				var op0 = ops[op0Index];
 				if (!GetRegInfo(context, op0, out var op0RegInfo))
 					continue;
-				for (int j = i + 1; j < ops.Length; j++) {
-					var op1 = ops[j];
+				for (int op1Index = op0Index + 1; op1Index < ops.Length; op1Index++) {
+					var op1 = ops[op1Index];
 					if (!GetRegInfo(context, op1, out var op1RegInfo))
 						continue;
 					if (op0RegInfo.RegClass != op1RegInfo.RegClass)
@@ -698,8 +701,11 @@ namespace IcedFuzzer.Core {
 							context.UsedRegs.Add(op1RegInfo.RegClass, op1RegNum);
 
 							var info = InstructionInfo.Create(context);
-							if (rexCount == 1)
+							if (rexCount == 1) {
+								if (!context.UselessPrefixes && ((op0RegInfo.IsGPR8 && op0RegNum < 4) || (op1RegInfo.IsGPR8 && op1RegNum < 4)))
+									continue;
 								info.Flags |= EncodedInfoFlags.HasREX;
+							}
 							foreach (var op in ops) {
 								if (op == op0)
 									op0RegInfo.InitializeOperand(ref info, regNum);
@@ -715,10 +721,8 @@ namespace IcedFuzzer.Core {
 								isValid = false;
 							if (((op0RegNum == 0 && op0RegInfo.IsOpMask) || (op1RegNum == 0 && op1RegInfo.IsOpMask)) && context.Instruction.RequireOpMaskRegister)
 								isValid = false;
-							if (op0RegNum == op1RegNum) {
-								if (uniqueOpRegClass == op0RegInfo.RegClass)
-									isValid = false;
-							}
+							if (op0RegNum == op1RegNum && uniqueOpRegClass == op0RegInfo.RegClass && isInvalid(op0Index, op1Index))
+								isValid = false;
 							yield return new FuzzerGenResult(isValid);
 						}
 					}
@@ -878,10 +882,11 @@ namespace IcedFuzzer.Core {
 			uint modMax = ignoresModBits ? 3U : 0;
 			uint lockTestMax = 0;
 			if (ignoresModBits && context.Fuzzer.CpuDecoder == CpuDecoder.AMD)
-				lockTestMax = 1;
+				lockTestMax = 2;
 
 			for (uint lockCount = 0; lockCount <= lockTestMax; lockCount++) {
-				bool useLockPrefix = lockCount == 1;
+				bool useLockPrefix = lockCount >= 1;
+				bool useLockAndRex = lockCount >= 2;
 				for (uint mod = 0; mod <= modMax; mod++) {
 					foreach (var (regOp, forceREX) in GetRegisterOperands(context.Instruction, context.Bitness, context.Encoding)) {
 						var regInfo = regOp.GetRegisterInfo(context.Bitness, context.Encoding);
@@ -905,14 +910,23 @@ namespace IcedFuzzer.Core {
 							context.UsedRegs.Clear();
 							context.UsedRegs.Add(regInfo, regOp, regNum);
 							var info = InstructionInfo.Create(context);
-							if (forceREX)
+							if (forceREX) {
+								if (!context.UselessPrefixes && regOp.Register == FuzzerRegisterKind.GPR8 && (i & 0xF) < 4)
+									continue;
 								info.Flags |= EncodedInfoFlags.HasREX;
+							}
+							bool isValid = true;
 							if (useLockPrefix && (regOp.Register == FuzzerRegisterKind.CR || regOp.Register == FuzzerRegisterKind.DR || regOp.Register == FuzzerRegisterKind.TR)) {
 								Assert.True(regOp.RegLocation == FuzzerOperandRegLocation.ModrmRegBits);
 								Assert.True(context.Encoding == FuzzerEncodingKind.Legacy);
 								Assert.True(regNum <= 15);
-								info.SetRegister(regOp.RegLocation, regNum & 7);
+								if (useLockAndRex)
+									info.SetRegister(regOp.RegLocation, regNum);
+								else
+									info.SetRegister(regOp.RegLocation, regNum & 7);
 								if ((regNum & 8) != 0) {
+									if (useLockAndRex)
+										isValid = false;
 									info.WritePrefixes = new WritePrefix[] {
 										new WritePrefix(new byte[] { 0xF0 }),
 										new WritePrefix(WritePrefixKind.AddressSize),
@@ -935,11 +949,14 @@ namespace IcedFuzzer.Core {
 							}
 							Assert.True(info.IsValid);
 
-							if (setIgnoredBits)
+							if (setIgnoredBits) {
+								if (!context.UselessPrefixes)
+									continue;
 								info.SetUnusedBits();
+							}
 
 							context.Fuzzer.Write(info);
-							bool isValid = regInfo.IsValid(context.Instruction, regOp.Register, regNum);
+							isValid = isValid && regInfo.IsValid(context.Instruction, regOp.Register, regNum);
 							Assert.True(!setIgnoredBits || isValid, "Must be a valid instruction when testing ignored bits!");
 							yield return new FuzzerGenResult(isValid);
 						}
@@ -1104,8 +1121,10 @@ namespace IcedFuzzer.Core {
 				foreach (var mem in memInfo) {
 					if (TryGen(context, memOp, mem, addrSize, prefix67, 0, 0, setIgnoredBits: false, out var result))
 						yield return result;
-					if (TryGen(context, memOp, mem, addrSize, prefix67, 0, 0, setIgnoredBits: true, out result))
-						yield return result;
+					if (context.UselessPrefixes) {
+						if (TryGen(context, memOp, mem, addrSize, prefix67, 0, 0, setIgnoredBits: true, out result))
+							yield return result;
+					}
 
 					// Base reg bit: B. Start from 1 since we've already tested 0.
 					for (uint @base = 1; @base < baseCount; @base++) {
@@ -1239,8 +1258,11 @@ namespace IcedFuzzer.Core {
 									OpHelpers.InitializeOperand(context, op, ref info);
 							}
 							Assert.True(info.IsValid);
-							if (setIgnoredBits)
+							if (setIgnoredBits) {
+								if (!context.UselessPrefixes)
+									continue;
 								info.SetUnusedBits();
+							}
 							bool isValid = true;
 							Assert.True(isValid);
 							Assert.True(!setIgnoredBits || isValid, "Must be a valid instruction when testing ignored bits!");
@@ -1269,8 +1291,11 @@ namespace IcedFuzzer.Core {
 						info.addressSizePrefix = 0x67;
 					}
 					Assert.True(info.IsValid);
-					if (setIgnoredBits)
+					if (setIgnoredBits) {
+						if (!context.UselessPrefixes)
+							continue;
 						info.SetUnusedBits();
+					}
 					bool isValid = true;
 					Assert.True(isValid);
 					Assert.True(!setIgnoredBits || isValid, "Must be a valid instruction when testing ignored bits!");
@@ -1298,7 +1323,15 @@ namespace IcedFuzzer.Core {
 				Code.VEX_Vpclmulqdq_ymm_ymm_ymmm256_imm8 or Code.EVEX_Vpclmulqdq_xmm_xmm_xmmm128_imm8 or Code.EVEX_Vpclmulqdq_ymm_ymm_ymmm256_imm8 or
 				Code.EVEX_Vpclmulqdq_zmm_zmm_zmmm512_imm8 or Code.XOP_Vpcomb_xmm_xmm_xmmm128_imm8 or Code.XOP_Vpcomw_xmm_xmm_xmmm128_imm8 or
 				Code.XOP_Vpcomd_xmm_xmm_xmmm128_imm8 or Code.XOP_Vpcomq_xmm_xmm_xmmm128_imm8 or Code.XOP_Vpcomub_xmm_xmm_xmmm128_imm8 or
-				Code.XOP_Vpcomuw_xmm_xmm_xmmm128_imm8 or Code.XOP_Vpcomud_xmm_xmm_xmmm128_imm8 or Code.XOP_Vpcomuq_xmm_xmm_xmmm128_imm8 => true,
+				Code.XOP_Vpcomuw_xmm_xmm_xmmm128_imm8 or Code.XOP_Vpcomud_xmm_xmm_xmmm128_imm8 or Code.XOP_Vpcomuq_xmm_xmm_xmmm128_imm8 or
+				Code.EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8 or Code.EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8 or Code.EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8 or
+				Code.EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8 or Code.EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8 or Code.EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8 or
+				Code.EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8 or Code.EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8 or Code.EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8 or
+				Code.EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8 or Code.EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8 or Code.EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8 or
+				Code.EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8 or Code.EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8 or Code.EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8 or
+				Code.EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8 or Code.EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8 or Code.EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8 or
+				Code.EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8 or Code.EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8 or Code.EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8 or
+				Code.EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8 or Code.EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8 or Code.EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8 => true,
 				_ => false,
 			};
 
@@ -1333,8 +1366,11 @@ namespace IcedFuzzer.Core {
 						bool setIgnoredBits = j == 1;
 						var info = OpHelpers.InitializeInstruction(context);
 						Assert.True(info.IsValid);
-						if (setIgnoredBits)
+						if (setIgnoredBits) {
+							if (!context.UselessPrefixes)
+								continue;
 							info.SetUnusedBits();
+						}
 						bool isValid = true;
 						Assert.True(isValid);
 						Assert.True(!setIgnoredBits || isValid, "Must be a valid instruction when testing ignored bits!");
@@ -1357,8 +1393,11 @@ namespace IcedFuzzer.Core {
 				bool setIgnoredBits = i == 1;
 				var info = InstructionInfo.Create(context);
 				Assert.True(info.IsValid);
-				if (setIgnoredBits)
+				if (setIgnoredBits) {
+					if (!context.UselessPrefixes)
+						continue;
 					info.SetUnusedBits();
+				}
 				bool isValid = true;
 				Assert.True(isValid);
 				Assert.True(!setIgnoredBits || isValid, "Must be a valid instruction when testing ignored bits!");
@@ -1513,16 +1552,16 @@ namespace IcedFuzzer.Core {
 		}
 	}
 
-	// EVEX: Sets the reserved bits p0[3:2] to 01,10,11 and p1[2] to 0
+	// EVEX: Sets the reserved bits p0[3] to 1 and p1[2] to 0
 	sealed class InvalidReservedEvexBitsFuzzerGen : FuzzerGen {
 		public override IEnumerable<FuzzerGenResult> Generate(FuzzerGenContext context) {
 			if (context.Encoding != FuzzerEncodingKind.EVEX)
 				yield break;
 
-			for (uint r = 1; r <= 3; r++) {
+			for (uint r = 1; r <= 1; r++) {
 				var info = OpHelpers.InitializeInstruction(context);
 				Assert.True(info.IsValid);
-				info.EVEX_res3to2 = r;
+				info.EVEX_res3 = r;
 				context.Fuzzer.Write(info);
 				yield return new FuzzerGenResult(isValid: false);
 			}

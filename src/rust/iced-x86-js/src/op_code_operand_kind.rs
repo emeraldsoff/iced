@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use wasm_bindgen::prelude::*;
 
@@ -128,7 +108,7 @@ pub enum OpCodeOperandKind {
 	kp1_reg = 43,
 	/// `K` register encoded in the `mod + r/m` fields of the modrm byte
 	k_rm = 44,
-	/// `K` register encoded in the the `V'vvvv` field (VEX/EVEX/XOP)
+	/// `K` register encoded in the the `V'vvvv` field (VEX/EVEX/MVEX/XOP)
 	k_vvvv = 45,
 	/// `MM` register encoded in the `reg` field of the modrm byte
 	mm_reg = 46,
@@ -160,7 +140,7 @@ pub enum OpCodeOperandKind {
 	zmm_reg = 59,
 	/// `ZMM` register encoded in the `mod + r/m` fields of the modrm byte
 	zmm_rm = 60,
-	/// `ZMM` register encoded in the the `V'vvvv` field (VEX/EVEX/XOP)
+	/// `ZMM` register encoded in the the `V'vvvv` field (VEX/EVEX/MVEX/XOP)
 	zmm_vvvv = 61,
 	/// `ZMM` register (+3) encoded in the the `V'vvvv` field (VEX/EVEX/XOP)
 	zmmp3_vvvv = 62,
@@ -261,6 +241,6 @@ pub enum OpCodeOperandKind {
 
 #[allow(dead_code)]
 pub(crate) fn iced_to_op_code_operand_kind(value: iced_x86_rust::OpCodeOperandKind) -> OpCodeOperandKind {
-	// Safe, the enums are exactly identical
+	// SAFETY: the enums are exactly identical
 	unsafe { std::mem::transmute(value as u8) }
 }

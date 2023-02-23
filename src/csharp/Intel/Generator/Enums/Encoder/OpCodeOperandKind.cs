@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 namespace Generator.Enums.Encoder {
 	[Enum("OpCodeOperandKind", Documentation = "Operand kind", Public = true)]
@@ -114,7 +94,7 @@ namespace Generator.Enums.Encoder {
 		kp1_reg,
 		[Comment("#(c:K)# register encoded in the #(c:mod + r/m)# fields of the modrm byte")]
 		k_rm,
-		[Comment("#(c:K)# register encoded in the the #(c:V'vvvv)# field (VEX/EVEX/XOP)")]
+		[Comment("#(c:K)# register encoded in the the #(c:V'vvvv)# field (VEX/EVEX/MVEX/XOP)")]
 		k_vvvv,
 		[Comment("#(c:MM)# register encoded in the #(c:reg)# field of the modrm byte")]
 		mm_reg,
@@ -146,7 +126,7 @@ namespace Generator.Enums.Encoder {
 		zmm_reg,
 		[Comment("#(c:ZMM)# register encoded in the #(c:mod + r/m)# fields of the modrm byte")]
 		zmm_rm,
-		[Comment("#(c:ZMM)# register encoded in the the #(c:V'vvvv)# field (VEX/EVEX/XOP)")]
+		[Comment("#(c:ZMM)# register encoded in the the #(c:V'vvvv)# field (VEX/EVEX/MVEX/XOP)")]
 		zmm_vvvv,
 		[Comment("#(c:ZMM)# register (+3) encoded in the the #(c:V'vvvv)# field (VEX/EVEX/XOP)")]
 		zmmp3_vvvv,

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 mod cc_table;
@@ -40,6 +20,10 @@ mod ignored_code_table;
 mod memory_size_options_table;
 mod memory_size_table;
 mod mnemonic_table;
+#[cfg(all(feature = "encoder", feature = "op_code_info", feature = "mvex"))]
+mod mvex_conv_fn_table;
+#[cfg(all(feature = "encoder", feature = "op_code_info", feature = "mvex"))]
+mod mvex_tt_lut_kind_table;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 mod number_base_table;
 #[cfg(all(feature = "encoder", feature = "op_code_info"))]
@@ -50,49 +34,44 @@ mod register_table;
 #[cfg(all(feature = "encoder", feature = "op_code_info"))]
 mod tuple_type_table;
 
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm", feature = "fast_fmt"))]
+use crate::formatter::tests::enums::OptionsProps;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-use self::cc_table::*;
-use self::code_table::*;
+use crate::test_utils::from_str_conv::cc_table::*;
+use crate::test_utils::from_str_conv::code_table::*;
 #[cfg(feature = "instr_info")]
-use self::condition_code_table::*;
+use crate::test_utils::from_str_conv::condition_code_table::*;
 #[cfg(feature = "instr_info")]
-use self::cpuid_feature_table::*;
-use self::decoder_error_table::*;
+use crate::test_utils::from_str_conv::cpuid_feature_table::*;
+use crate::test_utils::from_str_conv::decoder_error_table::*;
 #[cfg(any(feature = "decoder", feature = "instr_info", feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-use self::decoder_options_table::*;
+use crate::test_utils::from_str_conv::decoder_options_table::*;
 #[cfg(feature = "instr_info")]
-use self::encoding_kind_table::*;
+use crate::test_utils::from_str_conv::encoding_kind_table::*;
 #[cfg(feature = "instr_info")]
-use self::flow_control_table::*;
-use self::ignored_code_table::*;
+use crate::test_utils::from_str_conv::flow_control_table::*;
+use crate::test_utils::from_str_conv::ignored_code_table::*;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm", feature = "fast_fmt"))]
-use self::memory_size_options_table::*;
-use self::memory_size_table::*;
-use self::mnemonic_table::*;
+use crate::test_utils::from_str_conv::memory_size_options_table::*;
+use crate::test_utils::from_str_conv::memory_size_table::*;
+use crate::test_utils::from_str_conv::mnemonic_table::*;
+#[cfg(all(feature = "encoder", feature = "op_code_info", feature = "mvex"))]
+use crate::test_utils::from_str_conv::mvex_conv_fn_table::*;
+#[cfg(all(feature = "encoder", feature = "op_code_info", feature = "mvex"))]
+use crate::test_utils::from_str_conv::mvex_tt_lut_kind_table::*;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-use self::number_base_table::*;
+use crate::test_utils::from_str_conv::number_base_table::*;
 #[cfg(all(feature = "encoder", feature = "op_code_info"))]
-use self::op_code_operand_kind_table::*;
+use crate::test_utils::from_str_conv::op_code_operand_kind_table::*;
 #[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm", feature = "fast_fmt"))]
-use self::options_props_table::*;
-use self::register_table::*;
+use crate::test_utils::from_str_conv::options_props_table::*;
+use crate::test_utils::from_str_conv::register_table::*;
 #[cfg(all(feature = "encoder", feature = "op_code_info"))]
-use self::tuple_type_table::*;
-#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm", feature = "fast_fmt"))]
-use super::super::formatter::tests::enums::OptionsProps;
-use super::super::*;
-#[cfg(not(feature = "std"))]
+use crate::test_utils::from_str_conv::tuple_type_table::*;
+use crate::*;
 use alloc::string::String;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-use core::{i16, i8};
-use core::{i32, u16, u32, u8};
 #[cfg(feature = "instr_info")]
-#[cfg(not(feature = "std"))]
-use hashbrown::HashMap;
-#[cfg(feature = "instr_info")]
-#[cfg(feature = "std")]
 use std::collections::HashMap;
 
 pub(crate) fn to_vec_u8(hex_data: &str) -> Result<Vec<u8>, String> {
@@ -131,7 +110,7 @@ pub(crate) fn to_vec_u8(hex_data: &str) -> Result<Vec<u8>, String> {
 
 pub(crate) fn to_u64(value: &str) -> Result<u64, String> {
 	let value = value.trim();
-	let result = if value.starts_with("0x") { u64::from_str_radix(&value[2..], 16) } else { value.trim().parse() };
+	let result = if let Some(value) = value.strip_prefix("0x") { u64::from_str_radix(value, 16) } else { value.trim().parse() };
 	match result {
 		Ok(value) => Ok(value),
 		Err(_) => Err(format!("Invalid number: {}", value)),
@@ -146,7 +125,7 @@ pub(crate) fn to_i64(value: &str) -> Result<i64, String> {
 	} else {
 		1
 	};
-	let result = if unsigned_value.starts_with("0x") { u64::from_str_radix(&unsigned_value[2..], 16) } else { unsigned_value.trim().parse() };
+	let result = if let Some(value) = unsigned_value.strip_prefix("0x") { u64::from_str_radix(value, 16) } else { unsigned_value.trim().parse() };
 	match result {
 		Ok(value) => Ok((value as i64).wrapping_mul(mult)),
 		Err(_) => Err(format!("Invalid number: {}", value)),
@@ -225,12 +204,6 @@ pub(crate) fn to_code(value: &str) -> Result<Code, String> {
 
 pub(crate) fn is_ignored_code(value: &str) -> bool {
 	let value = value.trim();
-	if !cfg!(feature = "db") {
-		match value {
-			"DeclareByte" | "DeclareWord" | "DeclareDword" | "DeclareQword" => return true,
-			_ => {}
-		}
-	}
 	if cfg!(feature = "no_vex") && value.starts_with("VEX_") {
 		return true;
 	}
@@ -243,12 +216,15 @@ pub(crate) fn is_ignored_code(value: &str) -> bool {
 	if cfg!(feature = "no_d3now") && value.starts_with("D3NOW_") {
 		return true;
 	}
+	if cfg!(not(feature = "mvex")) && (value.starts_with("MVEX_") || value.starts_with("VEX_KNC_")) {
+		return true;
+	}
 	IGNORED_CODE_HASH.contains(value)
 }
 
 #[cfg(any(feature = "decoder", feature = "encoder", feature = "instr_info", feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
 pub(crate) fn code_names() -> Vec<&'static str> {
-	let mut v: Vec<_> = (&*TO_CODE_HASH).iter().collect();
+	let mut v: Vec<_> = (*TO_CODE_HASH).iter().collect();
 	v.sort_unstable_by_key(|kv| *kv.1 as u32);
 	v.into_iter().map(|kv| *kv.0).collect()
 }
@@ -317,6 +293,24 @@ pub(crate) fn to_tuple_type(value: &str) -> Result<TupleType, String> {
 	match TO_TUPLE_TYPE_HASH.get(value) {
 		Some(tuple_type) => Ok(*tuple_type),
 		None => Err(format!("Invalid TupleType value: {}", value)),
+	}
+}
+
+#[cfg(all(feature = "encoder", feature = "op_code_info", feature = "mvex"))]
+pub(crate) fn to_mvex_conv_fn(value: &str) -> Result<MvexConvFn, String> {
+	let value = value.trim();
+	match TO_MVEX_CONV_FN_HASH.get(value) {
+		Some(mvex_conv_fn) => Ok(*mvex_conv_fn),
+		None => Err(format!("Invalid MvexConvFn value: {}", value)),
+	}
+}
+
+#[cfg(all(feature = "encoder", feature = "op_code_info", feature = "mvex"))]
+pub(crate) fn to_mvex_tuple_type_lut_kind(value: &str) -> Result<MvexTupleTypeLutKind, String> {
+	let value = value.trim();
+	match TO_MVEX_TT_LUT_KIND_HASH.get(value) {
+		Some(tt_lut_kind) => Ok(*tt_lut_kind),
+		None => Err(format!("Invalid MvexTupleTypeLutKind value: {}", value)),
 	}
 }
 

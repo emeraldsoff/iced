@@ -1,37 +1,16 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::enums::*;
-use super::fmt_opts::*;
-use super::num_fmt_opts::*;
-#[cfg(not(feature = "std"))]
+use crate::formatter::enums::*;
+use crate::formatter::fmt_opts::*;
+use crate::formatter::num_fmt_opts::*;
 use alloc::string::String;
 
 struct NumberFormatterFlags;
 impl NumberFormatterFlags {
 	const NONE: u32 = 0;
 	const ADD_MINUS_SIGN: u32 = 0x0000_0001;
-	const LEADING_ZEROES: u32 = 0x0000_0002;
+	const LEADING_ZEROS: u32 = 0x0000_0002;
 	const SMALL_HEX_NUMBERS_IN_DECIMAL: u32 = 0x0000_0004;
 }
 
@@ -209,10 +188,10 @@ impl NumberFormatter {
 
 	#[must_use]
 	#[inline]
-	fn get_flags(leading_zeroes: bool, small_hex_numbers_in_decimal: bool) -> u32 {
+	const fn get_flags(leading_zeros: bool, small_hex_numbers_in_decimal: bool) -> u32 {
 		let mut flags = NumberFormatterFlags::NONE;
-		if leading_zeroes {
-			flags |= NumberFormatterFlags::LEADING_ZEROES;
+		if leading_zeros {
+			flags |= NumberFormatterFlags::LEADING_ZEROS;
 		}
 		if small_hex_numbers_in_decimal {
 			flags |= NumberFormatterFlags::SMALL_HEX_NUMBERS_IN_DECIMAL;
@@ -222,8 +201,8 @@ impl NumberFormatter {
 
 	#[must_use]
 	#[inline]
-	pub fn format_i8(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, mut value: i8) -> &str {
-		let mut flags = NumberFormatter::get_flags(options.leading_zeroes, options.small_hex_numbers_in_decimal);
+	pub fn format_i8(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, mut value: i8) -> &str {
+		let mut flags = NumberFormatter::get_flags(options.leading_zeros, options.small_hex_numbers_in_decimal);
 		if value < 0 {
 			flags |= NumberFormatterFlags::ADD_MINUS_SIGN;
 			value = 0i8.wrapping_sub(value);
@@ -233,8 +212,8 @@ impl NumberFormatter {
 
 	#[must_use]
 	#[inline]
-	pub fn format_i16(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, mut value: i16) -> &str {
-		let mut flags = NumberFormatter::get_flags(options.leading_zeroes, options.small_hex_numbers_in_decimal);
+	pub fn format_i16(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, mut value: i16) -> &str {
+		let mut flags = NumberFormatter::get_flags(options.leading_zeros, options.small_hex_numbers_in_decimal);
 		if value < 0 {
 			flags |= NumberFormatterFlags::ADD_MINUS_SIGN;
 			value = 0i16.wrapping_sub(value);
@@ -244,8 +223,8 @@ impl NumberFormatter {
 
 	#[must_use]
 	#[inline]
-	pub fn format_i32(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, mut value: i32) -> &str {
-		let mut flags = NumberFormatter::get_flags(options.leading_zeroes, options.small_hex_numbers_in_decimal);
+	pub fn format_i32(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, mut value: i32) -> &str {
+		let mut flags = NumberFormatter::get_flags(options.leading_zeros, options.small_hex_numbers_in_decimal);
 		if value < 0 {
 			flags |= NumberFormatterFlags::ADD_MINUS_SIGN;
 			value = 0i32.wrapping_sub(value);
@@ -255,8 +234,8 @@ impl NumberFormatter {
 
 	#[must_use]
 	#[inline]
-	pub fn format_i64(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, mut value: i64) -> &str {
-		let mut flags = NumberFormatter::get_flags(options.leading_zeroes, options.small_hex_numbers_in_decimal);
+	pub fn format_i64(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, mut value: i64) -> &str {
+		let mut flags = NumberFormatter::get_flags(options.leading_zeros, options.small_hex_numbers_in_decimal);
 		if value < 0 {
 			flags |= NumberFormatterFlags::ADD_MINUS_SIGN;
 			value = 0i64.wrapping_sub(value);
@@ -266,97 +245,145 @@ impl NumberFormatter {
 
 	#[must_use]
 	#[inline]
-	pub fn format_u8(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, value: u8) -> &str {
+	pub fn format_u8(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u8) -> &str {
 		self.format_unsigned_integer(
 			formatter_options,
 			options,
 			value as u64,
 			8,
-			NumberFormatter::get_flags(options.leading_zeroes, options.small_hex_numbers_in_decimal),
+			NumberFormatter::get_flags(options.leading_zeros, options.small_hex_numbers_in_decimal),
 		)
 	}
 
 	#[must_use]
 	#[inline]
-	pub fn format_u16(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, value: u16) -> &str {
+	pub fn format_u16(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u16) -> &str {
 		self.format_unsigned_integer(
 			formatter_options,
 			options,
 			value as u64,
 			16,
-			NumberFormatter::get_flags(options.leading_zeroes, options.small_hex_numbers_in_decimal),
+			NumberFormatter::get_flags(options.leading_zeros, options.small_hex_numbers_in_decimal),
 		)
 	}
 
 	#[must_use]
 	#[inline]
-	pub fn format_u32(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, value: u32) -> &str {
+	pub fn format_u32(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u32) -> &str {
 		self.format_unsigned_integer(
 			formatter_options,
 			options,
 			value as u64,
 			32,
-			NumberFormatter::get_flags(options.leading_zeroes, options.small_hex_numbers_in_decimal),
+			NumberFormatter::get_flags(options.leading_zeros, options.small_hex_numbers_in_decimal),
 		)
 	}
 
 	#[must_use]
 	#[inline]
-	pub fn format_u64(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, value: u64) -> &str {
+	pub fn format_u64(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u64) -> &str {
 		self.format_unsigned_integer(
 			formatter_options,
 			options,
 			value,
 			64,
-			NumberFormatter::get_flags(options.leading_zeroes, options.small_hex_numbers_in_decimal),
+			NumberFormatter::get_flags(options.leading_zeros, options.small_hex_numbers_in_decimal),
 		)
 	}
 
 	#[must_use]
 	#[inline]
-	pub fn format_u16_zeroes(
-		&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, value: u16, leading_zeroes: bool,
+	pub fn format_displ_u8(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u8) -> &str {
+		self.format_unsigned_integer(
+			formatter_options,
+			options,
+			value as u64,
+			8,
+			NumberFormatter::get_flags(options.displacement_leading_zeros, options.small_hex_numbers_in_decimal),
+		)
+	}
+
+	#[must_use]
+	#[inline]
+	pub fn format_displ_u16(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u16) -> &str {
+		self.format_unsigned_integer(
+			formatter_options,
+			options,
+			value as u64,
+			16,
+			NumberFormatter::get_flags(options.displacement_leading_zeros, options.small_hex_numbers_in_decimal),
+		)
+	}
+
+	#[must_use]
+	#[inline]
+	pub fn format_displ_u32(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u32) -> &str {
+		self.format_unsigned_integer(
+			formatter_options,
+			options,
+			value as u64,
+			32,
+			NumberFormatter::get_flags(options.displacement_leading_zeros, options.small_hex_numbers_in_decimal),
+		)
+	}
+
+	#[must_use]
+	#[inline]
+	pub fn format_displ_u64(&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u64) -> &str {
+		self.format_unsigned_integer(
+			formatter_options,
+			options,
+			value,
+			64,
+			NumberFormatter::get_flags(options.displacement_leading_zeros, options.small_hex_numbers_in_decimal),
+		)
+	}
+
+	#[must_use]
+	#[inline]
+	pub fn format_u16_zeros(
+		&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u16, leading_zeros: bool,
 	) -> &str {
 		self.format_unsigned_integer(
 			formatter_options,
 			options,
 			value as u64,
 			16,
-			NumberFormatter::get_flags(leading_zeroes, options.small_hex_numbers_in_decimal),
+			NumberFormatter::get_flags(leading_zeros, options.small_hex_numbers_in_decimal),
 		)
 	}
 
 	#[must_use]
 	#[inline]
-	pub fn format_u32_zeroes(
-		&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, value: u32, leading_zeroes: bool,
+	pub fn format_u32_zeros(
+		&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u32, leading_zeros: bool,
 	) -> &str {
 		self.format_unsigned_integer(
 			formatter_options,
 			options,
 			value as u64,
 			32,
-			NumberFormatter::get_flags(leading_zeroes, options.small_hex_numbers_in_decimal),
+			NumberFormatter::get_flags(leading_zeros, options.small_hex_numbers_in_decimal),
 		)
 	}
 
 	#[must_use]
 	#[inline]
-	pub fn format_u64_zeroes(
-		&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, value: u64, leading_zeroes: bool,
+	pub fn format_u64_zeros(
+		&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u64, leading_zeros: bool,
 	) -> &str {
 		self.format_unsigned_integer(
 			formatter_options,
 			options,
 			value,
 			64,
-			NumberFormatter::get_flags(leading_zeroes, options.small_hex_numbers_in_decimal),
+			NumberFormatter::get_flags(leading_zeros, options.small_hex_numbers_in_decimal),
 		)
 	}
 
 	#[must_use]
 	fn format_unsigned_integer(
-		&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions, value: u64, value_size: u32, flags: u32,
+		&mut self, formatter_options: &FormatterOptions, options: &NumberFormattingOptions<'_>, value: u64, value_size: u32, flags: u32,
 	) -> &str {
 		self.sb.clear();
 		if (flags & NumberFormatterFlags::ADD_MINUS_SIGN) != 0 {
@@ -376,7 +403,7 @@ impl NumberFormatter {
 						value,
 						options.digit_group_size as u32,
 						options.digit_separator,
-						if (flags & NumberFormatterFlags::LEADING_ZEROES) != 0 { (value_size + 3) >> 2 } else { 0 },
+						if (flags & NumberFormatterFlags::LEADING_ZEROS) != 0 { (value_size + 3) >> 2 } else { 0 },
 						options.uppercase_hex,
 						options.add_leading_zero_to_hex_numbers && options.prefix.is_empty(),
 					);
@@ -396,7 +423,7 @@ impl NumberFormatter {
 					value,
 					options.digit_group_size as u32,
 					options.digit_separator,
-					if (flags & NumberFormatterFlags::LEADING_ZEROES) != 0 { (value_size + 2) / 3 } else { 0 },
+					if (flags & NumberFormatterFlags::LEADING_ZEROS) != 0 { (value_size + 2) / 3 } else { 0 },
 					options.prefix,
 				);
 				suffix = options.suffix;
@@ -409,7 +436,7 @@ impl NumberFormatter {
 					value,
 					options.digit_group_size as u32,
 					options.digit_separator,
-					if (flags & NumberFormatterFlags::LEADING_ZEROES) != 0 { value_size } else { 0 },
+					if (flags & NumberFormatterFlags::LEADING_ZEROS) != 0 { value_size } else { 0 },
 				);
 				suffix = options.suffix;
 			}

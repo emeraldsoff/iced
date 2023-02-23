@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER
 using System;
@@ -29,12 +9,6 @@ using Xunit;
 
 namespace Iced.UnitTests.Intel.InstructionTests {
 	public sealed class CreateTests {
-		sealed class CodeWriterImpl : CodeWriter {
-			readonly List<byte> bytes = new List<byte>();
-			public override void WriteByte(byte value) => bytes.Add(value);
-			public byte[] ToArray() => bytes.ToArray();
-		}
-
 		[Fact]
 		void EncoderIgnoresPrefixesIfDeclareData() {
 			Instruction instruction;
@@ -150,6 +124,43 @@ namespace Iced.UnitTests.Intel.InstructionTests {
 		}
 
 		[Fact]
+		void DeclareByteCanGetSetRev() {
+			var db = Instruction.CreateDeclareByte(0x77, 0xA9, 0xCE, 0x9D, 0x55, 0x05, 0x42, 0x6C, 0x86, 0x32, 0xFE, 0x4F, 0x34, 0x27, 0xAA, 0x08);
+			db.SetDeclareByteValue(15, 0xC3);
+			db.SetDeclareByteValue(14, 0x06);
+			db.SetDeclareByteValue(13, 0x8D);
+			db.SetDeclareByteValue(12, 0x82);
+			db.SetDeclareByteValue(11, 0x56);
+			db.SetDeclareByteValue(10, 0xFD);
+			db.SetDeclareByteValue(9, 0x98);
+			db.SetDeclareByteValue(8, 0x96);
+			db.SetDeclareByteValue(7, 0xE4);
+			db.SetDeclareByteValue(6, 0x4D);
+			db.SetDeclareByteValue(5, 0xE3);
+			db.SetDeclareByteValue(4, 0xCB);
+			db.SetDeclareByteValue(3, 0xB4);
+			db.SetDeclareByteValue(2, 0xFA);
+			db.SetDeclareByteValue(1, 0xC5);
+			db.SetDeclareByteValue(0, 0xE2);
+			Assert.Equal((byte)0xE2, db.GetDeclareByteValue(0));
+			Assert.Equal((byte)0xC5, db.GetDeclareByteValue(1));
+			Assert.Equal((byte)0xFA, db.GetDeclareByteValue(2));
+			Assert.Equal((byte)0xB4, db.GetDeclareByteValue(3));
+			Assert.Equal((byte)0xCB, db.GetDeclareByteValue(4));
+			Assert.Equal((byte)0xE3, db.GetDeclareByteValue(5));
+			Assert.Equal((byte)0x4D, db.GetDeclareByteValue(6));
+			Assert.Equal((byte)0xE4, db.GetDeclareByteValue(7));
+			Assert.Equal((byte)0x96, db.GetDeclareByteValue(8));
+			Assert.Equal((byte)0x98, db.GetDeclareByteValue(9));
+			Assert.Equal((byte)0xFD, db.GetDeclareByteValue(10));
+			Assert.Equal((byte)0x56, db.GetDeclareByteValue(11));
+			Assert.Equal((byte)0x82, db.GetDeclareByteValue(12));
+			Assert.Equal((byte)0x8D, db.GetDeclareByteValue(13));
+			Assert.Equal((byte)0x06, db.GetDeclareByteValue(14));
+			Assert.Equal((byte)0xC3, db.GetDeclareByteValue(15));
+		}
+
+		[Fact]
 		void DeclareWordCanGetSet() {
 			var dw = Instruction.CreateDeclareWord(0x77A9, 0xCE9D, 0x5505, 0x426C, 0x8632, 0xFE4F, 0x3427, 0xAA08);
 			dw.SetDeclareWordValue(0, 0xE2C5);
@@ -160,6 +171,27 @@ namespace Iced.UnitTests.Intel.InstructionTests {
 			dw.SetDeclareWordValue(5, 0xFD56);
 			dw.SetDeclareWordValue(6, 0x828D);
 			dw.SetDeclareWordValue(7, 0x06C3);
+			Assert.Equal((ushort)0xE2C5, dw.GetDeclareWordValue(0));
+			Assert.Equal((ushort)0xFAB4, dw.GetDeclareWordValue(1));
+			Assert.Equal((ushort)0xCBE3, dw.GetDeclareWordValue(2));
+			Assert.Equal((ushort)0x4DE4, dw.GetDeclareWordValue(3));
+			Assert.Equal((ushort)0x9698, dw.GetDeclareWordValue(4));
+			Assert.Equal((ushort)0xFD56, dw.GetDeclareWordValue(5));
+			Assert.Equal((ushort)0x828D, dw.GetDeclareWordValue(6));
+			Assert.Equal((ushort)0x06C3, dw.GetDeclareWordValue(7));
+		}
+
+		[Fact]
+		void DeclareWordCanGetSetRev() {
+			var dw = Instruction.CreateDeclareWord(0x77A9, 0xCE9D, 0x5505, 0x426C, 0x8632, 0xFE4F, 0x3427, 0xAA08);
+			dw.SetDeclareWordValue(7, 0x06C3);
+			dw.SetDeclareWordValue(6, 0x828D);
+			dw.SetDeclareWordValue(5, 0xFD56);
+			dw.SetDeclareWordValue(4, 0x9698);
+			dw.SetDeclareWordValue(3, 0x4DE4);
+			dw.SetDeclareWordValue(2, 0xCBE3);
+			dw.SetDeclareWordValue(1, 0xFAB4);
+			dw.SetDeclareWordValue(0, 0xE2C5);
 			Assert.Equal((ushort)0xE2C5, dw.GetDeclareWordValue(0));
 			Assert.Equal((ushort)0xFAB4, dw.GetDeclareWordValue(1));
 			Assert.Equal((ushort)0xCBE3, dw.GetDeclareWordValue(2));
@@ -184,10 +216,32 @@ namespace Iced.UnitTests.Intel.InstructionTests {
 		}
 
 		[Fact]
+		void DeclareDwordCanGetSetRev() {
+			var dd = Instruction.CreateDeclareDword(0x77A9CE9D, 0x5505426C, 0x8632FE4F, 0x3427AA08);
+			dd.SetDeclareDwordValue(3, 0x828D06C3);
+			dd.SetDeclareDwordValue(2, 0x9698FD56);
+			dd.SetDeclareDwordValue(1, 0xCBE34DE4);
+			dd.SetDeclareDwordValue(0, 0xE2C5FAB4);
+			Assert.Equal((uint)0xE2C5FAB4, dd.GetDeclareDwordValue(0));
+			Assert.Equal((uint)0xCBE34DE4, dd.GetDeclareDwordValue(1));
+			Assert.Equal((uint)0x9698FD56, dd.GetDeclareDwordValue(2));
+			Assert.Equal((uint)0x828D06C3, dd.GetDeclareDwordValue(3));
+		}
+
+		[Fact]
 		void DeclareQwordCanGetSet() {
 			var dq = Instruction.CreateDeclareQword(0x77A9CE9D5505426C, 0x8632FE4F3427AA08);
 			dq.SetDeclareQwordValue(0, 0xE2C5FAB4CBE34DE4);
 			dq.SetDeclareQwordValue(1, 0x9698FD56828D06C3);
+			Assert.Equal(0xE2C5FAB4CBE34DE4, dq.GetDeclareQwordValue(0));
+			Assert.Equal(0x9698FD56828D06C3, dq.GetDeclareQwordValue(1));
+		}
+
+		[Fact]
+		void DeclareQwordCanGetSetRev() {
+			var dq = Instruction.CreateDeclareQword(0x77A9CE9D5505426C, 0x8632FE4F3427AA08);
+			dq.SetDeclareQwordValue(1, 0x9698FD56828D06C3);
+			dq.SetDeclareQwordValue(0, 0xE2C5FAB4CBE34DE4);
 			Assert.Equal(0xE2C5FAB4CBE34DE4, dq.GetDeclareQwordValue(0));
 			Assert.Equal(0x9698FD56828D06C3, dq.GetDeclareQwordValue(1));
 		}
@@ -761,9 +815,6 @@ namespace Iced.UnitTests.Intel.InstructionTests {
 				yield return new object[] { 64, "4883C15A", DecoderOptions.None, Instruction.Create(Code.Add_rm64_imm8, Register.RCX, 0x5A) };
 				yield return new object[] { 64, "4881C15AA51234", DecoderOptions.None, Instruction.Create(Code.Add_rm64_imm32, Register.RCX, 0x3412A55A) };
 				yield return new object[] { 64, "64A0123456789ABCDEF0", DecoderOptions.None, Instruction.Create(Code.Mov_AL_moffs8, Register.AL, new MemoryOperand(Register.None, unchecked((long)0xF0DEBC9A78563412), 8, false, Register.FS)) };
-#pragma warning disable CS0618 // Type or member is obsolete
-				yield return new object[] { 64, "64A0123456789ABCDEF0", DecoderOptions.None, Instruction.CreateMemory64(Code.Mov_AL_moffs8, Register.AL, 0xF0DEBC9A78563412, Register.FS) };
-#pragma warning restore CS0618 // Type or member is obsolete
 				yield return new object[] { 64, "6400947501EFCDAB", DecoderOptions.None, Instruction.Create(Code.Add_rm8_r8, new MemoryOperand(Register.RBP, Register.RSI, 2, -0x543210FF, 8, false, Register.FS), Register.DL) };
 				yield return new object[] { 64, "6480847501EFCDAB5A", DecoderOptions.None, Instruction.Create(Code.Add_rm8_imm8, new MemoryOperand(Register.RBP, Register.RSI, 2, -0x543210FF, 8, false, Register.FS), 0x5A) };
 				yield return new object[] { 64, "646681847501EFCDAB5AA5", DecoderOptions.None, Instruction.Create(Code.Add_rm16_imm16, new MemoryOperand(Register.RBP, Register.RSI, 2, -0x543210FF, 8, false, Register.FS), 0xA55AU) };
@@ -777,9 +828,6 @@ namespace Iced.UnitTests.Intel.InstructionTests {
 				yield return new object[] { 64, "66C85AA5A6", DecoderOptions.None, Instruction.Create(Code.Enterw_imm16_imm8, 0xA55A, 0xA6) };
 				yield return new object[] { 64, "66C85AA5A6", DecoderOptions.None, Instruction.Create(Code.Enterw_imm16_imm8, 0xA55AU, 0xA6U) };
 				yield return new object[] { 64, "64A2123456789ABCDEF0", DecoderOptions.None, Instruction.Create(Code.Mov_moffs8_AL, new MemoryOperand(Register.None, unchecked((long)0xF0DEBC9A78563412), 8, false, Register.FS), Register.AL) };
-#pragma warning disable CS0618 // Type or member is obsolete
-				yield return new object[] { 64, "64A2123456789ABCDEF0", DecoderOptions.None, Instruction.CreateMemory64(Code.Mov_moffs8_AL, 0xF0DEBC9A78563412, Register.AL, Register.FS) };
-#pragma warning restore CS0618 // Type or member is obsolete
 				yield return new object[] { 64, "6669CAA55A", DecoderOptions.None, Instruction.Create(Code.Imul_r16_rm16_imm16, Register.CX, Register.DX, 0x5AA5U) };
 				yield return new object[] { 64, "69CA5AA51234", DecoderOptions.None, Instruction.Create(Code.Imul_r32_rm32_imm32, Register.ECX, Register.EDX, 0x3412A55A) };
 				yield return new object[] { 64, "666BCA5A", DecoderOptions.None, Instruction.Create(Code.Imul_r16_rm16_imm8, Register.CX, Register.DX, 0x5A) };
@@ -880,153 +928,153 @@ namespace Iced.UnitTests.Intel.InstructionTests {
 				yield return new object[] { 64, "6467660FF7D3", DecoderOptions.None, Instruction.CreateMaskmovdqu(32, Register.XMM2, Register.XMM3, Register.FS) };
 				yield return new object[] { 64, "64660FF7D3", DecoderOptions.None, Instruction.CreateMaskmovdqu(64, Register.XMM2, Register.XMM3, Register.FS) };
 
-				yield return new object[] { 32, "6467F36E", DecoderOptions.None, Instruction.CreateOutsb(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F36E", DecoderOptions.None, Instruction.CreateOutsb(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F36E", DecoderOptions.None, Instruction.CreateOutsb(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "646667F36F", DecoderOptions.None, Instruction.CreateOutsw(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "646667F36F", DecoderOptions.None, Instruction.CreateOutsw(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6466F36F", DecoderOptions.None, Instruction.CreateOutsw(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6467F36F", DecoderOptions.None, Instruction.CreateOutsd(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F36F", DecoderOptions.None, Instruction.CreateOutsd(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F36F", DecoderOptions.None, Instruction.CreateOutsd(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "67F3AE", DecoderOptions.None, Instruction.CreateScasb(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "67F3AE", DecoderOptions.None, Instruction.CreateScasb(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "F3AE", DecoderOptions.None, Instruction.CreateScasb(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6667F3AF", DecoderOptions.None, Instruction.CreateScasw(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6667F3AF", DecoderOptions.None, Instruction.CreateScasw(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "66F3AF", DecoderOptions.None, Instruction.CreateScasw(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "67F3AF", DecoderOptions.None, Instruction.CreateScasd(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "67F3AF", DecoderOptions.None, Instruction.CreateScasd(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "F3AF", DecoderOptions.None, Instruction.CreateScasd(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "67F348AF", DecoderOptions.None, Instruction.CreateScasq(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "F348AF", DecoderOptions.None, Instruction.CreateScasq(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6467F3AC", DecoderOptions.None, Instruction.CreateLodsb(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F3AC", DecoderOptions.None, Instruction.CreateLodsb(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F3AC", DecoderOptions.None, Instruction.CreateLodsb(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "646667F3AD", DecoderOptions.None, Instruction.CreateLodsw(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "646667F3AD", DecoderOptions.None, Instruction.CreateLodsw(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6466F3AD", DecoderOptions.None, Instruction.CreateLodsw(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6467F3AD", DecoderOptions.None, Instruction.CreateLodsd(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F3AD", DecoderOptions.None, Instruction.CreateLodsd(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F3AD", DecoderOptions.None, Instruction.CreateLodsd(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F348AD", DecoderOptions.None, Instruction.CreateLodsq(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F348AD", DecoderOptions.None, Instruction.CreateLodsq(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "67F36C", DecoderOptions.None, Instruction.CreateInsb(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "67F36C", DecoderOptions.None, Instruction.CreateInsb(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "F36C", DecoderOptions.None, Instruction.CreateInsb(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6667F36D", DecoderOptions.None, Instruction.CreateInsw(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6667F36D", DecoderOptions.None, Instruction.CreateInsw(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "66F36D", DecoderOptions.None, Instruction.CreateInsw(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "67F36D", DecoderOptions.None, Instruction.CreateInsd(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "67F36D", DecoderOptions.None, Instruction.CreateInsd(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "F36D", DecoderOptions.None, Instruction.CreateInsd(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "67F3AA", DecoderOptions.None, Instruction.CreateStosb(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "67F3AA", DecoderOptions.None, Instruction.CreateStosb(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "F3AA", DecoderOptions.None, Instruction.CreateStosb(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6667F3AB", DecoderOptions.None, Instruction.CreateStosw(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6667F3AB", DecoderOptions.None, Instruction.CreateStosw(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "66F3AB", DecoderOptions.None, Instruction.CreateStosw(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "67F3AB", DecoderOptions.None, Instruction.CreateStosd(16, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "67F3AB", DecoderOptions.None, Instruction.CreateStosd(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "F3AB", DecoderOptions.None, Instruction.CreateStosd(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "67F348AB", DecoderOptions.None, Instruction.CreateStosq(32, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "F348AB", DecoderOptions.None, Instruction.CreateStosq(64, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6467F3A6", DecoderOptions.None, Instruction.CreateCmpsb(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F3A6", DecoderOptions.None, Instruction.CreateCmpsb(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F3A6", DecoderOptions.None, Instruction.CreateCmpsb(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "646667F3A7", DecoderOptions.None, Instruction.CreateCmpsw(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "646667F3A7", DecoderOptions.None, Instruction.CreateCmpsw(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6466F3A7", DecoderOptions.None, Instruction.CreateCmpsw(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6467F3A7", DecoderOptions.None, Instruction.CreateCmpsd(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F3A7", DecoderOptions.None, Instruction.CreateCmpsd(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F3A7", DecoderOptions.None, Instruction.CreateCmpsd(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F348A7", DecoderOptions.None, Instruction.CreateCmpsq(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F348A7", DecoderOptions.None, Instruction.CreateCmpsq(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6467F3A4", DecoderOptions.None, Instruction.CreateMovsb(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F3A4", DecoderOptions.None, Instruction.CreateMovsb(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F3A4", DecoderOptions.None, Instruction.CreateMovsb(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "646667F3A5", DecoderOptions.None, Instruction.CreateMovsw(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "646667F3A5", DecoderOptions.None, Instruction.CreateMovsw(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6466F3A5", DecoderOptions.None, Instruction.CreateMovsw(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 32, "6467F3A5", DecoderOptions.None, Instruction.CreateMovsd(16, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F3A5", DecoderOptions.None, Instruction.CreateMovsd(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F3A5", DecoderOptions.None, Instruction.CreateMovsd(64, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "6467F348A5", DecoderOptions.None, Instruction.CreateMovsq(32, Register.FS, RepPrefixKind.Repe ) };
-				yield return new object[] { 64, "64F348A5", DecoderOptions.None, Instruction.CreateMovsq(64, Register.FS, RepPrefixKind.Repe ) };
+				yield return new object[] { 32, "6467F36E", DecoderOptions.None, Instruction.CreateOutsb(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F36E", DecoderOptions.None, Instruction.CreateOutsb(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F36E", DecoderOptions.None, Instruction.CreateOutsb(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "646667F36F", DecoderOptions.None, Instruction.CreateOutsw(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "646667F36F", DecoderOptions.None, Instruction.CreateOutsw(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6466F36F", DecoderOptions.None, Instruction.CreateOutsw(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6467F36F", DecoderOptions.None, Instruction.CreateOutsd(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F36F", DecoderOptions.None, Instruction.CreateOutsd(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F36F", DecoderOptions.None, Instruction.CreateOutsd(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "67F3AE", DecoderOptions.None, Instruction.CreateScasb(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "67F3AE", DecoderOptions.None, Instruction.CreateScasb(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "F3AE", DecoderOptions.None, Instruction.CreateScasb(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6667F3AF", DecoderOptions.None, Instruction.CreateScasw(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6667F3AF", DecoderOptions.None, Instruction.CreateScasw(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "66F3AF", DecoderOptions.None, Instruction.CreateScasw(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "67F3AF", DecoderOptions.None, Instruction.CreateScasd(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "67F3AF", DecoderOptions.None, Instruction.CreateScasd(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "F3AF", DecoderOptions.None, Instruction.CreateScasd(64, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "67F348AF", DecoderOptions.None, Instruction.CreateScasq(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "F348AF", DecoderOptions.None, Instruction.CreateScasq(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6467F3AC", DecoderOptions.None, Instruction.CreateLodsb(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F3AC", DecoderOptions.None, Instruction.CreateLodsb(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F3AC", DecoderOptions.None, Instruction.CreateLodsb(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "646667F3AD", DecoderOptions.None, Instruction.CreateLodsw(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "646667F3AD", DecoderOptions.None, Instruction.CreateLodsw(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6466F3AD", DecoderOptions.None, Instruction.CreateLodsw(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6467F3AD", DecoderOptions.None, Instruction.CreateLodsd(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F3AD", DecoderOptions.None, Instruction.CreateLodsd(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F3AD", DecoderOptions.None, Instruction.CreateLodsd(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F348AD", DecoderOptions.None, Instruction.CreateLodsq(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F348AD", DecoderOptions.None, Instruction.CreateLodsq(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "67F36C", DecoderOptions.None, Instruction.CreateInsb(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "67F36C", DecoderOptions.None, Instruction.CreateInsb(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "F36C", DecoderOptions.None, Instruction.CreateInsb(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6667F36D", DecoderOptions.None, Instruction.CreateInsw(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6667F36D", DecoderOptions.None, Instruction.CreateInsw(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "66F36D", DecoderOptions.None, Instruction.CreateInsw(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "67F36D", DecoderOptions.None, Instruction.CreateInsd(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "67F36D", DecoderOptions.None, Instruction.CreateInsd(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "F36D", DecoderOptions.None, Instruction.CreateInsd(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "67F3AA", DecoderOptions.None, Instruction.CreateStosb(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "67F3AA", DecoderOptions.None, Instruction.CreateStosb(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "F3AA", DecoderOptions.None, Instruction.CreateStosb(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6667F3AB", DecoderOptions.None, Instruction.CreateStosw(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6667F3AB", DecoderOptions.None, Instruction.CreateStosw(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "66F3AB", DecoderOptions.None, Instruction.CreateStosw(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "67F3AB", DecoderOptions.None, Instruction.CreateStosd(16, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "67F3AB", DecoderOptions.None, Instruction.CreateStosd(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "F3AB", DecoderOptions.None, Instruction.CreateStosd(64, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "67F348AB", DecoderOptions.None, Instruction.CreateStosq(32, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "F348AB", DecoderOptions.None, Instruction.CreateStosq(64, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6467F3A6", DecoderOptions.None, Instruction.CreateCmpsb(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F3A6", DecoderOptions.None, Instruction.CreateCmpsb(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F3A6", DecoderOptions.None, Instruction.CreateCmpsb(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "646667F3A7", DecoderOptions.None, Instruction.CreateCmpsw(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "646667F3A7", DecoderOptions.None, Instruction.CreateCmpsw(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6466F3A7", DecoderOptions.None, Instruction.CreateCmpsw(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6467F3A7", DecoderOptions.None, Instruction.CreateCmpsd(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F3A7", DecoderOptions.None, Instruction.CreateCmpsd(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F3A7", DecoderOptions.None, Instruction.CreateCmpsd(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F348A7", DecoderOptions.None, Instruction.CreateCmpsq(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F348A7", DecoderOptions.None, Instruction.CreateCmpsq(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6467F3A4", DecoderOptions.None, Instruction.CreateMovsb(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F3A4", DecoderOptions.None, Instruction.CreateMovsb(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F3A4", DecoderOptions.None, Instruction.CreateMovsb(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "646667F3A5", DecoderOptions.None, Instruction.CreateMovsw(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "646667F3A5", DecoderOptions.None, Instruction.CreateMovsw(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6466F3A5", DecoderOptions.None, Instruction.CreateMovsw(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 32, "6467F3A5", DecoderOptions.None, Instruction.CreateMovsd(16, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F3A5", DecoderOptions.None, Instruction.CreateMovsd(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F3A5", DecoderOptions.None, Instruction.CreateMovsd(64, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "6467F348A5", DecoderOptions.None, Instruction.CreateMovsq(32, Register.FS, RepPrefixKind.Repe) };
+				yield return new object[] { 64, "64F348A5", DecoderOptions.None, Instruction.CreateMovsq(64, Register.FS, RepPrefixKind.Repe) };
 
-				yield return new object[] { 32, "6467F26E", DecoderOptions.None, Instruction.CreateOutsb(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F26E", DecoderOptions.None, Instruction.CreateOutsb(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F26E", DecoderOptions.None, Instruction.CreateOutsb(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "646667F26F", DecoderOptions.None, Instruction.CreateOutsw(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "646667F26F", DecoderOptions.None, Instruction.CreateOutsw(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6466F26F", DecoderOptions.None, Instruction.CreateOutsw(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6467F26F", DecoderOptions.None, Instruction.CreateOutsd(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F26F", DecoderOptions.None, Instruction.CreateOutsd(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F26F", DecoderOptions.None, Instruction.CreateOutsd(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "67F2AE", DecoderOptions.None, Instruction.CreateScasb(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "67F2AE", DecoderOptions.None, Instruction.CreateScasb(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "F2AE", DecoderOptions.None, Instruction.CreateScasb(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6667F2AF", DecoderOptions.None, Instruction.CreateScasw(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6667F2AF", DecoderOptions.None, Instruction.CreateScasw(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "66F2AF", DecoderOptions.None, Instruction.CreateScasw(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "67F2AF", DecoderOptions.None, Instruction.CreateScasd(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "67F2AF", DecoderOptions.None, Instruction.CreateScasd(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "F2AF", DecoderOptions.None, Instruction.CreateScasd(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "67F248AF", DecoderOptions.None, Instruction.CreateScasq(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "F248AF", DecoderOptions.None, Instruction.CreateScasq(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6467F2AC", DecoderOptions.None, Instruction.CreateLodsb(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F2AC", DecoderOptions.None, Instruction.CreateLodsb(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F2AC", DecoderOptions.None, Instruction.CreateLodsb(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "646667F2AD", DecoderOptions.None, Instruction.CreateLodsw(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "646667F2AD", DecoderOptions.None, Instruction.CreateLodsw(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6466F2AD", DecoderOptions.None, Instruction.CreateLodsw(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6467F2AD", DecoderOptions.None, Instruction.CreateLodsd(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F2AD", DecoderOptions.None, Instruction.CreateLodsd(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F2AD", DecoderOptions.None, Instruction.CreateLodsd(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F248AD", DecoderOptions.None, Instruction.CreateLodsq(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F248AD", DecoderOptions.None, Instruction.CreateLodsq(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "67F26C", DecoderOptions.None, Instruction.CreateInsb(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "67F26C", DecoderOptions.None, Instruction.CreateInsb(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "F26C", DecoderOptions.None, Instruction.CreateInsb(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6667F26D", DecoderOptions.None, Instruction.CreateInsw(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6667F26D", DecoderOptions.None, Instruction.CreateInsw(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "66F26D", DecoderOptions.None, Instruction.CreateInsw(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "67F26D", DecoderOptions.None, Instruction.CreateInsd(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "67F26D", DecoderOptions.None, Instruction.CreateInsd(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "F26D", DecoderOptions.None, Instruction.CreateInsd(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "67F2AA", DecoderOptions.None, Instruction.CreateStosb(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "67F2AA", DecoderOptions.None, Instruction.CreateStosb(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "F2AA", DecoderOptions.None, Instruction.CreateStosb(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6667F2AB", DecoderOptions.None, Instruction.CreateStosw(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6667F2AB", DecoderOptions.None, Instruction.CreateStosw(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "66F2AB", DecoderOptions.None, Instruction.CreateStosw(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "67F2AB", DecoderOptions.None, Instruction.CreateStosd(16, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "67F2AB", DecoderOptions.None, Instruction.CreateStosd(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "F2AB", DecoderOptions.None, Instruction.CreateStosd(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "67F248AB", DecoderOptions.None, Instruction.CreateStosq(32, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "F248AB", DecoderOptions.None, Instruction.CreateStosq(64, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6467F2A6", DecoderOptions.None, Instruction.CreateCmpsb(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F2A6", DecoderOptions.None, Instruction.CreateCmpsb(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F2A6", DecoderOptions.None, Instruction.CreateCmpsb(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "646667F2A7", DecoderOptions.None, Instruction.CreateCmpsw(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "646667F2A7", DecoderOptions.None, Instruction.CreateCmpsw(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6466F2A7", DecoderOptions.None, Instruction.CreateCmpsw(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6467F2A7", DecoderOptions.None, Instruction.CreateCmpsd(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F2A7", DecoderOptions.None, Instruction.CreateCmpsd(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F2A7", DecoderOptions.None, Instruction.CreateCmpsd(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F248A7", DecoderOptions.None, Instruction.CreateCmpsq(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F248A7", DecoderOptions.None, Instruction.CreateCmpsq(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6467F2A4", DecoderOptions.None, Instruction.CreateMovsb(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F2A4", DecoderOptions.None, Instruction.CreateMovsb(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F2A4", DecoderOptions.None, Instruction.CreateMovsb(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "646667F2A5", DecoderOptions.None, Instruction.CreateMovsw(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "646667F2A5", DecoderOptions.None, Instruction.CreateMovsw(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6466F2A5", DecoderOptions.None, Instruction.CreateMovsw(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 32, "6467F2A5", DecoderOptions.None, Instruction.CreateMovsd(16, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F2A5", DecoderOptions.None, Instruction.CreateMovsd(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F2A5", DecoderOptions.None, Instruction.CreateMovsd(64, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "6467F248A5", DecoderOptions.None, Instruction.CreateMovsq(32, Register.FS, RepPrefixKind.Repne ) };
-				yield return new object[] { 64, "64F248A5", DecoderOptions.None, Instruction.CreateMovsq(64, Register.FS, RepPrefixKind.Repne ) };
+				yield return new object[] { 32, "6467F26E", DecoderOptions.None, Instruction.CreateOutsb(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F26E", DecoderOptions.None, Instruction.CreateOutsb(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F26E", DecoderOptions.None, Instruction.CreateOutsb(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "646667F26F", DecoderOptions.None, Instruction.CreateOutsw(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "646667F26F", DecoderOptions.None, Instruction.CreateOutsw(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6466F26F", DecoderOptions.None, Instruction.CreateOutsw(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6467F26F", DecoderOptions.None, Instruction.CreateOutsd(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F26F", DecoderOptions.None, Instruction.CreateOutsd(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F26F", DecoderOptions.None, Instruction.CreateOutsd(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "67F2AE", DecoderOptions.None, Instruction.CreateScasb(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "67F2AE", DecoderOptions.None, Instruction.CreateScasb(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "F2AE", DecoderOptions.None, Instruction.CreateScasb(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6667F2AF", DecoderOptions.None, Instruction.CreateScasw(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6667F2AF", DecoderOptions.None, Instruction.CreateScasw(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "66F2AF", DecoderOptions.None, Instruction.CreateScasw(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "67F2AF", DecoderOptions.None, Instruction.CreateScasd(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "67F2AF", DecoderOptions.None, Instruction.CreateScasd(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "F2AF", DecoderOptions.None, Instruction.CreateScasd(64, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "67F248AF", DecoderOptions.None, Instruction.CreateScasq(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "F248AF", DecoderOptions.None, Instruction.CreateScasq(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6467F2AC", DecoderOptions.None, Instruction.CreateLodsb(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F2AC", DecoderOptions.None, Instruction.CreateLodsb(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F2AC", DecoderOptions.None, Instruction.CreateLodsb(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "646667F2AD", DecoderOptions.None, Instruction.CreateLodsw(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "646667F2AD", DecoderOptions.None, Instruction.CreateLodsw(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6466F2AD", DecoderOptions.None, Instruction.CreateLodsw(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6467F2AD", DecoderOptions.None, Instruction.CreateLodsd(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F2AD", DecoderOptions.None, Instruction.CreateLodsd(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F2AD", DecoderOptions.None, Instruction.CreateLodsd(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F248AD", DecoderOptions.None, Instruction.CreateLodsq(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F248AD", DecoderOptions.None, Instruction.CreateLodsq(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "67F26C", DecoderOptions.None, Instruction.CreateInsb(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "67F26C", DecoderOptions.None, Instruction.CreateInsb(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "F26C", DecoderOptions.None, Instruction.CreateInsb(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6667F26D", DecoderOptions.None, Instruction.CreateInsw(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6667F26D", DecoderOptions.None, Instruction.CreateInsw(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "66F26D", DecoderOptions.None, Instruction.CreateInsw(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "67F26D", DecoderOptions.None, Instruction.CreateInsd(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "67F26D", DecoderOptions.None, Instruction.CreateInsd(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "F26D", DecoderOptions.None, Instruction.CreateInsd(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "67F2AA", DecoderOptions.None, Instruction.CreateStosb(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "67F2AA", DecoderOptions.None, Instruction.CreateStosb(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "F2AA", DecoderOptions.None, Instruction.CreateStosb(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6667F2AB", DecoderOptions.None, Instruction.CreateStosw(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6667F2AB", DecoderOptions.None, Instruction.CreateStosw(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "66F2AB", DecoderOptions.None, Instruction.CreateStosw(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "67F2AB", DecoderOptions.None, Instruction.CreateStosd(16, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "67F2AB", DecoderOptions.None, Instruction.CreateStosd(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "F2AB", DecoderOptions.None, Instruction.CreateStosd(64, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "67F248AB", DecoderOptions.None, Instruction.CreateStosq(32, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "F248AB", DecoderOptions.None, Instruction.CreateStosq(64, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6467F2A6", DecoderOptions.None, Instruction.CreateCmpsb(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F2A6", DecoderOptions.None, Instruction.CreateCmpsb(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F2A6", DecoderOptions.None, Instruction.CreateCmpsb(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "646667F2A7", DecoderOptions.None, Instruction.CreateCmpsw(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "646667F2A7", DecoderOptions.None, Instruction.CreateCmpsw(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6466F2A7", DecoderOptions.None, Instruction.CreateCmpsw(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6467F2A7", DecoderOptions.None, Instruction.CreateCmpsd(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F2A7", DecoderOptions.None, Instruction.CreateCmpsd(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F2A7", DecoderOptions.None, Instruction.CreateCmpsd(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F248A7", DecoderOptions.None, Instruction.CreateCmpsq(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F248A7", DecoderOptions.None, Instruction.CreateCmpsq(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6467F2A4", DecoderOptions.None, Instruction.CreateMovsb(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F2A4", DecoderOptions.None, Instruction.CreateMovsb(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F2A4", DecoderOptions.None, Instruction.CreateMovsb(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "646667F2A5", DecoderOptions.None, Instruction.CreateMovsw(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "646667F2A5", DecoderOptions.None, Instruction.CreateMovsw(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6466F2A5", DecoderOptions.None, Instruction.CreateMovsw(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 32, "6467F2A5", DecoderOptions.None, Instruction.CreateMovsd(16, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F2A5", DecoderOptions.None, Instruction.CreateMovsd(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F2A5", DecoderOptions.None, Instruction.CreateMovsd(64, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "6467F248A5", DecoderOptions.None, Instruction.CreateMovsq(32, Register.FS, RepPrefixKind.Repne) };
+				yield return new object[] { 64, "64F248A5", DecoderOptions.None, Instruction.CreateMovsq(64, Register.FS, RepPrefixKind.Repne) };
 
 				yield return new object[] { 32, "67F36E", DecoderOptions.None, Instruction.CreateRepOutsb(16) };
 				yield return new object[] { 64, "67F36E", DecoderOptions.None, Instruction.CreateRepOutsb(32) };
@@ -1853,6 +1901,32 @@ namespace Iced.UnitTests.Intel.InstructionTests {
 				var instruction = Instruction.Create(Code.Mov_r64_imm64, Register.RCX, imm);
 				Assert.Equal(imm, instruction.Immediate64);
 			}
+		}
+
+		[Fact]
+		void EncodeInvalidLenDwDdDq() {
+			var encoder = Encoder.Create(64, new CodeWriterImpl());
+
+			var dw = Instruction.CreateDeclareWord(1);
+			dw.DeclareDataCount = 8;
+			Assert.True(encoder.TryEncode(dw, 0, out var len, out _));
+			Assert.Equal(16U, len);
+			dw.DeclareDataCount = 8 + 1;
+			Assert.False(encoder.TryEncode(dw, 0, out _, out _));
+
+			var dd = Instruction.CreateDeclareDword(1);
+			dd.DeclareDataCount = 4;
+			Assert.True(encoder.TryEncode(dd, 0, out len, out _));
+			Assert.Equal(16U, len);
+			dd.DeclareDataCount = 4 + 1;
+			Assert.False(encoder.TryEncode(dd, 0, out _, out _));
+
+			var dq = Instruction.CreateDeclareQword(1);
+			dq.DeclareDataCount = 2;
+			Assert.True(encoder.TryEncode(dq, 0, out len, out _));
+			Assert.Equal(16U, len);
+			dq.DeclareDataCount = 2 + 1;
+			Assert.False(encoder.TryEncode(dq, 0, out _, out _));
 		}
 	}
 }

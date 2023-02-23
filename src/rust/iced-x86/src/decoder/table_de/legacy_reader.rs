@@ -1,157 +1,145 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::handlers::OpCodeHandler;
-use super::super::handlers::*;
-use super::super::handlers_3dnow::*;
-use super::super::handlers_fpu::*;
-use super::super::handlers_legacy::*;
-use super::super::Code;
-use super::enums::*;
-use super::TableDeserializer;
-#[cfg(not(feature = "std"))]
-use alloc::boxed::Box;
-#[cfg(not(feature = "std"))]
+use crate::decoder::handlers::d3now::*;
+use crate::decoder::handlers::fpu::*;
+use crate::decoder::handlers::legacy::*;
+use crate::decoder::handlers::{
+	get_invalid_handler, get_invalid_no_modrm_handler, get_null_handler, OpCodeHandler, OpCodeHandlerDecodeFn, OpCodeHandler_AnotherTable,
+	OpCodeHandler_Bitness, OpCodeHandler_Bitness_DontReadModRM, OpCodeHandler_Group, OpCodeHandler_Group8x64, OpCodeHandler_Group8x8,
+	OpCodeHandler_Int3, OpCodeHandler_Options, OpCodeHandler_Options1632, OpCodeHandler_Options_DontReadModRM, OpCodeHandler_RM,
+	OpCodeHandler_Simple,
+};
+use crate::decoder::table_de::enums::*;
+use crate::decoder::table_de::{box_opcode_handler, TableDeserializer};
+use crate::decoder::Code;
 use alloc::vec::Vec;
 
 #[allow(trivial_casts)]
-pub(super) fn read_handlers(deserializer: &mut TableDeserializer, result: &mut Vec<&'static OpCodeHandler>) {
-	let code;
-	let reg;
+pub(super) fn read_handlers(deserializer: &mut TableDeserializer<'_>, result: &mut Vec<(OpCodeHandlerDecodeFn, &'static OpCodeHandler)>) {
 	let index;
-	let elem: *const OpCodeHandler = match deserializer.read_op_code_handler_kind() {
-		OpCodeHandlerKind::Bitness => {
-			Box::into_raw(Box::new(OpCodeHandler_Bitness::new(deserializer.read_handler(), deserializer.read_handler()))) as *const OpCodeHandler
+	let (decode, handler_ptr): (OpCodeHandlerDecodeFn, *const OpCodeHandler) = match deserializer.read_legacy_op_code_handler_kind() {
+		LegacyOpCodeHandlerKind::Bitness => box_opcode_handler(OpCodeHandler_Bitness::new(deserializer.read_handler(), deserializer.read_handler())),
+
+		LegacyOpCodeHandlerKind::Bitness_DontReadModRM => {
+			box_opcode_handler(OpCodeHandler_Bitness_DontReadModRM::new(deserializer.read_handler(), deserializer.read_handler()))
 		}
 
-		OpCodeHandlerKind::Bitness_DontReadModRM => {
-			Box::into_raw(Box::new(OpCodeHandler_Bitness_DontReadModRM::new(deserializer.read_handler(), deserializer.read_handler())))
-				as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Invalid => {
+			result.push(get_invalid_handler());
+			return;
 		}
 
-		OpCodeHandlerKind::Invalid => &INVALID_HANDLER as *const _ as *const OpCodeHandler,
-		OpCodeHandlerKind::Invalid_NoModRM => &INVALID_NO_MODRM_HANDLER as *const _ as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Invalid2 => {
-			result.push(unsafe { &*(&INVALID_HANDLER as *const _ as *const OpCodeHandler) });
-			&INVALID_HANDLER as *const _ as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Invalid_NoModRM => {
+			result.push(get_invalid_no_modrm_handler());
+			return;
 		}
 
-		OpCodeHandlerKind::Dup => {
+		LegacyOpCodeHandlerKind::Invalid2 => {
+			result.push(get_invalid_handler());
+			result.push(get_invalid_handler());
+			return;
+		}
+
+		LegacyOpCodeHandlerKind::Dup => {
 			let count = deserializer.read_u32();
 			let handler = deserializer.read_handler_or_null_instance();
 			for _ in 0..count {
-				result.push(unsafe { &*handler });
+				result.push(handler);
 			}
 			return;
 		}
 
-		OpCodeHandlerKind::Null => &NULL_HANDLER as *const _ as *const OpCodeHandler,
-		OpCodeHandlerKind::HandlerReference => deserializer.read_handler_reference(),
-		OpCodeHandlerKind::ArrayReference => unreachable!(),
-
-		OpCodeHandlerKind::RM => {
-			Box::into_raw(Box::new(OpCodeHandler_RM::new(deserializer.read_handler(), deserializer.read_handler()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Null => {
+			result.push(get_null_handler());
+			return;
 		}
 
-		OpCodeHandlerKind::Options1632_1 => Box::into_raw(Box::new(OpCodeHandler_Options1632::new(
-			deserializer.read_handler(),
-			deserializer.read_handler(),
-			deserializer.read_decoder_options(),
-		))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Options1632_2 => Box::into_raw(Box::new(OpCodeHandler_Options1632::new2(
-			deserializer.read_handler(),
-			deserializer.read_handler(),
-			deserializer.read_decoder_options(),
-			deserializer.read_handler(),
-			deserializer.read_decoder_options(),
-		))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Options3 => Box::into_raw(Box::new(OpCodeHandler_Options::new(
-			deserializer.read_handler(),
-			deserializer.read_handler(),
-			deserializer.read_decoder_options(),
-		))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Options5 => Box::into_raw(Box::new(OpCodeHandler_Options::new2(
-			deserializer.read_handler(),
-			deserializer.read_handler(),
-			deserializer.read_decoder_options(),
-			deserializer.read_handler(),
-			deserializer.read_decoder_options(),
-		))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Options_DontReadModRM => Box::into_raw(Box::new(OpCodeHandler_Options_DontReadModRM::new(
-			deserializer.read_handler(),
-			deserializer.read_handler(),
-			deserializer.read_decoder_options(),
-		))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::AnotherTable => Box::into_raw(Box::new(OpCodeHandler_AnotherTable::new(
-			deserializer.read_array_reference_no_clone(OpCodeHandlerKind::ArrayReference as u32),
-		))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Group => {
-			Box::into_raw(Box::new(OpCodeHandler_Group::new(deserializer.read_array_reference(OpCodeHandlerKind::ArrayReference as u32))))
-				as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::HandlerReference => {
+			result.push(deserializer.read_handler_reference());
+			return;
 		}
 
-		OpCodeHandlerKind::Group8x64 => Box::into_raw(Box::new(OpCodeHandler_Group8x64::new(
-			deserializer.read_array_reference(OpCodeHandlerKind::ArrayReference as u32),
-			deserializer.read_array_reference(OpCodeHandlerKind::ArrayReference as u32),
-		))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::ArrayReference => unreachable!(),
+		LegacyOpCodeHandlerKind::RM => box_opcode_handler(OpCodeHandler_RM::new(deserializer.read_handler(), deserializer.read_handler())),
 
-		OpCodeHandlerKind::Group8x8 => Box::into_raw(Box::new(OpCodeHandler_Group8x8::new(
-			deserializer.read_array_reference(OpCodeHandlerKind::ArrayReference as u32),
-			deserializer.read_array_reference(OpCodeHandlerKind::ArrayReference as u32),
-		))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::Options1632_1 => box_opcode_handler(OpCodeHandler_Options1632::new(
+			deserializer.read_handler(),
+			deserializer.read_handler(),
+			deserializer.read_decoder_options(),
+		)),
 
-		OpCodeHandlerKind::MandatoryPrefix => Box::into_raw(Box::new(OpCodeHandler_MandatoryPrefix::new(
+		LegacyOpCodeHandlerKind::Options1632_2 => box_opcode_handler(OpCodeHandler_Options1632::new2(
+			deserializer.read_handler(),
+			deserializer.read_handler(),
+			deserializer.read_decoder_options(),
+			deserializer.read_handler(),
+			deserializer.read_decoder_options(),
+		)),
+
+		LegacyOpCodeHandlerKind::Options3 => box_opcode_handler(OpCodeHandler_Options::new(
+			deserializer.read_handler(),
+			deserializer.read_handler(),
+			deserializer.read_decoder_options(),
+		)),
+
+		LegacyOpCodeHandlerKind::Options5 => box_opcode_handler(OpCodeHandler_Options::new2(
+			deserializer.read_handler(),
+			deserializer.read_handler(),
+			deserializer.read_decoder_options(),
+			deserializer.read_handler(),
+			deserializer.read_decoder_options(),
+		)),
+
+		LegacyOpCodeHandlerKind::Options_DontReadModRM => box_opcode_handler(OpCodeHandler_Options_DontReadModRM::new(
+			deserializer.read_handler(),
+			deserializer.read_handler(),
+			deserializer.read_decoder_options(),
+		)),
+
+		LegacyOpCodeHandlerKind::AnotherTable => box_opcode_handler(OpCodeHandler_AnotherTable::new(
+			deserializer.read_array_reference_no_clone(LegacyOpCodeHandlerKind::ArrayReference as u32),
+		)),
+
+		LegacyOpCodeHandlerKind::Group => {
+			box_opcode_handler(OpCodeHandler_Group::new(deserializer.read_array_reference(LegacyOpCodeHandlerKind::ArrayReference as u32)))
+		}
+
+		LegacyOpCodeHandlerKind::Group8x64 => box_opcode_handler(OpCodeHandler_Group8x64::new(
+			deserializer.read_array_reference(LegacyOpCodeHandlerKind::ArrayReference as u32),
+			deserializer.read_array_reference(LegacyOpCodeHandlerKind::ArrayReference as u32),
+		)),
+
+		LegacyOpCodeHandlerKind::Group8x8 => box_opcode_handler(OpCodeHandler_Group8x8::new(
+			deserializer.read_array_reference(LegacyOpCodeHandlerKind::ArrayReference as u32),
+			deserializer.read_array_reference(LegacyOpCodeHandlerKind::ArrayReference as u32),
+		)),
+
+		LegacyOpCodeHandlerKind::MandatoryPrefix => box_opcode_handler(OpCodeHandler_MandatoryPrefix::new(
 			true,
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_handler(),
-		))) as *const OpCodeHandler,
+		)),
 
-		OpCodeHandlerKind::MandatoryPrefix4 => Box::into_raw(Box::new(OpCodeHandler_MandatoryPrefix4::new(
+		LegacyOpCodeHandlerKind::MandatoryPrefix4 => box_opcode_handler(OpCodeHandler_MandatoryPrefix4::new(
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_u32(),
-		))) as *const OpCodeHandler,
+		)),
 
-		OpCodeHandlerKind::MandatoryPrefix_NoModRM => Box::into_raw(Box::new(OpCodeHandler_MandatoryPrefix::new(
+		LegacyOpCodeHandlerKind::MandatoryPrefix_NoModRM => box_opcode_handler(OpCodeHandler_MandatoryPrefix::new(
 			false,
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_handler(),
-		))) as *const OpCodeHandler,
+		)),
 
-		OpCodeHandlerKind::MandatoryPrefix3 => Box::into_raw(Box::new(OpCodeHandler_MandatoryPrefix3::new(
+		LegacyOpCodeHandlerKind::MandatoryPrefix3 => box_opcode_handler(OpCodeHandler_MandatoryPrefix3::new(
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_handler(),
@@ -161,381 +149,359 @@ pub(super) fn read_handlers(deserializer: &mut TableDeserializer, result: &mut V
 			deserializer.read_handler(),
 			deserializer.read_handler(),
 			deserializer.read_legacy_handler_flags(),
-		))) as *const OpCodeHandler,
+		)),
 
-		OpCodeHandlerKind::D3NOW => Box::into_raw(Box::new(OpCodeHandler_D3NOW::new())) as *const OpCodeHandler,
-		OpCodeHandlerKind::EVEX => Box::into_raw(Box::new(OpCodeHandler_EVEX::new(deserializer.read_handler()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::VEX2 => Box::into_raw(Box::new(OpCodeHandler_VEX2::new(deserializer.read_handler()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::VEX3 => Box::into_raw(Box::new(OpCodeHandler_VEX3::new(deserializer.read_handler()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::XOP => Box::into_raw(Box::new(OpCodeHandler_XOP::new(deserializer.read_handler()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::AL_DX => Box::into_raw(Box::new(OpCodeHandler_AL_DX::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::D3NOW => box_opcode_handler(OpCodeHandler_D3NOW::new()),
+		LegacyOpCodeHandlerKind::EVEX => box_opcode_handler(OpCodeHandler_EVEX::new(deserializer.read_handler())),
+		LegacyOpCodeHandlerKind::VEX2 => box_opcode_handler(OpCodeHandler_VEX2::new(deserializer.read_handler())),
+		LegacyOpCodeHandlerKind::VEX3 => box_opcode_handler(OpCodeHandler_VEX3::new(deserializer.read_handler())),
+		LegacyOpCodeHandlerKind::XOP => box_opcode_handler(OpCodeHandler_XOP::new(deserializer.read_handler())),
+		LegacyOpCodeHandlerKind::AL_DX => box_opcode_handler(OpCodeHandler_AL_DX::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::Ap => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ap::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ap => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ap::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::B_BM => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_B_BM::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::B_BM => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_B_BM::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::B_Ev => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_B_Ev::new(code, code + 1, deserializer.read_boolean()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::B_Ev => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_B_Ev::new(code1, code2, deserializer.read_boolean()))
 		}
 
-		OpCodeHandlerKind::B_MIB => Box::into_raw(Box::new(OpCodeHandler_B_MIB::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::B_MIB => box_opcode_handler(OpCodeHandler_B_MIB::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::BM_B => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_BM_B::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::BM_B => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_BM_B::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::BranchIw => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_BranchIw::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::BranchIw => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_BranchIw::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::BranchSimple => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_BranchSimple::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::BranchSimple => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_BranchSimple::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::C_R_3a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_C_R::new(code, code + 1, deserializer.read_register()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::C_R_3a => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_C_R::new(code1, code2, deserializer.read_register()))
 		}
 
-		OpCodeHandlerKind::C_R_3b => {
-			Box::into_raw(Box::new(OpCodeHandler_C_R::new(deserializer.read_code(), Code::INVALID as u32, deserializer.read_register())))
-				as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::C_R_3b => {
+			box_opcode_handler(OpCodeHandler_C_R::new(deserializer.read_code(), Code::INVALID, deserializer.read_register()))
 		}
 
-		OpCodeHandlerKind::DX_AL => Box::into_raw(Box::new(OpCodeHandler_DX_AL::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::DX_AL => box_opcode_handler(OpCodeHandler_DX_AL::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::DX_eAX => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_DX_eAX::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::DX_eAX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_DX_eAX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::eAX_DX => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_eAX_DX::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::eAX_DX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_eAX_DX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Eb_1 => Box::into_raw(Box::new(OpCodeHandler_Eb::new(deserializer.read_code(), 0))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::Eb_1 => box_opcode_handler(OpCodeHandler_Eb::new(deserializer.read_code(), 0)),
+		LegacyOpCodeHandlerKind::Eb_2 => box_opcode_handler(OpCodeHandler_Eb::new(deserializer.read_code(), deserializer.read_handler_flags())),
+		LegacyOpCodeHandlerKind::Eb_CL => box_opcode_handler(OpCodeHandler_Eb_CL::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::Eb_Gb_1 => box_opcode_handler(OpCodeHandler_Eb_Gb::new(deserializer.read_code(), 0)),
+		LegacyOpCodeHandlerKind::Eb_Gb_2 => box_opcode_handler(OpCodeHandler_Eb_Gb::new(deserializer.read_code(), deserializer.read_handler_flags())),
+		LegacyOpCodeHandlerKind::Eb_Ib_1 => box_opcode_handler(OpCodeHandler_Eb_Ib::new(deserializer.read_code(), 0)),
+		LegacyOpCodeHandlerKind::Eb_Ib_2 => box_opcode_handler(OpCodeHandler_Eb_Ib::new(deserializer.read_code(), deserializer.read_handler_flags())),
+		LegacyOpCodeHandlerKind::Eb1 => box_opcode_handler(OpCodeHandler_Eb_1::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::Eb_2 => {
-			Box::into_raw(Box::new(OpCodeHandler_Eb::new(deserializer.read_code(), deserializer.read_handler_flags()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ed_V_Ib => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ed_V_Ib::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Eb_CL => Box::into_raw(Box::new(OpCodeHandler_Eb_CL::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::Eb_Gb_1 => Box::into_raw(Box::new(OpCodeHandler_Eb_Gb::new(deserializer.read_code(), 0))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Eb_Gb_2 => {
-			Box::into_raw(Box::new(OpCodeHandler_Eb_Gb::new(deserializer.read_code(), deserializer.read_handler_flags()))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Eb_Ib_1 => Box::into_raw(Box::new(OpCodeHandler_Eb_Ib::new(deserializer.read_code(), 0))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Eb_Ib_2 => {
-			Box::into_raw(Box::new(OpCodeHandler_Eb_Ib::new(deserializer.read_code(), deserializer.read_handler_flags()))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Eb1 => Box::into_raw(Box::new(OpCodeHandler_Eb_1::new(deserializer.read_code()))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Ed_V_Ib => {
-			reg = deserializer.read_register();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ed_V_Ib::new(reg, code, code + 1))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Ep => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ep::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ep => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ep::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Ev_3a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev::new(code, code + 1, code + 2, 0))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_3a => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev::new(code1, code2, code3, 0))
 		}
 
-		OpCodeHandlerKind::Ev_3b => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev::new(code, code + 1, Code::INVALID as u32, 0))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_3b => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ev::new(code1, code2, Code::INVALID, 0))
 		}
 
-		OpCodeHandlerKind::Ev_4 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev::new(code, code + 1, code + 2, deserializer.read_handler_flags()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_4 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev::new(code1, code2, code3, deserializer.read_handler_flags()))
 		}
 
-		OpCodeHandlerKind::Ev_CL => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_CL::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_CL => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_CL::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Ev_Gv_32_64 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Gv_32_64::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Gv_32_64 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ev_Gv_32_64::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Ev_Gv_3a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Gv::new(code, code + 1, code + 2, 0))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Gv_3a => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Gv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Ev_Gv_3b => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Gv::new(code, code + 1, Code::INVALID as u32, 0))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Gv_3b => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ev_Gv::new(code1, code2, Code::INVALID))
 		}
 
-		OpCodeHandlerKind::Ev_Gv_4 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Gv::new(code, code + 1, code + 2, deserializer.read_handler_flags()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Gv_4 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Gv_flags::new(code1, code2, code3, deserializer.read_handler_flags()))
 		}
 
-		OpCodeHandlerKind::Ev_Gv_CL => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Gv_CL::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Gv_CL => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Gv_CL::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Ev_Gv_Ib => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Gv_Ib::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Gv_Ib => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Gv_Ib::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Ev_Gv_REX => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Gv_REX::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Gv_REX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ev_Gv_REX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Ev_Ib_3 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Ib::new(code, code + 1, code + 2, 0))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Ib_3 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Ib::new(code1, code2, code3, 0))
 		}
 
-		OpCodeHandlerKind::Ev_Ib_4 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Ib::new(code, code + 1, code + 2, deserializer.read_handler_flags()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Ib_4 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Ib::new(code1, code2, code3, deserializer.read_handler_flags()))
 		}
 
-		OpCodeHandlerKind::Ev_Ib2_3 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Ib2::new(code, code + 1, code + 2, 0))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Ib2_3 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Ib2::new(code1, code2, code3, 0))
 		}
 
-		OpCodeHandlerKind::Ev_Ib2_4 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Ib2::new(code, code + 1, code + 2, deserializer.read_handler_flags()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Ib2_4 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Ib2::new(code1, code2, code3, deserializer.read_handler_flags()))
 		}
 
-		OpCodeHandlerKind::Ev_Iz_3 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Iz::new(code, code + 1, code + 2, 0))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Iz_3 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Iz::new(code1, code2, code3, 0))
 		}
 
-		OpCodeHandlerKind::Ev_Iz_4 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Iz::new(code, code + 1, code + 2, deserializer.read_handler_flags()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Iz_4 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Iz::new(code1, code2, code3, deserializer.read_handler_flags()))
 		}
 
-		OpCodeHandlerKind::Ev_P => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_P::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_P => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ev_P::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Ev_REXW_1a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_REXW::new(code, Code::INVALID as u32, deserializer.read_u32()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_REXW_1a => {
+			let code = deserializer.read_code();
+			box_opcode_handler(OpCodeHandler_Ev_REXW::new(code, Code::INVALID, deserializer.read_u32()))
 		}
 
-		OpCodeHandlerKind::Ev_REXW => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_REXW::new(code, code + 1, deserializer.read_u32()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_REXW => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ev_REXW::new(code1, code2, deserializer.read_u32()))
 		}
 
-		OpCodeHandlerKind::Ev_Sw => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_Sw::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_Sw => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_Sw::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Ev_VX => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_VX::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev_VX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Ev_VX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Ev1 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ev_1::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ev1 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ev_1::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Evj => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Evj::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Evj => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Evj::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Evw => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Evw::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Evw => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Evw::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Ew => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ew::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Ew => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ew::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gb_Eb => Box::into_raw(Box::new(OpCodeHandler_Gb_Eb::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::Gb_Eb => box_opcode_handler(OpCodeHandler_Gb_Eb::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::Gdq_Ev => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gdq_Ev::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gdq_Ev => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gdq_Ev::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Eb => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Eb::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Eb => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Eb::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Eb_REX => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Eb_REX::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Eb_REX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_Eb_REX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Gv_Ev_32_64 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev_32_64::new(code, code + 1, deserializer.read_boolean(), deserializer.read_boolean())))
-				as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev_32_64 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_Ev_32_64::new(code1, code2, deserializer.read_boolean(), deserializer.read_boolean()))
 		}
 
-		OpCodeHandlerKind::Gv_Ev_3a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev_3a => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Ev::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Ev_3b => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev::new(code, code + 1, Code::INVALID as u32))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev_3b => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_Ev::new(code1, code2, Code::INVALID))
 		}
 
-		OpCodeHandlerKind::Gv_Ev_Ib => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev_Ib::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev_Ib => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Ev_Ib::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Ev_Ib_REX => {
-			reg = deserializer.read_register();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev_Ib_REX::new(reg, code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev_Ib_REX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_Ev_Ib_REX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Gv_Ev_Iz => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev_Iz::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev_Iz => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Ev_Iz::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Ev_REX => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev_REX::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev_REX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_Ev_REX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Gv_Ev2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev2::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev2 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Ev2::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Ev3 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ev3::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ev3 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Ev3::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Ew => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ew::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ew => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Ew::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_M => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_M::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_M => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_M::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_M_as => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_M_as::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_M_as => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_M_as::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Ma => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Ma::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Ma => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_Ma::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Gv_Mp_2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Mp::new(code, code + 1, Code::INVALID as u32))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Mp_2 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_Mp::new(code1, code2, Code::INVALID))
 		}
 
-		OpCodeHandlerKind::Gv_Mp_3 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Mp::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Mp_3 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Mp::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_Mv => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_Mv::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_Mv => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Gv_Mv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Gv_N => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_N::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_N => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_N::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Gv_N_Ib_REX => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_N_Ib_REX::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_N_Ib_REX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_N_Ib_REX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Gv_RX => {
-			reg = deserializer.read_register();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_RX::new(reg, code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_RX => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_RX::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Gv_W => {
-			reg = deserializer.read_register();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Gv_W::new(reg, code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Gv_W => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Gv_W::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::GvM_VX_Ib => {
-			reg = deserializer.read_register();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_GvM_VX_Ib::new(reg, code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::GvM_VX_Ib => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_GvM_VX_Ib::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Ib => Box::into_raw(Box::new(OpCodeHandler_Ib::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::Ib3 => Box::into_raw(Box::new(OpCodeHandler_Ib3::new(deserializer.read_code()))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::IbReg => {
-			Box::into_raw(Box::new(OpCodeHandler_IbReg::new(deserializer.read_code(), deserializer.read_register()))) as *const OpCodeHandler
-		}
+		LegacyOpCodeHandlerKind::Ib => box_opcode_handler(OpCodeHandler_Ib::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::Ib3 => box_opcode_handler(OpCodeHandler_Ib3::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::IbReg => box_opcode_handler(OpCodeHandler_IbReg::new(deserializer.read_code(), deserializer.read_register())),
 
-		OpCodeHandlerKind::IbReg2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_IbReg2::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::IbReg2 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_IbReg2::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Iw_Ib => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Iw_Ib::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Iw_Ib => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Iw_Ib::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Jb => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Jb::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Jb => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Jb::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Jb2 => Box::into_raw(Box::new(OpCodeHandler_Jb2::new(
+		LegacyOpCodeHandlerKind::Jb2 => box_opcode_handler(OpCodeHandler_Jb2::new(
 			deserializer.read_code(),
 			deserializer.read_code(),
 			deserializer.read_code(),
@@ -543,398 +509,347 @@ pub(super) fn read_handlers(deserializer: &mut TableDeserializer, result: &mut V
 			deserializer.read_code(),
 			deserializer.read_code(),
 			deserializer.read_code(),
-		))) as *const OpCodeHandler,
+		)),
 
-		OpCodeHandlerKind::Jdisp => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Jdisp::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Jdisp => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Jdisp::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Jx => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Jx::new(code, code + 1, deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Jx => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Jx::new(code1, code2, deserializer.read_code()))
 		}
 
-		OpCodeHandlerKind::Jz => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Jz::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Jz => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Jz::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::M_1 => Box::into_raw(Box::new(OpCodeHandler_M::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::M_1 => box_opcode_handler(OpCodeHandler_M::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::M_2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_M::new1(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::M_2 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_M::new1(code1, code2))
 		}
 
-		OpCodeHandlerKind::M_REXW_2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_M_REXW::new(code, code + 1, 0, 0))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::M_REXW_2 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_M_REXW::new(code1, code2, 0, 0))
 		}
 
-		OpCodeHandlerKind::M_REXW_4 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_M_REXW::new(code, code + 1, deserializer.read_handler_flags(), deserializer.read_handler_flags())))
-				as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::M_REXW_4 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_M_REXW::new(code1, code2, deserializer.read_handler_flags(), deserializer.read_handler_flags()))
 		}
 
-		OpCodeHandlerKind::MemBx => Box::into_raw(Box::new(OpCodeHandler_MemBx::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::Mf_1 => Box::into_raw(Box::new(OpCodeHandler_Mf::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::MemBx => box_opcode_handler(OpCodeHandler_MemBx::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::Mf_1 => box_opcode_handler(OpCodeHandler_Mf::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::Mf_2a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Mf::new1(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Mf_2a => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Mf::new1(code1, code2))
 		}
 
-		OpCodeHandlerKind::Mf_2b => {
-			Box::into_raw(Box::new(OpCodeHandler_Mf::new1(deserializer.read_code(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Mf_2b => box_opcode_handler(OpCodeHandler_Mf::new1(deserializer.read_code(), deserializer.read_code())),
+		LegacyOpCodeHandlerKind::MIB_B => box_opcode_handler(OpCodeHandler_MIB_B::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::MP => box_opcode_handler(OpCodeHandler_MP::new(deserializer.read_code())),
+
+		LegacyOpCodeHandlerKind::Ms => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ms::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::MIB_B => Box::into_raw(Box::new(OpCodeHandler_MIB_B::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::MP => Box::into_raw(Box::new(OpCodeHandler_MP::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::MV => box_opcode_handler(OpCodeHandler_MV::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::Ms => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ms::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Mv_Gv => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Mv_Gv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::MV => {
-			Box::into_raw(Box::new(OpCodeHandler_MV::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Mv_Gv_REXW => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Mv_Gv_REXW::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Mv_Gv => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Mv_Gv::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::NIb => box_opcode_handler(OpCodeHandler_NIb::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::Ob_Reg => box_opcode_handler(OpCodeHandler_Ob_Reg::new(deserializer.read_code(), deserializer.read_register())),
+
+		LegacyOpCodeHandlerKind::Ov_Reg => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Ov_Reg::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Mv_Gv_REXW => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Mv_Gv_REXW::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::P_Ev => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_P_Ev::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::NIb => Box::into_raw(Box::new(OpCodeHandler_NIb::new(deserializer.read_code()))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Ob_Reg => {
-			Box::into_raw(Box::new(OpCodeHandler_Ob_Reg::new(deserializer.read_code(), deserializer.read_register()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::P_Ev_Ib => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_P_Ev_Ib::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Ov_Reg => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Ov_Reg::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::P_Q => box_opcode_handler(OpCodeHandler_P_Q::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::P_Q_Ib => box_opcode_handler(OpCodeHandler_P_Q_Ib::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::P_R => box_opcode_handler(OpCodeHandler_P_R::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::P_W => box_opcode_handler(OpCodeHandler_P_W::new(deserializer.read_code())),
+
+		LegacyOpCodeHandlerKind::PushEv => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_PushEv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::P_Ev => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_P_Ev::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::PushIb2 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_PushIb2::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::P_Ev_Ib => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_P_Ev_Ib::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::PushIz => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_PushIz::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::P_Q => Box::into_raw(Box::new(OpCodeHandler_P_Q::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::P_Q_Ib => Box::into_raw(Box::new(OpCodeHandler_P_Q_Ib::new(deserializer.read_code()))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::P_R => {
-			Box::into_raw(Box::new(OpCodeHandler_P_R::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::PushOpSizeReg_4a => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_PushOpSizeReg::new(code1, code2, code3, deserializer.read_register()))
 		}
 
-		OpCodeHandlerKind::P_W => {
-			Box::into_raw(Box::new(OpCodeHandler_P_W::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::PushOpSizeReg_4b => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_PushOpSizeReg::new(code1, code2, Code::INVALID, deserializer.read_register()))
 		}
 
-		OpCodeHandlerKind::PushEv => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_PushEv::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::PushSimple2 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_PushSimple2::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::PushIb2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_PushIb2::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::PushIz => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_PushIz::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::PushOpSizeReg_4a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_PushOpSizeReg::new(code, code + 1, code + 2, deserializer.read_register()))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::PushOpSizeReg_4b => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_PushOpSizeReg::new(code, code + 1, Code::INVALID as u32, deserializer.read_register())))
-				as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::PushSimple2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_PushSimple2::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::PushSimpleReg => {
+		LegacyOpCodeHandlerKind::PushSimpleReg => {
 			index = deserializer.read_u32();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_PushSimpleReg::new(index, code, code + 1, code + 2))) as *const OpCodeHandler
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_PushSimpleReg::new(index, code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Q_P => Box::into_raw(Box::new(OpCodeHandler_Q_P::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::Q_P => box_opcode_handler(OpCodeHandler_Q_P::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::R_C_3a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_R_C::new(code, code + 1, deserializer.read_register()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::R_C_3a => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_R_C::new(code1, code2, deserializer.read_register()))
 		}
 
-		OpCodeHandlerKind::R_C_3b => {
-			Box::into_raw(Box::new(OpCodeHandler_R_C::new(deserializer.read_code(), Code::INVALID as u32, deserializer.read_register())))
-				as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::R_C_3b => {
+			box_opcode_handler(OpCodeHandler_R_C::new(deserializer.read_code(), Code::INVALID, deserializer.read_register()))
 		}
 
-		OpCodeHandlerKind::rDI_P_N => Box::into_raw(Box::new(OpCodeHandler_rDI_P_N::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::rDI_P_N => box_opcode_handler(OpCodeHandler_rDI_P_N::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::rDI_VX_RX => box_opcode_handler(OpCodeHandler_rDI_VX_RX::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::Reg => box_opcode_handler(OpCodeHandler_Reg::new(deserializer.read_code(), deserializer.read_register())),
 
-		OpCodeHandlerKind::rDI_VX_RX => {
-			Box::into_raw(Box::new(OpCodeHandler_rDI_VX_RX::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Reg_Ib2 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Reg_Ib2::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Reg => {
-			Box::into_raw(Box::new(OpCodeHandler_Reg::new(deserializer.read_code(), deserializer.read_register()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Reg_Iz => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Reg_Iz::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Reg_Ib2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Ib2::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Reg_Ob => box_opcode_handler(OpCodeHandler_Reg_Ob::new(deserializer.read_code(), deserializer.read_register())),
+
+		LegacyOpCodeHandlerKind::Reg_Ov => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Reg_Ov::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Reg_Iz => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Iz::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Reg_Xb => box_opcode_handler(OpCodeHandler_Reg_Xb::new(deserializer.read_code(), deserializer.read_register())),
+
+		LegacyOpCodeHandlerKind::Reg_Xv => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Reg_Xv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Reg_Ob => {
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Ob::new(deserializer.read_code(), deserializer.read_register()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Reg_Xv2 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Reg_Xv2::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Reg_Ov => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Ov::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Reg_Yb => box_opcode_handler(OpCodeHandler_Reg_Yb::new(deserializer.read_code(), deserializer.read_register())),
+
+		LegacyOpCodeHandlerKind::Reg_Yv => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Reg_Yv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Reg_Xb => {
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Xb::new(deserializer.read_code(), deserializer.read_register()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::RegIb => box_opcode_handler(OpCodeHandler_RegIb::new(deserializer.read_code(), deserializer.read_register())),
+		LegacyOpCodeHandlerKind::RegIb3 => box_opcode_handler(OpCodeHandler_RegIb3::new(deserializer.read_u32())),
+		LegacyOpCodeHandlerKind::RegIz2 => box_opcode_handler(OpCodeHandler_RegIz2::new(deserializer.read_u32())),
+
+		LegacyOpCodeHandlerKind::Reservednop => {
+			box_opcode_handler(OpCodeHandler_Reservednop::new(deserializer.read_handler(), deserializer.read_handler()))
 		}
 
-		OpCodeHandlerKind::Reg_Xv => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Xv::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::RIb => box_opcode_handler(OpCodeHandler_RIb::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::RIbIb => box_opcode_handler(OpCodeHandler_RIbIb::new(deserializer.read_code())),
+
+		LegacyOpCodeHandlerKind::Rv => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Rv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Reg_Xv2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Xv2::new(code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Rv_32_64 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Rv_32_64::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Reg_Yb => {
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Yb::new(deserializer.read_code(), deserializer.read_register()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::RvMw_Gw => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_RvMw_Gw::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Reg_Yv => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Reg_Yv::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Simple => {
+			let code = deserializer.read_code();
+			if code == Code::Int3 {
+				box_opcode_handler(OpCodeHandler_Int3::new())
+			} else {
+				box_opcode_handler(OpCodeHandler_Simple::new(code))
+			}
+		}
+		LegacyOpCodeHandlerKind::Simple_ModRM => box_opcode_handler(OpCodeHandler_Simple::new_modrm(deserializer.read_code())),
+
+		LegacyOpCodeHandlerKind::Simple2_3a => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Simple2::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::RegIb => {
-			Box::into_raw(Box::new(OpCodeHandler_RegIb::new(deserializer.read_code(), deserializer.read_register()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Simple2_3b => {
+			box_opcode_handler(OpCodeHandler_Simple2::new(deserializer.read_code(), deserializer.read_code(), deserializer.read_code()))
 		}
 
-		OpCodeHandlerKind::RegIb3 => Box::into_raw(Box::new(OpCodeHandler_RegIb3::new(deserializer.read_u32()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::RegIz2 => Box::into_raw(Box::new(OpCodeHandler_RegIz2::new(deserializer.read_u32()))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Reservednop => {
-			Box::into_raw(Box::new(OpCodeHandler_Reservednop::new(deserializer.read_handler(), deserializer.read_handler()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Simple2Iw => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Simple2Iw::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::RIb => {
-			Box::into_raw(Box::new(OpCodeHandler_RIb::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Simple3 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Simple3::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::RIbIb => {
-			Box::into_raw(Box::new(OpCodeHandler_RIbIb::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Simple4 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Simple4::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Rv => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Rv::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Rv_32_64 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Rv_32_64::new(code, code + 1))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::RvMw_Gw => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_RvMw_Gw::new(code, code + 1))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Simple => Box::into_raw(Box::new(OpCodeHandler_Simple::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::Simple_ModRM => Box::into_raw(Box::new(OpCodeHandler_Simple::new_modrm(deserializer.read_code()))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Simple2_3a => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Simple2::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Simple2_3b => {
-			Box::into_raw(Box::new(OpCodeHandler_Simple2::new(deserializer.read_code(), deserializer.read_code(), deserializer.read_code())))
-				as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Simple2Iw => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Simple2Iw::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Simple3 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Simple3::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Simple4 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Simple4::new(code, code + 1))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Simple4b => {
-			code = deserializer.read_code();
+		LegacyOpCodeHandlerKind::Simple4b => {
+			let code1 = deserializer.read_code();
 			let code2 = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Simple4::new(code, code2))) as *const OpCodeHandler
+			box_opcode_handler(OpCodeHandler_Simple4::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::Simple5 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Simple5::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Simple5 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Simple5::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::Simple5_ModRM_as => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Simple5_ModRM_as::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Simple5_a32 => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Simple5_a32::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::SimpleReg => {
-			Box::into_raw(Box::new(OpCodeHandler_SimpleReg::new(deserializer.read_code(), deserializer.read_u32()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Simple5_ModRM_as => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Simple5_ModRM_as::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::ST_STi => Box::into_raw(Box::new(OpCodeHandler_ST_STi::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::STi => Box::into_raw(Box::new(OpCodeHandler_STi::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::STi_ST => Box::into_raw(Box::new(OpCodeHandler_STi_ST::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::SimpleReg => box_opcode_handler(OpCodeHandler_SimpleReg::new(deserializer.read_code(), deserializer.read_u32())),
+		LegacyOpCodeHandlerKind::ST_STi => box_opcode_handler(OpCodeHandler_ST_STi::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::STi => box_opcode_handler(OpCodeHandler_STi::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::STi_ST => box_opcode_handler(OpCodeHandler_STi_ST::new(deserializer.read_code())),
 
-		OpCodeHandlerKind::Sw_Ev => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Sw_Ev::new(code, code + 1, code + 2))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Sw_Ev => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Sw_Ev::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::V_Ev => {
-			reg = deserializer.read_register();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_V_Ev::new(reg, code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::V_Ev => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_V_Ev::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::VM => {
-			Box::into_raw(Box::new(OpCodeHandler_VM::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::VM => box_opcode_handler(OpCodeHandler_VM::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::VN => box_opcode_handler(OpCodeHandler_VN::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::VQ => box_opcode_handler(OpCodeHandler_VQ::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::VRIbIb => box_opcode_handler(OpCodeHandler_VRIbIb::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::VW_2 => box_opcode_handler(OpCodeHandler_VW::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::VW_3 => box_opcode_handler(OpCodeHandler_VW::new1(deserializer.read_code(), deserializer.read_code())),
+		LegacyOpCodeHandlerKind::VWIb_2 => box_opcode_handler(OpCodeHandler_VWIb::new(deserializer.read_code())),
+
+		LegacyOpCodeHandlerKind::VWIb_3 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_VWIb::new1(code1, code2))
 		}
 
-		OpCodeHandlerKind::VN => {
-			Box::into_raw(Box::new(OpCodeHandler_VN::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::VX_E_Ib => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_VX_E_Ib::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::VQ => {
-			Box::into_raw(Box::new(OpCodeHandler_VQ::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::VX_Ev => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_VX_Ev::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::VRIbIb => {
-			Box::into_raw(Box::new(OpCodeHandler_VRIbIb::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Wbinvd => box_opcode_handler(OpCodeHandler_Wbinvd::new()),
+		LegacyOpCodeHandlerKind::WV => box_opcode_handler(OpCodeHandler_WV::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::Xb_Yb => box_opcode_handler(OpCodeHandler_Xb_Yb::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::Xchg_Reg_rAX => box_opcode_handler(OpCodeHandler_Xchg_Reg_rAX::new(deserializer.read_u32())),
+
+		LegacyOpCodeHandlerKind::Xv_Yv => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Xv_Yv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::VW_2 => {
-			Box::into_raw(Box::new(OpCodeHandler_VW::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Yb_Reg => box_opcode_handler(OpCodeHandler_Yb_Reg::new(deserializer.read_code(), deserializer.read_register())),
+		LegacyOpCodeHandlerKind::Yb_Xb => box_opcode_handler(OpCodeHandler_Yb_Xb::new(deserializer.read_code())),
+
+		LegacyOpCodeHandlerKind::Yv_Reg => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Yv_Reg::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::VW_3 => {
-			Box::into_raw(Box::new(OpCodeHandler_VW::new1(deserializer.read_register(), deserializer.read_code(), deserializer.read_code())))
-				as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Yv_Reg2 => {
+			let (code1, code2) = deserializer.read_code2();
+			box_opcode_handler(OpCodeHandler_Yv_Reg2::new(code1, code2))
 		}
 
-		OpCodeHandlerKind::VWIb_2 => {
-			Box::into_raw(Box::new(OpCodeHandler_VWIb::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Yv_Xv => {
+			let (code1, code2, code3) = deserializer.read_code3();
+			box_opcode_handler(OpCodeHandler_Yv_Xv::new(code1, code2, code3))
 		}
 
-		OpCodeHandlerKind::VWIb_3 => {
-			reg = deserializer.read_register();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_VWIb::new1(reg, code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::M_Sw => {
+			let code = deserializer.read_code();
+			box_opcode_handler(OpCodeHandler_M_Sw::new(code))
 		}
 
-		OpCodeHandlerKind::VX_E_Ib => {
-			reg = deserializer.read_register();
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_VX_E_Ib::new(reg, code, code + 1))) as *const OpCodeHandler
+		LegacyOpCodeHandlerKind::Sw_M => {
+			let code = deserializer.read_code();
+			box_opcode_handler(OpCodeHandler_Sw_M::new(code))
 		}
 
-		OpCodeHandlerKind::VX_Ev => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_VX_Ev::new(code, code + 1))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Wbinvd => Box::into_raw(Box::new(OpCodeHandler_Wbinvd::new())) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::WV => {
-			Box::into_raw(Box::new(OpCodeHandler_WV::new(deserializer.read_register(), deserializer.read_code()))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Xb_Yb => Box::into_raw(Box::new(OpCodeHandler_Xb_Yb::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::Xchg_Reg_rAX => Box::into_raw(Box::new(OpCodeHandler_Xchg_Reg_rAX::new(deserializer.read_u32()))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Xv_Yv => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Xv_Yv::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Yb_Reg => {
-			Box::into_raw(Box::new(OpCodeHandler_Yb_Reg::new(deserializer.read_code(), deserializer.read_register()))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Yb_Xb => Box::into_raw(Box::new(OpCodeHandler_Yb_Xb::new(deserializer.read_code()))) as *const OpCodeHandler,
-
-		OpCodeHandlerKind::Yv_Reg => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Yv_Reg::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Yv_Reg2 => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Yv_Reg2::new(code, code + 1))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Yv_Xv => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Yv_Xv::new(code, code + 1, code + 2))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::M_Sw => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_M_Sw::new(code))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Sw_M => {
-			code = deserializer.read_code();
-			Box::into_raw(Box::new(OpCodeHandler_Sw_M::new(code))) as *const OpCodeHandler
-		}
-
-		OpCodeHandlerKind::Rq => Box::into_raw(Box::new(OpCodeHandler_Rq::new(deserializer.read_code()))) as *const OpCodeHandler,
-		OpCodeHandlerKind::Gd_Rd => Box::into_raw(Box::new(OpCodeHandler_Gd_Rd::new(deserializer.read_code()))) as *const OpCodeHandler,
+		LegacyOpCodeHandlerKind::Rq => box_opcode_handler(OpCodeHandler_Rq::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::Gd_Rd => box_opcode_handler(OpCodeHandler_Gd_Rd::new(deserializer.read_code())),
+		LegacyOpCodeHandlerKind::PrefixEsCsSsDs => box_opcode_handler(OpCodeHandler_PrefixEsCsSsDs::new(deserializer.read_register())),
+		LegacyOpCodeHandlerKind::PrefixFsGs => box_opcode_handler(OpCodeHandler_PrefixFsGs::new(deserializer.read_register())),
+		LegacyOpCodeHandlerKind::Prefix66 => box_opcode_handler(OpCodeHandler_Prefix66::new()),
+		LegacyOpCodeHandlerKind::Prefix67 => box_opcode_handler(OpCodeHandler_Prefix67::new()),
+		LegacyOpCodeHandlerKind::PrefixF0 => box_opcode_handler(OpCodeHandler_PrefixF0::new()),
+		LegacyOpCodeHandlerKind::PrefixF2 => box_opcode_handler(OpCodeHandler_PrefixF2::new()),
+		LegacyOpCodeHandlerKind::PrefixF3 => box_opcode_handler(OpCodeHandler_PrefixF3::new()),
+		LegacyOpCodeHandlerKind::PrefixREX => box_opcode_handler(OpCodeHandler_PrefixREX::new(deserializer.read_handler(), deserializer.read_u32())),
 	};
-	result.push(unsafe { &*elem });
+	let handler = unsafe { &*handler_ptr };
+	result.push((decode, handler));
 }

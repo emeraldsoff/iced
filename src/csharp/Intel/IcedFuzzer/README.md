@@ -24,7 +24,7 @@ It uses iced's instruction definitions that weren't filtered out by the user. Fo
   - `rm` group index
   - modrm opcode (no operands and modrm >= C0h)
 
-Unless you use the `--no-unused-tables` option, it will use all tables which includes EVEX table indexes 0-3, VEX table indexes 0-1Fh, XOP table indexes 0-1Fh (0-7: XOP.B=1).
+Unless you use the `--no-unused-tables` option, it will use all tables which includes EVEX table indexes 0-7, VEX table indexes 0-1Fh, XOP table indexes 0-1Fh (0-7: XOP.B=1).
 
 For every unused slot that can be a reserved-nop, create a reserved-nop instruction. The remaining instructions are undefined instructions and an invalid instruction is created. Once this is finished, every slot is either a valid or an invalid instruction.
 
@@ -61,7 +61,7 @@ It generates the following instructions (see `FuzzerGen.cs`):
 - Gens all combinations of EVEX.bcst/z/aaa bits, and if {er} is supported, all L'L bits
 - Gens all possible values of V' vvvv bits, but only if it's an instruction that doesn't use them.
   If the instruction already uses the V' vvvv bits, the reg fuzzer gen has already generated all values.
-- EVEX: Sets the reserved bits p0[3:2] to 01,10,11 and p1[2] to 0
+- EVEX: Sets the reserved bits p0[3] to 1 and p1[2] to 0
 
 If it's VEX, all the above are gen'd with a VEX2 prefix (if possible) and a VEX3 prefix.
 

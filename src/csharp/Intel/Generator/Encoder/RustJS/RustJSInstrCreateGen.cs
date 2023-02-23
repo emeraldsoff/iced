@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -46,7 +26,7 @@ namespace Generator.Encoder.RustJS {
 			this.generatorContext = generatorContext;
 			idConverter = RustJSIdentifierConverter.Create();
 			rustIdConverter = RustIdentifierConverter.Create();
-			docWriter = new RustDocCommentWriter(idConverter, ".");
+			docWriter = new RustDocCommentWriter(idConverter, ".", ".", ".", ".");
 			gen = new Rust.InstrCreateGenImpl(genTypes, idConverter, docWriter);
 			genNames = new Rust.GenCreateNameArgs {
 				CreatePrefix = "create",
@@ -79,47 +59,17 @@ namespace Generator.Encoder.RustJS {
 			public readonly CreateMethod OrigMethod;
 			public readonly CreateMethod Method;
 			public string? Attribute;
-			public readonly List<SplitArg> SplitArgs;
 
-			public GenMethodContext(FileWriter writer, CreateMethod origMethod, CreateMethod method, string? attribute, List<SplitArg>? splitArgs) {
+			public GenMethodContext(FileWriter writer, CreateMethod origMethod, CreateMethod method, string? attribute) {
 				Writer = writer;
 				OrigMethod = origMethod;
 				Method = method;
 				Attribute = attribute;
-				SplitArgs = splitArgs ?? new List<SplitArg>();
 			}
 		}
 
 		void WriteDocs(in GenMethodContext ctx, Action? writeThrows = null) =>
 			gen.WriteDocs(ctx.Writer, ctx.Method, "Throws", writeThrows);
-
-		static bool TryCreateNo64Api(CreateMethod method, [NotNullWhen(true)] out CreateMethod? no64Method, [NotNullWhen(true)] out List<SplitArg>? splitArgs) {
-			bool is64 = method.Args.Any(a => Rust.InstrCreateGenImpl.Is64BitArgument(a.Type));
-			if (!is64) {
-				no64Method = null;
-				splitArgs = null;
-				return false;
-			}
-
-			splitArgs = new List<SplitArg>();
-			no64Method = new CreateMethod(method.Docs.ToArray());
-			no64Method.Docs.Add(string.Empty);
-			no64Method.Docs.Add("Enable the `bigint` feature to use APIs with 64-bit numbers (requires `BigInt`).");
-			for (int i = 0; i < method.Args.Count; i++) {
-				var arg = method.Args[i];
-				if (Rust.InstrCreateGenImpl.Is64BitArgument(arg.Type)) {
-					if (arg.DefaultValue is not null)
-						throw new InvalidOperationException();
-					int newIndex = no64Method.Args.Count;
-					splitArgs.Add(new SplitArg(i, newIndex, newIndex + 1));
-					no64Method.Args.Add(new MethodArg($"{arg.Doc} (high 32 bits)", MethodArgType.UInt32, arg.Name + "Hi", arg.DefaultValue));
-					no64Method.Args.Add(new MethodArg($"{arg.Doc} (low 32 bits)", MethodArgType.UInt32, arg.Name + "Lo", arg.DefaultValue));
-				}
-				else
-					no64Method.Args.Add(new MethodArg(arg.Doc, arg.Type, arg.Name, arg.DefaultValue));
-			}
-			return true;
-		}
 
 		static CreateMethod CloneAndUpdateDocs(CreateMethod method) {
 			var newMethod = new CreateMethod(method.Docs.ToArray());
@@ -141,38 +91,18 @@ namespace Generator.Encoder.RustJS {
 			return newMethod;
 		}
 
-		// Some methods take an i64/u64 argument. That will translate to BigInt in JS but not all JS impls
-		// support BigInt yet. Generate two methods, one with bigint and one with two u32 args. The 'bigint'
-		// feature enables the i64/u64 method and disables the other one.
 		static void GenerateMethod(FileWriter writer, CreateMethod method, Action<GenMethodContext> genMethod) {
 			method = CloneAndUpdateDocs(method);
-			if (TryCreateNo64Api(method, out var no64Method, out var splitArgs)) {
-				genMethod(new GenMethodContext(writer, method, method, RustConstants.FeatureBigInt, null));
-				writer.WriteLine();
-				genMethod(new GenMethodContext(writer, method, no64Method, RustConstants.FeatureNotBigInt, splitArgs));
-			}
-			else
-				genMethod(new GenMethodContext(writer, method, method, null, null));
+			genMethod(new GenMethodContext(writer, method, method, null));
 		}
 
-		void WriteCall(in GenMethodContext ctx, string rustName, bool canFail) {
+		void WriteCall(in GenMethodContext ctx, string rustName, bool canFail, bool isTryMethod) {
 			using (ctx.Writer.Indent()) {
-				var toLocalName = new Dictionary<int, string>();
-				foreach (var info in ctx.SplitArgs) {
-					var local = rustIdConverter.Argument(ctx.OrigMethod.Args[info.OrigIndex].Name);
-					var argHi = idConverter.Argument(ctx.Method.Args[info.NewIndexHi].Name);
-					var argLo = idConverter.Argument(ctx.Method.Args[info.NewIndexLo].Name);
-					var expr = $"(({argHi} as u64) << 32) | ({argLo} as u64)";
-					if (ctx.OrigMethod.Args[info.OrigIndex].Type == MethodArgType.Int64)
-						expr = $"({expr}) as i64";
-					ctx.Writer.WriteLine($"let {local} = {expr};");
-					toLocalName.Add(info.OrigIndex, local);
-				}
 				sb.Clear();
 				if (canFail)
 					sb.Append("Ok(");
 				sb.Append("Self(iced_x86_rust::Instruction::");
-				if (canFail)
+				if (isTryMethod)
 					sb.Append("try_");
 				sb.Append(rustName);
 				sb.Append('(');
@@ -181,8 +111,7 @@ namespace Generator.Encoder.RustJS {
 						sb.Append(", ");
 
 					var arg = ctx.OrigMethod.Args[i];
-					if (!toLocalName.TryGetValue(i, out var name))
-						name = idConverter.Argument(arg.Name);
+					var name = idConverter.Argument(arg.Name);
 
 					switch (arg.Type) {
 					case MethodArgType.Code:
@@ -229,18 +158,19 @@ namespace Generator.Encoder.RustJS {
 				ctx.Writer.WriteLine(") -> Self {");
 		}
 
-		protected override void GenCreate(FileWriter writer, CreateMethod method, InstructionGroup group) =>
+		protected override void GenCreate(FileWriter writer, CreateMethod method, InstructionGroup group, int id) =>
 			GenerateMethod(writer, method, GenCreate);
 
 		void GenCreate(GenMethodContext ctx) {
-			bool canFail = Rust.InstrCreateGenImpl.HasTryMethod(ctx.Method);
+			bool canFail = ctx.Method.Args.Count > 1;
 			Action? writeThrows = null;
 			if (canFail)
-				writeThrows = () => docWriter.WriteLine(ctx.Writer, "Throws if the immediate is invalid");
+				writeThrows = () => docWriter.WriteLine(ctx.Writer, "Throws if one of the operands is invalid (basic checks)");
 			WriteDocs(ctx, writeThrows);
-			var rustName = gen.GetCreateName(ctx.OrigMethod, Rust.GenCreateNameArgs.RustNames);
-			WriteMethod(ctx, rustName, gen.GetCreateName(ctx.OrigMethod, genNames), canFail);
-			WriteCall(ctx, rustName, canFail);
+			var rustJsName = gen.GetCreateName(ctx.OrigMethod, Rust.GenCreateNameArgs.RustNames);
+			var rustName = Rust.InstrCreateGenImpl.GetRustOverloadedCreateName(ctx.OrigMethod);
+			WriteMethod(ctx, rustJsName, gen.GetCreateName(ctx.OrigMethod, genNames), canFail);
+			WriteCall(ctx, rustName, canFail, false);
 			ctx.Writer.WriteLine("}");
 		}
 
@@ -252,7 +182,7 @@ namespace Generator.Encoder.RustJS {
 			WriteDocs(ctx, () => docWriter.WriteLine(ctx.Writer, "Throws if the created instruction doesn't have a near branch operand"));
 			const string rustName = Rust.RustInstrCreateGenNames.with_branch;
 			WriteMethod(ctx, rustName, "createBranch", canFail);
-			WriteCall(ctx, rustName, canFail);
+			WriteCall(ctx, rustName, canFail, false);
 			ctx.Writer.WriteLine("}");
 		}
 
@@ -264,7 +194,7 @@ namespace Generator.Encoder.RustJS {
 			WriteDocs(ctx, () => docWriter.WriteLine(ctx.Writer, "Throws if the created instruction doesn't have a far branch operand"));
 			const string rustName = Rust.RustInstrCreateGenNames.with_far_branch;
 			WriteMethod(ctx, rustName, "createFarBranch", canFail);
-			WriteCall(ctx, rustName, canFail);
+			WriteCall(ctx, rustName, canFail, false);
 			ctx.Writer.WriteLine("}");
 		}
 
@@ -276,7 +206,7 @@ namespace Generator.Encoder.RustJS {
 			WriteDocs(ctx, () => WriteAddrSizeOrBitnessThrows(ctx));
 			const string rustName = Rust.RustInstrCreateGenNames.with_xbegin;
 			WriteMethod(ctx, rustName, "createXbegin", canFail);
-			WriteCall(ctx, rustName, canFail);
+			WriteCall(ctx, rustName, canFail, false);
 			ctx.Writer.WriteLine("}");
 		}
 
@@ -298,7 +228,7 @@ namespace Generator.Encoder.RustJS {
 			WriteDocs(ctx, () => WriteAddrSizeOrBitnessThrows(ctx));
 			var rustName = rustIdConverter.Method("With" + methodBaseName);
 			WriteMethod(ctx, rustName, idConverter.Method("Create" + methodBaseName), canFail);
-			WriteCall(ctx, rustName, canFail);
+			WriteCall(ctx, rustName, canFail, false);
 			ctx.Writer.WriteLine("}");
 		}
 
@@ -335,7 +265,7 @@ namespace Generator.Encoder.RustJS {
 			jsName = jsName + "_" + ctx.OrigMethod.Args.Count.ToString();
 			rustName = Rust.RustInstrCreateGenNames.AppendArgCount(rustName, ctx.OrigMethod.Args.Count);
 			WriteMethod(ctx, rustName, jsName, canFail);
-			WriteCall(ctx, rustName, canFail);
+			WriteCall(ctx, rustName, canFail, canFail);
 			ctx.Writer.WriteLine("}");
 		}
 
@@ -346,18 +276,11 @@ namespace Generator.Encoder.RustJS {
 			GenerateMethod(writer, method, ctx => GenCreateDeclareDataSlice(ctx, elemSize, rustName, jsName));
 
 		void GenCreateDeclareDataSlice(GenMethodContext ctx, int elemSize, string rustName, string jsName) {
-			// &[u64] isn't supported if bigint feature is disabled
-			if (elemSize == 8) {
-				if (ctx.Attribute is not null)
-					throw new InvalidOperationException();
-				ctx.Attribute = RustConstants.FeatureBigInt;
-			}
-
 			const bool canFail = true;
 			ctx.Writer.WriteLine();
 			WriteDocs(ctx, () => WriteDataThrows(ctx, $"is not 1-{16 / elemSize}"));
 			WriteMethod(ctx, rustName, jsName, canFail);
-			WriteCall(ctx, rustName, canFail);
+			WriteCall(ctx, rustName, canFail, false);
 			ctx.Writer.WriteLine("}");
 		}
 

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 const {
 	CC_a, CC_ae, CC_b, CC_be, CC_e, CC_g, CC_ge, CC_l, CC_le, CC_ne, CC_np, CC_p,
@@ -36,12 +16,12 @@ test("Default gas formatter options", () => {
 	expect(formatter.binaryDigitGroupSize).toBe(4);
 	expect(formatter.binaryPrefix).toBe("0b");
 	expect(formatter.binarySuffix).toBe("");
-	expect(formatter.branchLeadingZeroes).toBe(true);
+	expect(formatter.branchLeadingZeros).toBe(true);
 	expect(formatter.decimalDigitGroupSize).toBe(3);
 	expect(formatter.decimalPrefix).toBe("");
 	expect(formatter.decimalSuffix).toBe("");
 	expect(formatter.digitSeparator).toBe("");
-	expect(formatter.displacementLeadingZeroes).toBe(false);
+	expect(formatter.displacementLeadingZeros).toBe(false);
 	expect(formatter.firstOperandCharIndex).toBe(0);
 	expect(formatter.gasNakedRegisters).toBe(false);
 	expect(formatter.gasShowMnemonicSizeSuffix).toBe(false);
@@ -49,7 +29,7 @@ test("Default gas formatter options", () => {
 	expect(formatter.hexDigitGroupSize).toBe(4);
 	expect(formatter.hexPrefix).toBe("0x");
 	expect(formatter.hexSuffix).toBe("");
-	expect(formatter.leadingZeroes).toBe(false);
+	expect(formatter.leadingZeros).toBe(false);
 	expect(formatter.masmAddDsPrefix32).toBe(true);
 	expect(formatter.masmDisplInBrackets).toBe(true);
 	expect(formatter.masmSymbolDisplInBrackets).toBe(true);
@@ -107,12 +87,12 @@ test("Default Intel formatter options", () => {
 	expect(formatter.binaryDigitGroupSize).toBe(4);
 	expect(formatter.binaryPrefix).toBe("");
 	expect(formatter.binarySuffix).toBe("b");
-	expect(formatter.branchLeadingZeroes).toBe(true);
+	expect(formatter.branchLeadingZeros).toBe(true);
 	expect(formatter.decimalDigitGroupSize).toBe(3);
 	expect(formatter.decimalPrefix).toBe("");
 	expect(formatter.decimalSuffix).toBe("");
 	expect(formatter.digitSeparator).toBe("");
-	expect(formatter.displacementLeadingZeroes).toBe(false);
+	expect(formatter.displacementLeadingZeros).toBe(false);
 	expect(formatter.firstOperandCharIndex).toBe(0);
 	expect(formatter.gasNakedRegisters).toBe(false);
 	expect(formatter.gasShowMnemonicSizeSuffix).toBe(false);
@@ -120,7 +100,7 @@ test("Default Intel formatter options", () => {
 	expect(formatter.hexDigitGroupSize).toBe(4);
 	expect(formatter.hexPrefix).toBe("");
 	expect(formatter.hexSuffix).toBe("h");
-	expect(formatter.leadingZeroes).toBe(false);
+	expect(formatter.leadingZeros).toBe(false);
 	expect(formatter.masmAddDsPrefix32).toBe(true);
 	expect(formatter.masmDisplInBrackets).toBe(true);
 	expect(formatter.masmSymbolDisplInBrackets).toBe(true);
@@ -178,12 +158,12 @@ test("Default masm formatter options", () => {
 	expect(formatter.binaryDigitGroupSize).toBe(4);
 	expect(formatter.binaryPrefix).toBe("");
 	expect(formatter.binarySuffix).toBe("b");
-	expect(formatter.branchLeadingZeroes).toBe(true);
+	expect(formatter.branchLeadingZeros).toBe(true);
 	expect(formatter.decimalDigitGroupSize).toBe(3);
 	expect(formatter.decimalPrefix).toBe("");
 	expect(formatter.decimalSuffix).toBe("");
 	expect(formatter.digitSeparator).toBe("");
-	expect(formatter.displacementLeadingZeroes).toBe(false);
+	expect(formatter.displacementLeadingZeros).toBe(false);
 	expect(formatter.firstOperandCharIndex).toBe(0);
 	expect(formatter.gasNakedRegisters).toBe(false);
 	expect(formatter.gasShowMnemonicSizeSuffix).toBe(false);
@@ -191,7 +171,7 @@ test("Default masm formatter options", () => {
 	expect(formatter.hexDigitGroupSize).toBe(4);
 	expect(formatter.hexPrefix).toBe("");
 	expect(formatter.hexSuffix).toBe("h");
-	expect(formatter.leadingZeroes).toBe(false);
+	expect(formatter.leadingZeros).toBe(false);
 	expect(formatter.masmAddDsPrefix32).toBe(true);
 	expect(formatter.masmDisplInBrackets).toBe(true);
 	expect(formatter.masmSymbolDisplInBrackets).toBe(true);
@@ -249,12 +229,12 @@ test("Default nasm formatter options", () => {
 	expect(formatter.binaryDigitGroupSize).toBe(4);
 	expect(formatter.binaryPrefix).toBe("");
 	expect(formatter.binarySuffix).toBe("b");
-	expect(formatter.branchLeadingZeroes).toBe(true);
+	expect(formatter.branchLeadingZeros).toBe(true);
 	expect(formatter.decimalDigitGroupSize).toBe(3);
 	expect(formatter.decimalPrefix).toBe("");
 	expect(formatter.decimalSuffix).toBe("");
 	expect(formatter.digitSeparator).toBe("");
-	expect(formatter.displacementLeadingZeroes).toBe(false);
+	expect(formatter.displacementLeadingZeros).toBe(false);
 	expect(formatter.firstOperandCharIndex).toBe(0);
 	expect(formatter.gasNakedRegisters).toBe(false);
 	expect(formatter.gasShowMnemonicSizeSuffix).toBe(false);
@@ -262,7 +242,7 @@ test("Default nasm formatter options", () => {
 	expect(formatter.hexDigitGroupSize).toBe(4);
 	expect(formatter.hexPrefix).toBe("");
 	expect(formatter.hexSuffix).toBe("h");
-	expect(formatter.leadingZeroes).toBe(false);
+	expect(formatter.leadingZeros).toBe(false);
 	expect(formatter.masmAddDsPrefix32).toBe(true);
 	expect(formatter.masmDisplInBrackets).toBe(true);
 	expect(formatter.masmSymbolDisplInBrackets).toBe(true);
@@ -349,11 +329,11 @@ test("Format instruction: gas", () => {
 	expect(formatter.formatI8(-0x10)).toBe("-0x10");
 	expect(formatter.formatI16(-0x10)).toBe("-0x10");
 	expect(formatter.formatI32(-0x10)).toBe("-0x10");
-	expect(formatter.formatI64(0xFFFFFFFF, 0xFFFFFFF0)).toBe("-0x10");
+	expect(formatter.formatI64(0xFFFFFFFFFFFFFFF0n)).toBe("-0x10");
 	expect(formatter.formatU8(0x5A)).toBe("0x5A");
 	expect(formatter.formatU16(0x5A)).toBe("0x5A");
 	expect(formatter.formatU32(0x5A)).toBe("0x5A");
-	expect(formatter.formatU64(0x12345678, 0x9ABCDEF1)).toBe("0x123456789ABCDEF1");
+	expect(formatter.formatU64(0x123456789ABCDEF1n)).toBe("0x123456789ABCDEF1");
 
 	instr.free();
 	instr2.free();
@@ -399,11 +379,11 @@ test("Format instruction: Intel", () => {
 	expect(formatter.formatI8(-0x10)).toBe("-10h");
 	expect(formatter.formatI16(-0x10)).toBe("-10h");
 	expect(formatter.formatI32(-0x10)).toBe("-10h");
-	expect(formatter.formatI64(0xFFFFFFFF, 0xFFFFFFF0)).toBe("-10h");
+	expect(formatter.formatI64(0xFFFFFFFFFFFFFFF0n)).toBe("-10h");
 	expect(formatter.formatU8(0x5A)).toBe("5Ah");
 	expect(formatter.formatU16(0x5A)).toBe("5Ah");
 	expect(formatter.formatU32(0x5A)).toBe("5Ah");
-	expect(formatter.formatU64(0x12345678, 0x9ABCDEF1)).toBe("123456789ABCDEF1h");
+	expect(formatter.formatU64(0x123456789ABCDEF1n)).toBe("123456789ABCDEF1h");
 
 	instr.free();
 	instr2.free();
@@ -449,11 +429,11 @@ test("Format instruction: masm", () => {
 	expect(formatter.formatI8(-0x10)).toBe("-10h");
 	expect(formatter.formatI16(-0x10)).toBe("-10h");
 	expect(formatter.formatI32(-0x10)).toBe("-10h");
-	expect(formatter.formatI64(0xFFFFFFFF, 0xFFFFFFF0)).toBe("-10h");
+	expect(formatter.formatI64(0xFFFFFFFFFFFFFFF0n)).toBe("-10h");
 	expect(formatter.formatU8(0x5A)).toBe("5Ah");
 	expect(formatter.formatU16(0x5A)).toBe("5Ah");
 	expect(formatter.formatU32(0x5A)).toBe("5Ah");
-	expect(formatter.formatU64(0x12345678, 0x9ABCDEF1)).toBe("123456789ABCDEF1h");
+	expect(formatter.formatU64(0x123456789ABCDEF1n)).toBe("123456789ABCDEF1h");
 
 	instr.free();
 	instr2.free();
@@ -499,11 +479,11 @@ test("Format instruction: nasm", () => {
 	expect(formatter.formatI8(-0x10)).toBe("-10h");
 	expect(formatter.formatI16(-0x10)).toBe("-10h");
 	expect(formatter.formatI32(-0x10)).toBe("-10h");
-	expect(formatter.formatI64(0xFFFFFFFF, 0xFFFFFFF0)).toBe("-10h");
+	expect(formatter.formatI64(0xFFFFFFFFFFFFFFF0n)).toBe("-10h");
 	expect(formatter.formatU8(0x5A)).toBe("5Ah");
 	expect(formatter.formatU16(0x5A)).toBe("5Ah");
 	expect(formatter.formatU32(0x5A)).toBe("5Ah");
-	expect(formatter.formatU64(0x12345678, 0x9ABCDEF1)).toBe("123456789ABCDEF1h");
+	expect(formatter.formatU64(0x123456789ABCDEF1n)).toBe("123456789ABCDEF1h");
 
 	instr.free();
 	instr2.free();

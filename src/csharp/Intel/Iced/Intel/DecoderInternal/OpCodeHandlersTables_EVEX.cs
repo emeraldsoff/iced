@@ -1,40 +1,24 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if DECODER && !NO_EVEX
 namespace Iced.Intel.DecoderInternal {
 	static partial class OpCodeHandlersTables_EVEX {
-		internal static readonly OpCodeHandler[] ThreeByteHandlers_0F38XX;
-		internal static readonly OpCodeHandler[] ThreeByteHandlers_0F3AXX;
-		internal static readonly OpCodeHandler[] TwoByteHandlers_0FXX;
+		internal static readonly OpCodeHandler[] Handlers_0F;
+		internal static readonly OpCodeHandler[] Handlers_0F38;
+		internal static readonly OpCodeHandler[] Handlers_0F3A;
+		internal static readonly OpCodeHandler[] Handlers_MAP5;
+		internal static readonly OpCodeHandler[] Handlers_MAP6;
 
 		static OpCodeHandlersTables_EVEX() {
 			var handlerReader = new EvexOpCodeHandlerReader();
 			var deserializer = new TableDeserializer(handlerReader, MaxIdNames, GetSerializedTables());
 			deserializer.Deserialize();
-			ThreeByteHandlers_0F38XX = deserializer.GetTable(ThreeByteHandlers_0F38XXIndex);
-			ThreeByteHandlers_0F3AXX = deserializer.GetTable(ThreeByteHandlers_0F3AXXIndex);
-			TwoByteHandlers_0FXX = deserializer.GetTable(TwoByteHandlers_0FXXIndex);
+			Handlers_0F = deserializer.GetTable(Handlers_0FIndex);
+			Handlers_0F38 = deserializer.GetTable(Handlers_0F38Index);
+			Handlers_0F3A = deserializer.GetTable(Handlers_0F3AIndex);
+			Handlers_MAP5 = deserializer.GetTable(Handlers_MAP5Index);
+			Handlers_MAP6 = deserializer.GetTable(Handlers_MAP6Index);
 		}
 	}
 }

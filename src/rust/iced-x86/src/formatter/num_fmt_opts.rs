@@ -1,28 +1,8 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::*;
-use core::{cmp, u32};
+use crate::formatter::*;
+use core::cmp;
 
 /// Gets initialized with the default options and can be overridden by a [`FormatterOptionsProvider`]
 ///
@@ -39,18 +19,18 @@ pub struct NumberFormattingOptions<'a> {
 	pub digit_group_size: u8,
 	/// Number base
 	pub number_base: NumberBase,
-	/// Use upper case hex digits
+	/// Use uppercase hex digits
 	pub uppercase_hex: bool,
 	/// Small hex numbers (-9 .. 9) are shown in decimal
 	pub small_hex_numbers_in_decimal: bool,
 	/// Add a leading zero to hex numbers if there's no prefix and the number starts with hex digits `A-F`
 	pub add_leading_zero_to_hex_numbers: bool,
-	/// If `true`, add leading zeroes to numbers, eg. `1h` vs `00000001h`
-	pub leading_zeroes: bool,
+	/// If `true`, add leading zeros to numbers, eg. `1h` vs `00000001h`
+	pub leading_zeros: bool,
 	/// If `true`, the number is signed, and if `false` it's an unsigned number
 	pub signed_number: bool,
-	/// Add leading zeroes to displacements
-	pub displacement_leading_zeroes: bool,
+	/// Add leading zeros to displacements
+	pub displacement_leading_zeros: bool,
 }
 
 impl<'a> NumberFormattingOptions<'a> {
@@ -62,7 +42,7 @@ impl<'a> NumberFormattingOptions<'a> {
 	#[inline]
 	#[must_use]
 	pub fn with_immediate(options: &'a FormatterOptions) -> Self {
-		NumberFormattingOptions::new(options, options.leading_zeroes(), options.signed_immediate_operands(), false)
+		NumberFormattingOptions::new(options, options.leading_zeros(), options.signed_immediate_operands(), false)
 	}
 
 	/// Creates options used when formatting displacements
@@ -73,7 +53,7 @@ impl<'a> NumberFormattingOptions<'a> {
 	#[inline]
 	#[must_use]
 	pub fn with_displacement(options: &'a FormatterOptions) -> Self {
-		NumberFormattingOptions::new(options, options.leading_zeroes(), options.signed_memory_displacements(), options.displacement_leading_zeroes())
+		NumberFormattingOptions::new(options, options.leading_zeros(), options.signed_memory_displacements(), options.displacement_leading_zeros())
 	}
 
 	/// Creates options used when formatting branch operands
@@ -84,7 +64,7 @@ impl<'a> NumberFormattingOptions<'a> {
 	#[inline]
 	#[must_use]
 	pub fn with_branch(options: &'a FormatterOptions) -> Self {
-		NumberFormattingOptions::new(options, options.branch_leading_zeroes(), false, false)
+		NumberFormattingOptions::new(options, options.branch_leading_zeros(), false, false)
 	}
 
 	/// Constructor
@@ -92,13 +72,13 @@ impl<'a> NumberFormattingOptions<'a> {
 	/// # Arguments
 	///
 	/// * `options`: Formatter options to use
-	/// * `leading_zeroes`: Add leading zeroes to numbers, eg. `1h` vs `00000001h`
+	/// * `leading_zeros`: Add leading zeros to numbers, eg. `1h` vs `00000001h`
 	/// * `signed_number`: Signed numbers if `true`, and unsigned numbers if `false`
-	/// * `displacement_leading_zeroes`: Add leading zeroes to displacements
+	/// * `displacement_leading_zeros`: Add leading zeros to displacements
 	#[inline]
 	#[must_use]
 	#[allow(clippy::missing_inline_in_public_items)]
-	pub fn new(options: &'a FormatterOptions, leading_zeroes: bool, signed_number: bool, displacement_leading_zeroes: bool) -> Self {
+	pub fn new(options: &'a FormatterOptions, leading_zeros: bool, signed_number: bool, displacement_leading_zeros: bool) -> Self {
 		let (digit_group_size, prefix, suffix) = match options.number_base() {
 			NumberBase::Hexadecimal => (options.hex_digit_group_size(), options.hex_prefix(), options.hex_suffix()),
 			NumberBase::Decimal => (options.decimal_digit_group_size(), options.decimal_prefix(), options.decimal_suffix()),
@@ -114,9 +94,9 @@ impl<'a> NumberFormattingOptions<'a> {
 			uppercase_hex: options.uppercase_hex(),
 			small_hex_numbers_in_decimal: options.small_hex_numbers_in_decimal(),
 			add_leading_zero_to_hex_numbers: options.add_leading_zero_to_hex_numbers(),
-			leading_zeroes,
+			leading_zeros,
 			signed_number,
-			displacement_leading_zeroes,
+			displacement_leading_zeros,
 		}
 	}
 }

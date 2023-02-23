@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using Generator.Enums;
@@ -77,8 +57,8 @@ namespace Generator.Tables {
 
 	sealed class ImplAccCondition : IEquatable<ImplAccCondition?> {
 		public readonly ImplAccConditionKind Kind;
-		public readonly List<ImplAccStatement> TrueStatements = new List<ImplAccStatement>();
-		public readonly List<ImplAccStatement> FalseStatements = new List<ImplAccStatement>();
+		public readonly List<ImplAccStatement> TrueStatements = new();
+		public readonly List<ImplAccStatement> FalseStatements = new();
 		public ImplAccCondition(ImplAccConditionKind kind) => Kind = kind;
 
 		public override bool Equals(object? obj) => Equals(obj as ImplAccCondition);
@@ -233,6 +213,7 @@ namespace Generator.Tables {
 		Scas,
 		Stos,
 		Xstore,
+		MemDispl,
 	}
 
 	abstract class ImplAccStatement : IEquatable<ImplAccStatement> {
@@ -465,7 +446,7 @@ namespace Generator.Tables {
 
 		ImpliedAccessesDef AddHardCodedValue(string enumValueName, ImpliedAccesses accesses) {
 			usedEnumNames.Add(enumValueName);
-			var enumValue = new EnumValue(0, enumValueName, null);
+			var enumValue = new EnumValue(0, enumValueName, default);
 			var def = new ImpliedAccessesDef(accesses, enumValue);
 			hardCodedDefs.Add(def);
 			toDef.Add(accesses, def);
@@ -479,7 +460,7 @@ namespace Generator.Tables {
 				return def;
 
 			var name = GetEnumName(accesses);
-			var enumValue = new EnumValue(0, name, null);
+			var enumValue = new EnumValue(0, name, default);
 			def = new ImpliedAccessesDef(accesses, enumValue);
 			toDef.Add(accesses, def);
 			otherDefs.Add(def);
@@ -602,6 +583,13 @@ namespace Generator.Tables {
 					arg1 = (IntArgImplAccStatement)stmt;
 					sb.Append($"xstore{arg1.Arg}");
 					break;
+				case ImplAccStatementKind.MemDispl:
+					arg1 = (IntArgImplAccStatement)stmt;
+					if ((int)arg1.Arg < 0)
+						sb.Append($"memdisplm{-(int)arg1.Arg}");
+					else
+						sb.Append($"memdisplp{(int)arg1.Arg}");
+					break;
 				case ImplAccStatementKind.ShiftMask1FMod:
 					arg1 = (IntArgImplAccStatement)stmt;
 					sb.Append($"sm1Fm{arg1.Arg}");
@@ -680,7 +668,7 @@ namespace Generator.Tables {
 			var values = new List<ImpliedAccessesDef>(hardCodedDefs.Count + otherDefs.Count);
 			values.AddRange(hardCodedDefs);
 			values.AddRange(otherDefs);
-			return (new EnumType(TypeIds.ImpliedAccess, null, values.Select(a => a.EnumValue).ToArray(), EnumTypeFlags.None), values.ToArray());
+			return (new EnumType(TypeIds.ImpliedAccess, default, values.Select(a => a.EnumValue).ToArray(), EnumTypeFlags.None), values.ToArray());
 		}
 	}
 }

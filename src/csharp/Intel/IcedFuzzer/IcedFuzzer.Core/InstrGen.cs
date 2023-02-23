@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -34,6 +14,7 @@ namespace IcedFuzzer.Core {
 		public readonly List<FuzzerOpCode> VEX = new List<FuzzerOpCode>();
 		public readonly List<FuzzerOpCode> XOP = new List<FuzzerOpCode>();
 		public readonly List<FuzzerOpCode> EVEX = new List<FuzzerOpCode>();
+		public readonly List<FuzzerOpCode> MVEX = new List<FuzzerOpCode>();
 
 		public IEnumerable<(EncodingKind encoding, List<FuzzerOpCode> opCodes)> GetOpCodeGroups() {
 			yield return (EncodingKind.Legacy, Legacy);
@@ -41,6 +22,7 @@ namespace IcedFuzzer.Core {
 			yield return (EncodingKind.VEX, VEX);
 			yield return (EncodingKind.XOP, XOP);
 			yield return (EncodingKind.EVEX, EVEX);
+			yield return (EncodingKind.MVEX, MVEX);
 		}
 	}
 
@@ -51,6 +33,7 @@ namespace IcedFuzzer.Core {
 		NoXOP				= 0x00000004,
 		NoEVEX				= 0x00000008,
 		No3DNow				= 0x00000010,
+		NoMVEX				= 0x00000020,
 	}
 
 	public static class InstrGen {
@@ -134,9 +117,11 @@ namespace IcedFuzzer.Core {
 			if ((genFlags & InstrGenFlags.NoVEX) == 0) {
 				for (int i = 0; i < 2; i++) {
 					bool isModrmMemory = i != 0;
-					var (start, end) = (genFlags & InstrGenFlags.UnusedTables) != 0 ? (0, 0x1F) : (1, 3);
-					for (int table = start; table <= end; table++)
-						vex.Add(new OpCodeKey(new FuzzerOpCodeTable(EncodingKind.VEX, table), isModrmMemory), CreateOpCodes(isModrmMemory));
+					for (int table = 0; table < 0x20; table++) {
+						bool usedTable = table == 1 || table == 2 || table == 3 || (table == 0 && (genFlags & InstrGenFlags.NoMVEX) == 0);
+						if (usedTable || (genFlags & InstrGenFlags.UnusedTables) != 0)
+							vex.Add(new OpCodeKey(new FuzzerOpCodeTable(EncodingKind.VEX, table), isModrmMemory), CreateOpCodes(isModrmMemory));
+					}
 				}
 			}
 
@@ -144,9 +129,11 @@ namespace IcedFuzzer.Core {
 			if ((genFlags & InstrGenFlags.NoXOP) == 0) {
 				for (int i = 0; i < 2; i++) {
 					bool isModrmMemory = i != 0;
-					var (start, end) = (genFlags & InstrGenFlags.UnusedTables) != 0 ? (0, 0x1F) : (8, 0xA);
-					for (int table = start; table <= end; table++)
-						xop.Add(new OpCodeKey(new FuzzerOpCodeTable(EncodingKind.XOP, table), isModrmMemory), CreateOpCodes(isModrmMemory));
+					for (int table = 0; table < 0x20; table++) {
+						bool usedTable = table == 8 || table == 9 || table == 10;
+						if (usedTable || (genFlags & InstrGenFlags.UnusedTables) != 0)
+							xop.Add(new OpCodeKey(new FuzzerOpCodeTable(EncodingKind.XOP, table), isModrmMemory), CreateOpCodes(isModrmMemory));
+					}
 				}
 			}
 
@@ -154,10 +141,16 @@ namespace IcedFuzzer.Core {
 			if ((genFlags & InstrGenFlags.NoEVEX) == 0) {
 				for (int i = 0; i < 2; i++) {
 					bool isModrmMemory = i != 0;
-					var (start, end) = (genFlags & InstrGenFlags.UnusedTables) != 0 ? (0, 3) : (1, 3);
-					for (int table = start; table <= end; table++)
-						evex.Add(new OpCodeKey(new FuzzerOpCodeTable(EncodingKind.EVEX, table), isModrmMemory), CreateOpCodes(isModrmMemory));
+					for (int table = 0; table < 8; table++) {
+						bool usedTable = table == 1 || table == 2 || table == 3 || table == 5 || table == 6;
+						if (usedTable || (genFlags & InstrGenFlags.UnusedTables) != 0)
+							evex.Add(new OpCodeKey(new FuzzerOpCodeTable(EncodingKind.EVEX, table), isModrmMemory), CreateOpCodes(isModrmMemory));
+					}
 				}
+			}
+
+			if ((genFlags & InstrGenFlags.NoMVEX) == 0) {
+				throw new NotImplementedException();
 			}
 
 			foreach (var (hasModrm, instr) in GetInstructions(bitness, opCodes)) {
@@ -206,6 +199,9 @@ namespace IcedFuzzer.Core {
 					var d3nowInstrs = d3now[key];
 					d3nowInstrs[byteOpCode].Add(hasModrm, instr);
 					break;
+
+				case EncodingKind.MVEX:
+					throw new NotImplementedException();
 
 				default:
 					throw ThrowHelpers.Unreachable;
@@ -527,7 +523,7 @@ namespace IcedFuzzer.Core {
 			Assert.True(flags.Length == 0x40);
 
 			bool xopCheck = false;
-			// Check if it's a prefix or a disabled VEX/XOP/EVEX/3DNow instruction
+			// Check if it's a prefix or a disabled VEX/XOP/EVEX/MVEX/3DNow instruction
 			if (table.TableIndex == 0) {
 				switch (opCode) {
 				case 0x0F:
@@ -1147,6 +1143,8 @@ namespace IcedFuzzer.Core {
 					}
 					if (instr.AddressSize != 0 && instr.AddressSize != bitness)
 						fflags |= FuzzerInstructionFlags.DontUsePrefix67;
+					if (instr.RequiresAddressSize32 && instr.AddressSize == 32)
+						fflags |= FuzzerInstructionFlags.DontUsePrefix67;
 				}
 				info.SetInstructionFlags(prefix, fflags);
 				if ((fflags & FuzzerInstructionFlags.DontUsePrefixREXW) == 0) {
@@ -1206,7 +1204,8 @@ namespace IcedFuzzer.Core {
 		};
 		// Returns all combinations of mandatory prefix, W, L. If it's a group, also modrm.reg=0-7, modrm.rm=0-7 and/or modrm=C0-FFh.
 		static IEnumerable<FuzzerInstruction> GetVecInstructions(FuzzerOpCodeTable table, byte opCode, List<FuzzerInstruction> instructions, bool isModrmMemory) {
-			Assert.True(table.Encoding == EncodingKind.VEX || table.Encoding == EncodingKind.XOP || table.Encoding == EncodingKind.EVEX);
+			Assert.True(table.Encoding == EncodingKind.VEX || table.Encoding == EncodingKind.XOP ||
+				table.Encoding == EncodingKind.EVEX || table.Encoding == EncodingKind.MVEX);
 			const int L_er_or_sae = 2;
 
 			Func<uint, uint, int> getKeyIndex;
@@ -1227,6 +1226,8 @@ namespace IcedFuzzer.Core {
 					return (int)l + (int)w * 4;
 				};
 				break;
+			case EncodingKind.MVEX:
+				throw new NotImplementedException();
 			default:
 				throw ThrowHelpers.Unreachable;
 			}
@@ -1522,11 +1523,32 @@ namespace IcedFuzzer.Core {
 			return false;
 		}
 
-		static bool IsSETcc(Code code) =>
+		static bool IgnoresModRmRegBits(Code code) =>
 			code switch {
 				Code.Seto_rm8 or Code.Setno_rm8 or Code.Setb_rm8 or Code.Setae_rm8 or Code.Sete_rm8 or Code.Setne_rm8 or Code.Setbe_rm8 or
 				Code.Seta_rm8 or Code.Sets_rm8 or Code.Setns_rm8 or Code.Setp_rm8 or Code.Setnp_rm8 or Code.Setl_rm8 or Code.Setge_rm8 or
 				Code.Setle_rm8 or Code.Setg_rm8 => true,
+				_ => false,
+			};
+
+		static bool IgnoresModRmLow3Bits(Code code) =>
+			code switch {
+				Code.Montmul_16 or Code.Montmul_32 or Code.Montmul_64 or
+				Code.Xsha1_16 or Code.Xsha1_32 or Code.Xsha1_64 or
+				Code.Xsha256_16 or Code.Xsha256_32 or Code.Xsha256_64 or
+				Code.Xsha512_16 or Code.Xsha512_32 or Code.Xsha512_64 or
+				Code.Xsha512_alt_16 or Code.Xsha512_alt_32 or Code.Xsha512_alt_64 or
+				Code.Xstore_16 or Code.Xstore_32 or Code.Xstore_64 or
+				Code.Xcryptecb_16 or Code.Xcryptecb_32 or Code.Xcryptecb_64 or
+				Code.Xcryptcbc_16 or Code.Xcryptcbc_32 or Code.Xcryptcbc_64 or
+				Code.Xcryptctr_16 or Code.Xcryptctr_32 or Code.Xcryptctr_64 or
+				Code.Xcryptcfb_16 or Code.Xcryptcfb_32 or Code.Xcryptcfb_64 or
+				Code.Xcryptofb_16 or Code.Xcryptofb_32 or Code.Xcryptofb_64 or
+				Code.Xstore_alt_16 or Code.Xstore_alt_32 or Code.Xstore_alt_64 or
+				Code.Ccs_hash_16 or Code.Ccs_hash_32 or Code.Ccs_hash_64 or
+				Code.Via_undoc_F30FA6F0_16 or Code.Via_undoc_F30FA6F0_32 or Code.Via_undoc_F30FA6F0_64 or
+				Code.Via_undoc_F30FA6F8_16 or Code.Via_undoc_F30FA6F8_32 or Code.Via_undoc_F30FA6F8_64 or
+				Code.Ccs_encrypt_16 or Code.Ccs_encrypt_32 or Code.Ccs_encrypt_64 => true,
 				_ => false,
 			};
 
@@ -1535,9 +1557,18 @@ namespace IcedFuzzer.Core {
 			// one with reg only ops and the other one with reg+mem ops, eg. `add r16,rm16`
 			// becomes `add r16,m16` and `add r16,r16`.
 			foreach (var opCode in opCodes) {
-				if (IsSETcc(opCode.Code)) {
+				if (IgnoresModRmRegBits(opCode.Code)) {
+					Assert.True(opCode.GroupIndex == -1);
 					for (int i = 0; i < 8; i++) {
 						foreach (var info in GetInstructions(bitness, opCode, opCode.MandatoryPrefix, i))
+							yield return info;
+					}
+				}
+				else if (IgnoresModRmLow3Bits(opCode.Code)) {
+					for (int i = 0; i < 8; i++) {
+						Assert.True((opCode.OpCode & 7) == 0);
+						var realOpCode = OpCode.CreateFromUInt32(opCode.OpCode + (uint)i, opCode.OpCodeLength);
+						foreach (var info in GetInstructions(bitness, opCode, opCode.MandatoryPrefix, opCode.GroupIndex, realOpCode))
 							yield return info;
 					}
 				}
@@ -1548,13 +1579,13 @@ namespace IcedFuzzer.Core {
 			}
 		}
 
-		static IEnumerable<(bool hasModrm, FuzzerInstruction)> GetInstructions(int bitness, OpCodeInfo opCode, MandatoryPrefix mandatoryPrefix, int groupIndex) {
+		static IEnumerable<(bool hasModrm, FuzzerInstruction)> GetInstructions(int bitness, OpCodeInfo opCode, MandatoryPrefix mandatoryPrefix, int groupIndex, OpCode? realOpCode = null) {
 			var (hasModrm, kind) = HasModRmWithRegAndMemOps(opCode);
 			foreach (var (w, l) in GetLW(bitness, opCode)) {
 				if (kind == ModrmMemoryKind.Mem || kind == ModrmMemoryKind.RegOrMem)
-					yield return (hasModrm, FuzzerInstruction.CreateValid(opCode.Code, isModrmMemory: true, w, l, mandatoryPrefix, groupIndex));
+					yield return (hasModrm, FuzzerInstruction.CreateValid(opCode.Code, isModrmMemory: true, w, l, mandatoryPrefix, groupIndex, realOpCode));
 				if (kind == ModrmMemoryKind.Other || kind == ModrmMemoryKind.RegOrMem)
-					yield return (hasModrm, FuzzerInstruction.CreateValid(opCode.Code, isModrmMemory: false, w, l, mandatoryPrefix, groupIndex));
+					yield return (hasModrm, FuzzerInstruction.CreateValid(opCode.Code, isModrmMemory: false, w, l, mandatoryPrefix, groupIndex, realOpCode));
 			}
 		}
 
@@ -1588,6 +1619,8 @@ namespace IcedFuzzer.Core {
 				else
 					(w_lo, w_hi) = (opCode.W, opCode.W + 1);
 				break;
+			case EncodingKind.MVEX:
+				throw new NotImplementedException();
 			default:
 				throw ThrowHelpers.Unreachable;
 			}

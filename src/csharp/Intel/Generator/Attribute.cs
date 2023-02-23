@@ -1,27 +1,8 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
+using System.Collections.Generic;
 using System.Reflection;
 
 namespace Generator {
@@ -29,14 +10,18 @@ namespace Generator {
 	sealed class DeprecatedAttribute : Attribute {
 		public string Version { get; }
 		public string? NewName { get; }
-		public DeprecatedAttribute(string version, string? newName) {
+		public string? Description { get; }
+		public bool IsError { get; }
+		public DeprecatedAttribute(string version, string? newName, string? description = null, bool isError = true) {
 			Version = version;
 			NewName = newName;
+			Description = description;
+			IsError = isError;
 		}
 
 		public static DeprecatedInfo GetDeprecatedInfo(MemberInfo member) {
 			if (member.GetCustomAttribute(typeof(DeprecatedAttribute)) is DeprecatedAttribute ca)
-				return new DeprecatedInfo(ca.Version, ca.NewName);
+				return new DeprecatedInfo(ca.Version, ca.NewName, ca.Description, ca.IsError);
 			return default;
 		}
 	}
@@ -48,20 +33,46 @@ namespace Generator {
 		public readonly Version Version;
 		public readonly string VersionStr;
 		public readonly string? NewName;
-		public DeprecatedInfo(string version, string? newName) {
+		public readonly string? Description;
+		public readonly bool IsError;
+		public DeprecatedInfo(string version, string? newName, string? description, bool isError) {
 			Version = new Version(version);
 			VersionStr = version;
 			NewName = newName;
+			Description = description;
+			IsError = isError;
 		}
 	}
 
 	[AttributeUsage(AttributeTargets.All)]
 	sealed class CommentAttribute : Attribute {
 		public string Comment { get; }
+		public string? CSharp { get; set; }
+		public string? Rust { get; set; }
+		public string? RustJS { get; set; }
+		public string? Python { get; set; }
+		public string? Lua { get; set; }
+		public string? Java { get; set; }
 		public CommentAttribute(string comment) => Comment = comment ?? throw new InvalidOperationException();
 
-		public static string? GetDocumentation(MemberInfo member) =>
-			((CommentAttribute?)member.GetCustomAttribute(typeof(CommentAttribute)))?.Comment;
+		public static LanguageDocumentation GetDocumentation(MemberInfo member) {
+			if (member.GetCustomAttribute<CommentAttribute>() is not CommentAttribute attr)
+				return default;
+			var langComments = new List<(TargetLanguage language, string comment)>();
+			if (attr.CSharp is string csharpComment)
+				langComments.Add((TargetLanguage.CSharp, csharpComment));
+			if (attr.Rust is string rustComment)
+				langComments.Add((TargetLanguage.Rust, rustComment));
+			if (attr.RustJS is string rustJSComment)
+				langComments.Add((TargetLanguage.RustJS, rustJSComment));
+			if (attr.Python is string pythonComment)
+				langComments.Add((TargetLanguage.Python, pythonComment));
+			if (attr.Lua is string luaComment)
+				langComments.Add((TargetLanguage.Lua, luaComment));
+			if (attr.Java is string javaComment)
+				langComments.Add((TargetLanguage.Java, javaComment));
+			return new(attr.Comment, langComments.Count == 0 ? Array.Empty<(TargetLanguage language, string comment)>() : langComments.ToArray());
+		}
 	}
 
 	[AttributeUsage(AttributeTargets.Enum)]
@@ -82,6 +93,8 @@ namespace Generator {
 			Name = name;
 			TypeId = new TypeId(typeId);
 		}
+
+		public LanguageDocumentation GetDocumentation() => new(Documentation);
 	}
 
 	static class TypeGenOrders {

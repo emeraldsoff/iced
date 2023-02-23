@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER
 using System;
@@ -228,15 +208,15 @@ namespace Iced.Intel {
 				Debug.Assert(repPrefix == RepPrefixKind.None);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			if (addressSize == 64)
-				instruction.InternalOp1Kind = OpKind.MemorySegRSI;
+				instruction.Op1Kind = OpKind.MemorySegRSI;
 			else if (addressSize == 32)
-				instruction.InternalOp1Kind = OpKind.MemorySegESI;
+				instruction.Op1Kind = OpKind.MemorySegESI;
 			else if (addressSize == 16)
-				instruction.InternalOp1Kind = OpKind.MemorySegSI;
+				instruction.Op1Kind = OpKind.MemorySegSI;
 			else
 				throw new ArgumentOutOfRangeException(nameof(addressSize));
 
@@ -258,15 +238,15 @@ namespace Iced.Intel {
 				Debug.Assert(repPrefix == RepPrefixKind.None);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			if (addressSize == 64)
-				instruction.InternalOp1Kind = OpKind.MemoryESRDI;
+				instruction.Op1Kind = OpKind.MemoryESRDI;
 			else if (addressSize == 32)
-				instruction.InternalOp1Kind = OpKind.MemoryESEDI;
+				instruction.Op1Kind = OpKind.MemoryESEDI;
 			else if (addressSize == 16)
-				instruction.InternalOp1Kind = OpKind.MemoryESDI;
+				instruction.Op1Kind = OpKind.MemoryESDI;
 			else
 				throw new ArgumentOutOfRangeException(nameof(addressSize));
 
@@ -286,17 +266,17 @@ namespace Iced.Intel {
 				Debug.Assert(repPrefix == RepPrefixKind.None);
 
 			if (addressSize == 64)
-				instruction.InternalOp0Kind = OpKind.MemoryESRDI;
+				instruction.Op0Kind = OpKind.MemoryESRDI;
 			else if (addressSize == 32)
-				instruction.InternalOp0Kind = OpKind.MemoryESEDI;
+				instruction.Op0Kind = OpKind.MemoryESEDI;
 			else if (addressSize == 16)
-				instruction.InternalOp0Kind = OpKind.MemoryESDI;
+				instruction.Op0Kind = OpKind.MemoryESDI;
 			else
 				throw new ArgumentOutOfRangeException(nameof(addressSize));
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register;
 
 			Debug.Assert(instruction.OpCount == 2);
 			return instruction;
@@ -314,16 +294,16 @@ namespace Iced.Intel {
 				Debug.Assert(repPrefix == RepPrefixKind.None);
 
 			if (addressSize == 64) {
-				instruction.InternalOp0Kind = OpKind.MemorySegRSI;
-				instruction.InternalOp1Kind = OpKind.MemoryESRDI;
+				instruction.Op0Kind = OpKind.MemorySegRSI;
+				instruction.Op1Kind = OpKind.MemoryESRDI;
 			}
 			else if (addressSize == 32) {
-				instruction.InternalOp0Kind = OpKind.MemorySegESI;
-				instruction.InternalOp1Kind = OpKind.MemoryESEDI;
+				instruction.Op0Kind = OpKind.MemorySegESI;
+				instruction.Op1Kind = OpKind.MemoryESEDI;
 			}
 			else if (addressSize == 16) {
-				instruction.InternalOp0Kind = OpKind.MemorySegSI;
-				instruction.InternalOp1Kind = OpKind.MemoryESDI;
+				instruction.Op0Kind = OpKind.MemorySegSI;
+				instruction.Op1Kind = OpKind.MemoryESDI;
 			}
 			else
 				throw new ArgumentOutOfRangeException(nameof(addressSize));
@@ -346,16 +326,16 @@ namespace Iced.Intel {
 				Debug.Assert(repPrefix == RepPrefixKind.None);
 
 			if (addressSize == 64) {
-				instruction.InternalOp0Kind = OpKind.MemoryESRDI;
-				instruction.InternalOp1Kind = OpKind.MemorySegRSI;
+				instruction.Op0Kind = OpKind.MemoryESRDI;
+				instruction.Op1Kind = OpKind.MemorySegRSI;
 			}
 			else if (addressSize == 32) {
-				instruction.InternalOp0Kind = OpKind.MemoryESEDI;
-				instruction.InternalOp1Kind = OpKind.MemorySegESI;
+				instruction.Op0Kind = OpKind.MemoryESEDI;
+				instruction.Op1Kind = OpKind.MemorySegESI;
 			}
 			else if (addressSize == 16) {
-				instruction.InternalOp0Kind = OpKind.MemoryESDI;
-				instruction.InternalOp1Kind = OpKind.MemorySegSI;
+				instruction.Op0Kind = OpKind.MemoryESDI;
+				instruction.Op1Kind = OpKind.MemorySegSI;
 			}
 			else
 				throw new ArgumentOutOfRangeException(nameof(addressSize));
@@ -371,21 +351,21 @@ namespace Iced.Intel {
 			instruction.Code = code;
 
 			if (addressSize == 64)
-				instruction.InternalOp0Kind = OpKind.MemorySegRDI;
+				instruction.Op0Kind = OpKind.MemorySegRDI;
 			else if (addressSize == 32)
-				instruction.InternalOp0Kind = OpKind.MemorySegEDI;
+				instruction.Op0Kind = OpKind.MemorySegEDI;
 			else if (addressSize == 16)
-				instruction.InternalOp0Kind = OpKind.MemorySegDI;
+				instruction.Op0Kind = OpKind.MemorySegDI;
 			else
 				throw new ArgumentOutOfRangeException(nameof(addressSize));
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register1;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register2;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register2;
 
 			instruction.SegmentPrefix = segmentPrefix;
 
@@ -398,11 +378,7 @@ namespace Iced.Intel {
 			instruction.InternalMemoryIndex = memory.Index;
 			instruction.MemoryIndexScale = memory.Scale;
 			instruction.MemoryDisplSize = memory.DisplSize;
-			int addrSize = InstructionUtils.GetAddressSizeInBytes(memory.Base, memory.Index, memory.DisplSize, CodeSize.Unknown);
-			if (addrSize == 8)
-				instruction.MemoryDisplacement64 = (ulong)memory.Displacement;
-			else
-				instruction.InternalMemoryDisplacement64_lo = (uint)memory.Displacement;
+			instruction.MemoryDisplacement64 = (ulong)memory.Displacement;
 			instruction.IsBroadcast = memory.IsBroadcast;
 			instruction.SegmentPrefix = memory.SegmentPrefix;
 		}
@@ -415,7 +391,7 @@ namespace Iced.Intel {
 		/// <param name="code">Code value</param>
 		public static Instruction Create(Code code) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Debug.Assert(instruction.OpCount == 0);
 			return instruction;
@@ -428,11 +404,11 @@ namespace Iced.Intel {
 		/// <param name="register">op0: Register</param>
 		public static Instruction Create(Code code, Register register) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			Debug.Assert(instruction.OpCount == 1);
 			return instruction;
@@ -445,7 +421,7 @@ namespace Iced.Intel {
 		/// <param name="immediate">op0: Immediate value</param>
 		public static Instruction Create(Code code, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			InitializeSignedImmediate(ref instruction, 0, immediate);
 
@@ -460,7 +436,7 @@ namespace Iced.Intel {
 		/// <param name="immediate">op0: Immediate value</param>
 		public static Instruction Create(Code code, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			InitializeUnsignedImmediate(ref instruction, 0, immediate);
 
@@ -475,9 +451,9 @@ namespace Iced.Intel {
 		/// <param name="memory">op0: Memory operand</param>
 		public static Instruction Create(Code code, in MemoryOperand memory) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = OpKind.Memory;
+			instruction.Op0Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Debug.Assert(instruction.OpCount == 1);
@@ -492,15 +468,15 @@ namespace Iced.Intel {
 		/// <param name="register2">op1: Register</param>
 		public static Instruction Create(Code code, Register register1, Register register2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Debug.Assert(instruction.OpCount == 2);
 			return instruction;
@@ -514,11 +490,11 @@ namespace Iced.Intel {
 		/// <param name="immediate">op1: Immediate value</param>
 		public static Instruction Create(Code code, Register register, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			InitializeSignedImmediate(ref instruction, 1, immediate);
 
@@ -534,11 +510,11 @@ namespace Iced.Intel {
 		/// <param name="immediate">op1: Immediate value</param>
 		public static Instruction Create(Code code, Register register, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			InitializeUnsignedImmediate(ref instruction, 1, immediate);
 
@@ -554,11 +530,11 @@ namespace Iced.Intel {
 		/// <param name="immediate">op1: Immediate value</param>
 		public static Instruction Create(Code code, Register register, long immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			InitializeSignedImmediate(ref instruction, 1, immediate);
 
@@ -574,11 +550,11 @@ namespace Iced.Intel {
 		/// <param name="immediate">op1: Immediate value</param>
 		public static Instruction Create(Code code, Register register, ulong immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			InitializeUnsignedImmediate(ref instruction, 1, immediate);
 
@@ -594,13 +570,13 @@ namespace Iced.Intel {
 		/// <param name="memory">op1: Memory operand</param>
 		public static Instruction Create(Code code, Register register, in MemoryOperand memory) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
-			instruction.InternalOp1Kind = OpKind.Memory;
+			instruction.Op1Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Debug.Assert(instruction.OpCount == 2);
@@ -615,13 +591,13 @@ namespace Iced.Intel {
 		/// <param name="register">op1: Register</param>
 		public static Instruction Create(Code code, int immediate, Register register) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			InitializeSignedImmediate(ref instruction, 0, immediate);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register;
 
 			Debug.Assert(instruction.OpCount == 2);
 			return instruction;
@@ -635,13 +611,13 @@ namespace Iced.Intel {
 		/// <param name="register">op1: Register</param>
 		public static Instruction Create(Code code, uint immediate, Register register) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			InitializeUnsignedImmediate(ref instruction, 0, immediate);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register;
 
 			Debug.Assert(instruction.OpCount == 2);
 			return instruction;
@@ -655,7 +631,7 @@ namespace Iced.Intel {
 		/// <param name="immediate2">op1: Immediate value</param>
 		public static Instruction Create(Code code, int immediate1, int immediate2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			InitializeSignedImmediate(ref instruction, 0, immediate1);
 
@@ -673,7 +649,7 @@ namespace Iced.Intel {
 		/// <param name="immediate2">op1: Immediate value</param>
 		public static Instruction Create(Code code, uint immediate1, uint immediate2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			InitializeUnsignedImmediate(ref instruction, 0, immediate1);
 
@@ -691,14 +667,14 @@ namespace Iced.Intel {
 		/// <param name="register">op1: Register</param>
 		public static Instruction Create(Code code, in MemoryOperand memory, Register register) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = OpKind.Memory;
+			instruction.Op0Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register;
 
 			Debug.Assert(instruction.OpCount == 2);
 			return instruction;
@@ -712,9 +688,9 @@ namespace Iced.Intel {
 		/// <param name="immediate">op1: Immediate value</param>
 		public static Instruction Create(Code code, in MemoryOperand memory, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = OpKind.Memory;
+			instruction.Op0Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			InitializeSignedImmediate(ref instruction, 1, immediate);
@@ -731,9 +707,9 @@ namespace Iced.Intel {
 		/// <param name="immediate">op1: Immediate value</param>
 		public static Instruction Create(Code code, in MemoryOperand memory, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = OpKind.Memory;
+			instruction.Op0Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			InitializeUnsignedImmediate(ref instruction, 1, immediate);
@@ -751,19 +727,19 @@ namespace Iced.Intel {
 		/// <param name="register3">op2: Register</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
 			Debug.Assert(instruction.OpCount == 3);
 			return instruction;
@@ -778,15 +754,15 @@ namespace Iced.Intel {
 		/// <param name="immediate">op2: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			InitializeSignedImmediate(ref instruction, 2, immediate);
 
@@ -803,15 +779,15 @@ namespace Iced.Intel {
 		/// <param name="immediate">op2: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			InitializeUnsignedImmediate(ref instruction, 2, immediate);
 
@@ -828,17 +804,17 @@ namespace Iced.Intel {
 		/// <param name="memory">op2: Memory operand</param>
 		public static Instruction Create(Code code, Register register1, Register register2, in MemoryOperand memory) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
-			instruction.InternalOp2Kind = OpKind.Memory;
+			instruction.Op2Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Debug.Assert(instruction.OpCount == 3);
@@ -854,11 +830,11 @@ namespace Iced.Intel {
 		/// <param name="immediate2">op2: Immediate value</param>
 		public static Instruction Create(Code code, Register register, int immediate1, int immediate2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			InitializeSignedImmediate(ref instruction, 1, immediate1);
 
@@ -877,11 +853,11 @@ namespace Iced.Intel {
 		/// <param name="immediate2">op2: Immediate value</param>
 		public static Instruction Create(Code code, Register register, uint immediate1, uint immediate2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
 			InitializeUnsignedImmediate(ref instruction, 1, immediate1);
 
@@ -900,18 +876,18 @@ namespace Iced.Intel {
 		/// <param name="register2">op2: Register</param>
 		public static Instruction Create(Code code, Register register1, in MemoryOperand memory, Register register2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
-			instruction.InternalOp1Kind = OpKind.Memory;
+			instruction.Op1Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register2;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register2;
 
 			Debug.Assert(instruction.OpCount == 3);
 			return instruction;
@@ -926,13 +902,13 @@ namespace Iced.Intel {
 		/// <param name="immediate">op2: Immediate value</param>
 		public static Instruction Create(Code code, Register register, in MemoryOperand memory, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
-			instruction.InternalOp1Kind = OpKind.Memory;
+			instruction.Op1Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			InitializeSignedImmediate(ref instruction, 2, immediate);
@@ -950,13 +926,13 @@ namespace Iced.Intel {
 		/// <param name="immediate">op2: Immediate value</param>
 		public static Instruction Create(Code code, Register register, in MemoryOperand memory, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register;
 
-			instruction.InternalOp1Kind = OpKind.Memory;
+			instruction.Op1Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			InitializeUnsignedImmediate(ref instruction, 2, immediate);
@@ -974,18 +950,18 @@ namespace Iced.Intel {
 		/// <param name="register2">op2: Register</param>
 		public static Instruction Create(Code code, in MemoryOperand memory, Register register1, Register register2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = OpKind.Memory;
+			instruction.Op0Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register1;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register2;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register2;
 
 			Debug.Assert(instruction.OpCount == 3);
 			return instruction;
@@ -1000,14 +976,14 @@ namespace Iced.Intel {
 		/// <param name="immediate">op2: Immediate value</param>
 		public static Instruction Create(Code code, in MemoryOperand memory, Register register, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = OpKind.Memory;
+			instruction.Op0Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register;
 
 			InitializeSignedImmediate(ref instruction, 2, immediate);
 
@@ -1024,14 +1000,14 @@ namespace Iced.Intel {
 		/// <param name="immediate">op2: Immediate value</param>
 		public static Instruction Create(Code code, in MemoryOperand memory, Register register, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = OpKind.Memory;
+			instruction.Op0Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register;
 
 			InitializeUnsignedImmediate(ref instruction, 2, immediate);
 
@@ -1049,23 +1025,23 @@ namespace Iced.Intel {
 		/// <param name="register4">op3: Register</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3, Register register4) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp3Kind = OpKind.Register;
-			instruction.InternalOp3Register = register4;
+			//instruction.Op3Kind = OpKind.Register;
+			instruction.Op3Register = register4;
 
 			Debug.Assert(instruction.OpCount == 4);
 			return instruction;
@@ -1081,19 +1057,19 @@ namespace Iced.Intel {
 		/// <param name="immediate">op3: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
 			InitializeSignedImmediate(ref instruction, 3, immediate);
 
@@ -1111,19 +1087,19 @@ namespace Iced.Intel {
 		/// <param name="immediate">op3: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
 			InitializeUnsignedImmediate(ref instruction, 3, immediate);
 
@@ -1141,21 +1117,21 @@ namespace Iced.Intel {
 		/// <param name="memory">op3: Memory operand</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3, in MemoryOperand memory) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
-			instruction.InternalOp3Kind = OpKind.Memory;
+			instruction.Op3Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Debug.Assert(instruction.OpCount == 4);
@@ -1172,15 +1148,15 @@ namespace Iced.Intel {
 		/// <param name="immediate2">op3: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, int immediate1, int immediate2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			InitializeSignedImmediate(ref instruction, 2, immediate1);
 
@@ -1200,15 +1176,15 @@ namespace Iced.Intel {
 		/// <param name="immediate2">op3: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, uint immediate1, uint immediate2) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			InitializeUnsignedImmediate(ref instruction, 2, immediate1);
 
@@ -1228,22 +1204,22 @@ namespace Iced.Intel {
 		/// <param name="register3">op3: Register</param>
 		public static Instruction Create(Code code, Register register1, Register register2, in MemoryOperand memory, Register register3) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
-			instruction.InternalOp2Kind = OpKind.Memory;
+			instruction.Op2Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp3Kind = OpKind.Register;
-			instruction.InternalOp3Register = register3;
+			//instruction.Op3Kind = OpKind.Register;
+			instruction.Op3Register = register3;
 
 			Debug.Assert(instruction.OpCount == 4);
 			return instruction;
@@ -1259,17 +1235,17 @@ namespace Iced.Intel {
 		/// <param name="immediate">op3: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, in MemoryOperand memory, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
-			instruction.InternalOp2Kind = OpKind.Memory;
+			instruction.Op2Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			InitializeSignedImmediate(ref instruction, 3, immediate);
@@ -1288,17 +1264,17 @@ namespace Iced.Intel {
 		/// <param name="immediate">op3: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, in MemoryOperand memory, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
-			instruction.InternalOp2Kind = OpKind.Memory;
+			instruction.Op2Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			InitializeUnsignedImmediate(ref instruction, 3, immediate);
@@ -1318,23 +1294,23 @@ namespace Iced.Intel {
 		/// <param name="immediate">op4: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3, Register register4, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp3Kind = OpKind.Register;
-			instruction.InternalOp3Register = register4;
+			//instruction.Op3Kind = OpKind.Register;
+			instruction.Op3Register = register4;
 
 			InitializeSignedImmediate(ref instruction, 4, immediate);
 
@@ -1353,23 +1329,23 @@ namespace Iced.Intel {
 		/// <param name="immediate">op4: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3, Register register4, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp3Kind = OpKind.Register;
-			instruction.InternalOp3Register = register4;
+			//instruction.Op3Kind = OpKind.Register;
+			instruction.Op3Register = register4;
 
 			InitializeUnsignedImmediate(ref instruction, 4, immediate);
 
@@ -1388,21 +1364,21 @@ namespace Iced.Intel {
 		/// <param name="immediate">op4: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3, in MemoryOperand memory, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
-			instruction.InternalOp3Kind = OpKind.Memory;
+			instruction.Op3Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			InitializeSignedImmediate(ref instruction, 4, immediate);
@@ -1422,21 +1398,21 @@ namespace Iced.Intel {
 		/// <param name="immediate">op4: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, Register register3, in MemoryOperand memory, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp2Kind = OpKind.Register;
-			instruction.InternalOp2Register = register3;
+			//instruction.Op2Kind = OpKind.Register;
+			instruction.Op2Register = register3;
 
-			instruction.InternalOp3Kind = OpKind.Memory;
+			instruction.Op3Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			InitializeUnsignedImmediate(ref instruction, 4, immediate);
@@ -1456,22 +1432,22 @@ namespace Iced.Intel {
 		/// <param name="immediate">op4: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, in MemoryOperand memory, Register register3, int immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
-			instruction.InternalOp2Kind = OpKind.Memory;
+			instruction.Op2Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp3Kind = OpKind.Register;
-			instruction.InternalOp3Register = register3;
+			//instruction.Op3Kind = OpKind.Register;
+			instruction.Op3Register = register3;
 
 			InitializeSignedImmediate(ref instruction, 4, immediate);
 
@@ -1490,22 +1466,22 @@ namespace Iced.Intel {
 		/// <param name="immediate">op4: Immediate value</param>
 		public static Instruction Create(Code code, Register register1, Register register2, in MemoryOperand memory, Register register3, uint immediate) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = register1;
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = register1;
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp1Kind = OpKind.Register;
-			instruction.InternalOp1Register = register2;
+			//instruction.Op1Kind = OpKind.Register;
+			instruction.Op1Register = register2;
 
-			instruction.InternalOp2Kind = OpKind.Memory;
+			instruction.Op2Kind = OpKind.Memory;
 			InitMemoryOperand(ref instruction, memory);
 
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp3Kind = OpKind.Register;
-			instruction.InternalOp3Register = register3;
+			//instruction.Op3Kind = OpKind.Register;
+			instruction.Op3Register = register3;
 
 			InitializeUnsignedImmediate(ref instruction, 4, immediate);
 
@@ -1520,9 +1496,9 @@ namespace Iced.Intel {
 		/// <param name="target">Target address</param>
 		public static Instruction CreateBranch(Code code, ulong target) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = GetNearBranchOpKind(code, 0);
+			instruction.Op0Kind = GetNearBranchOpKind(code, 0);
 			instruction.NearBranch64 = target;
 
 			Debug.Assert(instruction.OpCount == 1);
@@ -1537,9 +1513,9 @@ namespace Iced.Intel {
 		/// <param name="offset">Offset</param>
 		public static Instruction CreateBranch(Code code, ushort selector, uint offset) {
 			Instruction instruction = default;
-			instruction.InternalCode = code;
+			instruction.Code = code;
 
-			instruction.InternalOp0Kind = GetFarBranchOpKind(code, 0);
+			instruction.Op0Kind = GetFarBranchOpKind(code, 0);
 			instruction.FarBranchSelector = selector;
 			instruction.FarBranch32 = offset;
 
@@ -1556,20 +1532,20 @@ namespace Iced.Intel {
 			Instruction instruction = default;
 			switch (bitness) {
 			case 16:
-				instruction.InternalCode = Code.Xbegin_rel16;
-				instruction.InternalOp0Kind = OpKind.NearBranch32;
+				instruction.Code = Code.Xbegin_rel16;
+				instruction.Op0Kind = OpKind.NearBranch32;
 				instruction.NearBranch32 = (uint)target;
 				break;
 
 			case 32:
-				instruction.InternalCode = Code.Xbegin_rel32;
-				instruction.InternalOp0Kind = OpKind.NearBranch32;
+				instruction.Code = Code.Xbegin_rel32;
+				instruction.Op0Kind = OpKind.NearBranch32;
 				instruction.NearBranch32 = (uint)target;
 				break;
 
 			case 64:
-				instruction.InternalCode = Code.Xbegin_rel32;
-				instruction.InternalOp0Kind = OpKind.NearBranch64;
+				instruction.Code = Code.Xbegin_rel32;
+				instruction.Op0Kind = OpKind.NearBranch64;
 				instruction.NearBranch64 = target;
 				break;
 
@@ -1579,32 +1555,6 @@ namespace Iced.Intel {
 
 			Debug.Assert(instruction.OpCount == 1);
 			return instruction;
-		}
-
-		/// <summary>
-		/// Creates an instruction with a 64-bit memory offset as the second operand, eg. <c>mov al,[123456789ABCDEF0]</c>
-		/// </summary>
-		/// <param name="code">Code value</param>
-		/// <param name="register">Register (<c>AL</c>, <c>AX</c>, <c>EAX</c>, <c>RAX</c>)</param>
-		/// <param name="address">64-bit address</param>
-		/// <param name="segmentPrefix">Segment override or <see cref="Register.None"/></param>
-		[System.Obsolete("Use Create() with a MemoryOperand arg instead", false)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public static Instruction CreateMemory64(Code code, Register register, ulong address, Register segmentPrefix = Register.None) {
-			return Create(code, register, new MemoryOperand(Register.None, (long)address, 8, false, segmentPrefix));
-		}
-
-		/// <summary>
-		/// Creates an instruction with a 64-bit memory offset as the first operand, eg. <c>mov [123456789ABCDEF0],al</c>
-		/// </summary>
-		/// <param name="code">Code value</param>
-		/// <param name="address">64-bit address</param>
-		/// <param name="register">Register (<c>AL</c>, <c>AX</c>, <c>EAX</c>, <c>RAX</c>)</param>
-		/// <param name="segmentPrefix">Segment override or <see cref="Register.None"/></param>
-		[System.Obsolete("Use Create() with a MemoryOperand arg instead", false)]
-		[System.ComponentModel.EditorBrowsable(System.ComponentModel.EditorBrowsableState.Never)]
-		public static Instruction CreateMemory64(Code code, ulong address, Register register, Register segmentPrefix = Register.None) {
-			return Create(code, new MemoryOperand(Register.None, (long)address, 8, false, segmentPrefix), register);
 		}
 
 		/// <summary>
@@ -2104,7 +2054,7 @@ namespace Iced.Intel {
 		/// <param name="b0">Byte 0</param>
 		public static Instruction CreateDeclareByte(byte b0) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 1;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2120,7 +2070,7 @@ namespace Iced.Intel {
 		/// <param name="b1">Byte 1</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 2;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2138,7 +2088,7 @@ namespace Iced.Intel {
 		/// <param name="b2">Byte 2</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 3;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2158,7 +2108,7 @@ namespace Iced.Intel {
 		/// <param name="b3">Byte 3</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 4;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2180,7 +2130,7 @@ namespace Iced.Intel {
 		/// <param name="b4">Byte 4</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 5;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2204,7 +2154,7 @@ namespace Iced.Intel {
 		/// <param name="b5">Byte 5</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 6;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2230,7 +2180,7 @@ namespace Iced.Intel {
 		/// <param name="b6">Byte 6</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 7;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2258,7 +2208,7 @@ namespace Iced.Intel {
 		/// <param name="b7">Byte 7</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 8;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2288,7 +2238,7 @@ namespace Iced.Intel {
 		/// <param name="b8">Byte 8</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 9;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2320,7 +2270,7 @@ namespace Iced.Intel {
 		/// <param name="b9">Byte 9</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8, byte b9) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 10;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2354,7 +2304,7 @@ namespace Iced.Intel {
 		/// <param name="b10">Byte 10</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8, byte b9, byte b10) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 11;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2390,7 +2340,7 @@ namespace Iced.Intel {
 		/// <param name="b11">Byte 11</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8, byte b9, byte b10, byte b11) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 12;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2428,7 +2378,7 @@ namespace Iced.Intel {
 		/// <param name="b12">Byte 12</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8, byte b9, byte b10, byte b11, byte b12) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 13;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2468,7 +2418,7 @@ namespace Iced.Intel {
 		/// <param name="b13">Byte 13</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8, byte b9, byte b10, byte b11, byte b12, byte b13) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 14;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2510,7 +2460,7 @@ namespace Iced.Intel {
 		/// <param name="b14">Byte 14</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8, byte b9, byte b10, byte b11, byte b12, byte b13, byte b14) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 15;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2554,7 +2504,7 @@ namespace Iced.Intel {
 		/// <param name="b15">Byte 15</param>
 		public static Instruction CreateDeclareByte(byte b0, byte b1, byte b2, byte b3, byte b4, byte b5, byte b6, byte b7, byte b8, byte b9, byte b10, byte b11, byte b12, byte b13, byte b14, byte b15) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = 16;
 
 			instruction.SetDeclareByteValue(0, b0);
@@ -2588,7 +2538,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_data();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = (uint)data.Length;
 
 			for (int i = 0; i < data.Length; i++)
@@ -2624,7 +2574,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_index();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareByte;
+			instruction.Code = Code.DeclareByte;
 			instruction.InternalDeclareDataCount = (uint)length;
 
 			for (int i = 0; i < length; i++)
@@ -2640,7 +2590,7 @@ namespace Iced.Intel {
 		/// <param name="w0">Word 0</param>
 		public static Instruction CreateDeclareWord(ushort w0) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = 1;
 
 			instruction.SetDeclareWordValue(0, w0);
@@ -2656,7 +2606,7 @@ namespace Iced.Intel {
 		/// <param name="w1">Word 1</param>
 		public static Instruction CreateDeclareWord(ushort w0, ushort w1) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = 2;
 
 			instruction.SetDeclareWordValue(0, w0);
@@ -2674,7 +2624,7 @@ namespace Iced.Intel {
 		/// <param name="w2">Word 2</param>
 		public static Instruction CreateDeclareWord(ushort w0, ushort w1, ushort w2) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = 3;
 
 			instruction.SetDeclareWordValue(0, w0);
@@ -2694,7 +2644,7 @@ namespace Iced.Intel {
 		/// <param name="w3">Word 3</param>
 		public static Instruction CreateDeclareWord(ushort w0, ushort w1, ushort w2, ushort w3) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = 4;
 
 			instruction.SetDeclareWordValue(0, w0);
@@ -2716,7 +2666,7 @@ namespace Iced.Intel {
 		/// <param name="w4">Word 4</param>
 		public static Instruction CreateDeclareWord(ushort w0, ushort w1, ushort w2, ushort w3, ushort w4) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = 5;
 
 			instruction.SetDeclareWordValue(0, w0);
@@ -2740,7 +2690,7 @@ namespace Iced.Intel {
 		/// <param name="w5">Word 5</param>
 		public static Instruction CreateDeclareWord(ushort w0, ushort w1, ushort w2, ushort w3, ushort w4, ushort w5) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = 6;
 
 			instruction.SetDeclareWordValue(0, w0);
@@ -2766,7 +2716,7 @@ namespace Iced.Intel {
 		/// <param name="w6">Word 6</param>
 		public static Instruction CreateDeclareWord(ushort w0, ushort w1, ushort w2, ushort w3, ushort w4, ushort w5, ushort w6) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = 7;
 
 			instruction.SetDeclareWordValue(0, w0);
@@ -2794,7 +2744,7 @@ namespace Iced.Intel {
 		/// <param name="w7">Word 7</param>
 		public static Instruction CreateDeclareWord(ushort w0, ushort w1, ushort w2, ushort w3, ushort w4, ushort w5, ushort w6, ushort w7) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = 8;
 
 			instruction.SetDeclareWordValue(0, w0);
@@ -2820,7 +2770,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_data();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = (uint)data.Length / 2;
 
 			for (int i = 0; i < data.Length; i += 2) {
@@ -2858,7 +2808,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_index();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = (uint)length / 2;
 
 			for (int i = 0; i < length; i += 2) {
@@ -2880,7 +2830,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_data();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = (uint)data.Length;
 
 			for (int i = 0; i < data.Length; i++)
@@ -2916,7 +2866,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_index();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareWord;
+			instruction.Code = Code.DeclareWord;
 			instruction.InternalDeclareDataCount = (uint)length;
 
 			for (int i = 0; i < length; i++)
@@ -2932,7 +2882,7 @@ namespace Iced.Intel {
 		/// <param name="d0">Dword 0</param>
 		public static Instruction CreateDeclareDword(uint d0) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareDword;
+			instruction.Code = Code.DeclareDword;
 			instruction.InternalDeclareDataCount = 1;
 
 			instruction.SetDeclareDwordValue(0, d0);
@@ -2948,7 +2898,7 @@ namespace Iced.Intel {
 		/// <param name="d1">Dword 1</param>
 		public static Instruction CreateDeclareDword(uint d0, uint d1) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareDword;
+			instruction.Code = Code.DeclareDword;
 			instruction.InternalDeclareDataCount = 2;
 
 			instruction.SetDeclareDwordValue(0, d0);
@@ -2966,7 +2916,7 @@ namespace Iced.Intel {
 		/// <param name="d2">Dword 2</param>
 		public static Instruction CreateDeclareDword(uint d0, uint d1, uint d2) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareDword;
+			instruction.Code = Code.DeclareDword;
 			instruction.InternalDeclareDataCount = 3;
 
 			instruction.SetDeclareDwordValue(0, d0);
@@ -2986,7 +2936,7 @@ namespace Iced.Intel {
 		/// <param name="d3">Dword 3</param>
 		public static Instruction CreateDeclareDword(uint d0, uint d1, uint d2, uint d3) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareDword;
+			instruction.Code = Code.DeclareDword;
 			instruction.InternalDeclareDataCount = 4;
 
 			instruction.SetDeclareDwordValue(0, d0);
@@ -3008,7 +2958,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_data();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareDword;
+			instruction.Code = Code.DeclareDword;
 			instruction.InternalDeclareDataCount = (uint)data.Length / 4;
 
 			for (int i = 0; i < data.Length; i += 4) {
@@ -3046,7 +2996,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_index();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareDword;
+			instruction.Code = Code.DeclareDword;
 			instruction.InternalDeclareDataCount = (uint)length / 4;
 
 			for (int i = 0; i < length; i += 4) {
@@ -3068,7 +3018,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_data();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareDword;
+			instruction.Code = Code.DeclareDword;
 			instruction.InternalDeclareDataCount = (uint)data.Length;
 
 			for (int i = 0; i < data.Length; i++)
@@ -3104,7 +3054,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_index();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareDword;
+			instruction.Code = Code.DeclareDword;
 			instruction.InternalDeclareDataCount = (uint)length;
 
 			for (int i = 0; i < length; i++)
@@ -3120,7 +3070,7 @@ namespace Iced.Intel {
 		/// <param name="q0">Qword 0</param>
 		public static Instruction CreateDeclareQword(ulong q0) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareQword;
+			instruction.Code = Code.DeclareQword;
 			instruction.InternalDeclareDataCount = 1;
 
 			instruction.SetDeclareQwordValue(0, q0);
@@ -3136,7 +3086,7 @@ namespace Iced.Intel {
 		/// <param name="q1">Qword 1</param>
 		public static Instruction CreateDeclareQword(ulong q0, ulong q1) {
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareQword;
+			instruction.Code = Code.DeclareQword;
 			instruction.InternalDeclareDataCount = 2;
 
 			instruction.SetDeclareQwordValue(0, q0);
@@ -3156,7 +3106,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_data();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareQword;
+			instruction.Code = Code.DeclareQword;
 			instruction.InternalDeclareDataCount = (uint)data.Length / 8;
 
 			for (int i = 0; i < data.Length; i += 8) {
@@ -3195,7 +3145,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_index();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareQword;
+			instruction.Code = Code.DeclareQword;
 			instruction.InternalDeclareDataCount = (uint)length / 8;
 
 			for (int i = 0; i < length; i += 8) {
@@ -3218,7 +3168,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_data();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareQword;
+			instruction.Code = Code.DeclareQword;
 			instruction.InternalDeclareDataCount = (uint)data.Length;
 
 			for (int i = 0; i < data.Length; i++)
@@ -3254,7 +3204,7 @@ namespace Iced.Intel {
 				ThrowHelper.ThrowArgumentOutOfRangeException_index();
 
 			Instruction instruction = default;
-			instruction.InternalCode = Code.DeclareQword;
+			instruction.Code = Code.DeclareQword;
 			instruction.InternalDeclareDataCount = (uint)length;
 
 			for (int i = 0; i < length; i++)

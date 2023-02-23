@@ -1,25 +1,5 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 64, 62 F24DDB AE D3, EVEX_Vfnmsub213ps_zmm_k1z_zmm_zmmm512b32_er, SpaceAfterOperandSeparator=true
 64, 62 F24DDB AE D3, EVEX_Vfnmsub213ps_zmm_k1z_zmm_zmmm512b32_er, SpaceAfterOperandSeparator=false
@@ -643,6 +623,422 @@
 64, 8FE848 EF D3 07, XOP_Vpcomuq_xmm_xmm_xmmm128_imm8, UsePseudoOps=false
 64, 8FE848 EF D3 08, XOP_Vpcomuq_xmm_xmm_xmmm128_imm8, UsePseudoOps=false
 
+64, 62 F34D0B 3F D3 00, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3F D3 01, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3F D3 02, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3F D3 03, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3F D3 04, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3F D3 05, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3F D3 06, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3F D3 07, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3F D3 08, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+
+64, 62 F34D2B 3F D3 00, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3F D3 01, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3F D3 02, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3F D3 03, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3F D3 04, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3F D3 05, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3F D3 06, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3F D3 07, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3F D3 08, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+
+64, 62 F34D4B 3F D3 00, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3F D3 01, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3F D3 02, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3F D3 03, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3F D3 04, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3F D3 05, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3F D3 06, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3F D3 07, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3F D3 08, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+
+64, 62 F3CD0B 3F D3 00, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3F D3 01, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3F D3 02, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3F D3 03, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3F D3 04, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3F D3 05, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3F D3 06, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3F D3 07, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3F D3 08, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+
+64, 62 F3CD2B 3F D3 00, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3F D3 01, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3F D3 02, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3F D3 03, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3F D3 04, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3F D3 05, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3F D3 06, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3F D3 07, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3F D3 08, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+
+64, 62 F3CD4B 3F D3 00, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3F D3 01, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3F D3 02, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3F D3 03, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3F D3 04, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3F D3 05, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3F D3 06, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3F D3 07, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3F D3 08, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+
+64, 62 F34D0B 1F D3 00, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1F D3 01, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1F D3 02, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1F D3 03, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1F D3 04, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1F D3 05, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1F D3 06, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1F D3 07, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1F D3 08, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+
+64, 62 F34D2B 1F D3 00, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1F D3 01, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1F D3 02, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1F D3 03, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1F D3 04, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1F D3 05, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1F D3 06, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1F D3 07, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1F D3 08, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+
+64, 62 F34D4B 1F D3 00, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1F D3 01, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1F D3 02, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1F D3 03, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1F D3 04, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1F D3 05, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1F D3 06, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1F D3 07, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1F D3 08, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+
+64, 62 F3CD0B 1F D3 00, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1F D3 01, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1F D3 02, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1F D3 03, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1F D3 04, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1F D3 05, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1F D3 06, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1F D3 07, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1F D3 08, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+
+64, 62 F3CD2B 1F D3 00, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1F D3 01, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1F D3 02, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1F D3 03, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1F D3 04, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1F D3 05, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1F D3 06, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1F D3 07, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1F D3 08, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+
+64, 62 F3CD4B 1F D3 00, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1F D3 01, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1F D3 02, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1F D3 03, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1F D3 04, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1F D3 05, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1F D3 06, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1F D3 07, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1F D3 08, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+
+64, 62 F34D0B 3E D3 00, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3E D3 01, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3E D3 02, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3E D3 03, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3E D3 04, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3E D3 05, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3E D3 06, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3E D3 07, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F34D0B 3E D3 08, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+
+64, 62 F34D2B 3E D3 00, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3E D3 01, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3E D3 02, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3E D3 03, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3E D3 04, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3E D3 05, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3E D3 06, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3E D3 07, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F34D2B 3E D3 08, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+
+64, 62 F34D4B 3E D3 00, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3E D3 01, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3E D3 02, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3E D3 03, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3E D3 04, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3E D3 05, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3E D3 06, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3E D3 07, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F34D4B 3E D3 08, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+
+64, 62 F3CD0B 3E D3 00, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3E D3 01, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3E D3 02, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3E D3 03, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3E D3 04, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3E D3 05, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3E D3 06, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3E D3 07, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+64, 62 F3CD0B 3E D3 08, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=false
+
+64, 62 F3CD2B 3E D3 00, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3E D3 01, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3E D3 02, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3E D3 03, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3E D3 04, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3E D3 05, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3E D3 06, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3E D3 07, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+64, 62 F3CD2B 3E D3 08, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=false
+
+64, 62 F3CD4B 3E D3 00, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3E D3 01, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3E D3 02, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3E D3 03, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3E D3 04, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3E D3 05, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3E D3 06, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3E D3 07, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+64, 62 F3CD4B 3E D3 08, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=false
+
+64, 62 F34D0B 1E D3 00, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1E D3 01, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1E D3 02, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1E D3 03, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1E D3 04, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1E D3 05, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1E D3 06, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1E D3 07, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+64, 62 F34D0B 1E D3 08, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=false
+
+64, 62 F34D2B 1E D3 00, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1E D3 01, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1E D3 02, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1E D3 03, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1E D3 04, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1E D3 05, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1E D3 06, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1E D3 07, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+64, 62 F34D2B 1E D3 08, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=false
+
+64, 62 F34D4B 1E D3 00, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1E D3 01, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1E D3 02, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1E D3 03, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1E D3 04, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1E D3 05, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1E D3 06, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1E D3 07, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+64, 62 F34D4B 1E D3 08, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=false
+
+64, 62 F3CD0B 1E D3 00, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1E D3 01, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1E D3 02, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1E D3 03, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1E D3 04, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1E D3 05, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1E D3 06, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1E D3 07, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+64, 62 F3CD0B 1E D3 08, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=false
+
+64, 62 F3CD2B 1E D3 00, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1E D3 01, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1E D3 02, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1E D3 03, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1E D3 04, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1E D3 05, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1E D3 06, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1E D3 07, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+64, 62 F3CD2B 1E D3 08, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=false
+
+64, 62 F3CD4B 1E D3 00, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1E D3 01, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1E D3 02, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1E D3 03, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1E D3 04, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1E D3 05, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1E D3 06, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1E D3 07, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+64, 62 F3CD4B 1E D3 08, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=false
+
+64, 62 F34C0B C2 D3 00, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 01, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 02, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 03, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 04, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 05, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 06, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 07, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 08, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 09, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 0A, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 0B, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 0C, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 0D, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 0E, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 0F, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 10, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 11, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 12, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 13, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 14, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 15, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 16, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 17, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 18, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 19, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 1A, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 1B, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 1C, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 1D, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 1E, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 1F, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+64, 62 F34C0B C2 D3 20, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=false
+
+64, 62 F34C2B C2 D3 00, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 01, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 02, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 03, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 04, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 05, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 06, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 07, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 08, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 09, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 0A, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 0B, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 0C, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 0D, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 0E, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 0F, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 10, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 11, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 12, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 13, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 14, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 15, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 16, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 17, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 18, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 19, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 1A, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 1B, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 1C, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 1D, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 1E, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 1F, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+64, 62 F34C2B C2 D3 20, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=false
+
+64, 62 F34C5B C2 D3 00, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 01, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 02, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 03, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 04, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 05, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 06, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 07, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 08, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 09, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 0A, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 0B, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 0C, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 0D, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 0E, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 0F, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 10, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 11, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 12, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 13, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 14, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 15, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 16, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 17, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 18, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 19, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 1A, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 1B, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 1C, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 1D, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 1E, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 1F, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+64, 62 F34C5B C2 D3 20, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=false
+
+64, 62 F34E0B C2 D3 00, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 01, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 02, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 03, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 04, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 05, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 06, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 07, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 08, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 09, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 0A, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 0B, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 0C, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 0D, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 0E, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 0F, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 10, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 11, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 12, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 13, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 14, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 15, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 16, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 17, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 18, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 19, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 1A, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 1B, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 1C, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 1D, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 1E, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 1F, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+64, 62 F34E0B C2 D3 20, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=false
+
+64, 62 F14808 C2 D3 00, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F14808 C2 D3 01, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F14808 C2 D3 02, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F14808 C2 D3 03, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F14808 C2 D3 04, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F14808 C2 D3 05, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F14808 C2 D3 06, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F14808 C2 D3 07, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F14808 C2 D3 08, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+
+64, 62 F1C908 C2 D3 00, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F1C908 C2 D3 01, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F1C908 C2 D3 02, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F1C908 C2 D3 03, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F1C908 C2 D3 04, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F1C908 C2 D3 05, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F1C908 C2 D3 06, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F1C908 C2 D3 07, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F1C908 C2 D3 08, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+
+64, 62 F34908 1E D3 00, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1E D3 01, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1E D3 02, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1E D3 03, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1E D3 04, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1E D3 05, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1E D3 06, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1E D3 07, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1E D3 08, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+
+64, 62 F34908 1F D3 00, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1F D3 01, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1F D3 02, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1F D3 03, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1F D3 04, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1F D3 05, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1F D3 06, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1F D3 07, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+64, 62 F34908 1F D3 08, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=false
+
 64, DE C1, Faddp_sti_st0, UsePseudoOps=true
 64, D8 D1, Fcom_st0_sti, UsePseudoOps=true
 64, D8 D9, Fcomp_st0_sti, UsePseudoOps=true
@@ -1250,6 +1646,422 @@
 64, 8FE848 EF D3 06, XOP_Vpcomuq_xmm_xmm_xmmm128_imm8, UsePseudoOps=true
 64, 8FE848 EF D3 07, XOP_Vpcomuq_xmm_xmm_xmmm128_imm8, UsePseudoOps=true
 64, 8FE848 EF D3 08, XOP_Vpcomuq_xmm_xmm_xmmm128_imm8, UsePseudoOps=true
+
+64, 62 F34D0B 3F D3 00, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3F D3 01, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3F D3 02, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3F D3 03, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3F D3 04, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3F D3 05, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3F D3 06, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3F D3 07, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3F D3 08, EVEX_Vpcmpb_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+
+64, 62 F34D2B 3F D3 00, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3F D3 01, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3F D3 02, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3F D3 03, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3F D3 04, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3F D3 05, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3F D3 06, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3F D3 07, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3F D3 08, EVEX_Vpcmpb_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+
+64, 62 F34D4B 3F D3 00, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3F D3 01, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3F D3 02, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3F D3 03, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3F D3 04, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3F D3 05, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3F D3 06, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3F D3 07, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3F D3 08, EVEX_Vpcmpb_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+
+64, 62 F3CD0B 3F D3 00, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3F D3 01, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3F D3 02, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3F D3 03, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3F D3 04, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3F D3 05, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3F D3 06, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3F D3 07, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3F D3 08, EVEX_Vpcmpw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+
+64, 62 F3CD2B 3F D3 00, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3F D3 01, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3F D3 02, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3F D3 03, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3F D3 04, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3F D3 05, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3F D3 06, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3F D3 07, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3F D3 08, EVEX_Vpcmpw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+
+64, 62 F3CD4B 3F D3 00, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3F D3 01, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3F D3 02, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3F D3 03, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3F D3 04, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3F D3 05, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3F D3 06, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3F D3 07, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3F D3 08, EVEX_Vpcmpw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+
+64, 62 F34D0B 1F D3 00, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1F D3 01, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1F D3 02, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1F D3 03, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1F D3 04, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1F D3 05, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1F D3 06, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1F D3 07, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1F D3 08, EVEX_Vpcmpd_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+
+64, 62 F34D2B 1F D3 00, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1F D3 01, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1F D3 02, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1F D3 03, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1F D3 04, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1F D3 05, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1F D3 06, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1F D3 07, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1F D3 08, EVEX_Vpcmpd_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+
+64, 62 F34D4B 1F D3 00, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1F D3 01, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1F D3 02, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1F D3 03, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1F D3 04, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1F D3 05, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1F D3 06, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1F D3 07, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1F D3 08, EVEX_Vpcmpd_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+
+64, 62 F3CD0B 1F D3 00, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1F D3 01, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1F D3 02, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1F D3 03, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1F D3 04, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1F D3 05, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1F D3 06, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1F D3 07, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1F D3 08, EVEX_Vpcmpq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+
+64, 62 F3CD2B 1F D3 00, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1F D3 01, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1F D3 02, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1F D3 03, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1F D3 04, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1F D3 05, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1F D3 06, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1F D3 07, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1F D3 08, EVEX_Vpcmpq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+
+64, 62 F3CD4B 1F D3 00, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1F D3 01, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1F D3 02, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1F D3 03, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1F D3 04, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1F D3 05, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1F D3 06, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1F D3 07, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1F D3 08, EVEX_Vpcmpq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+
+64, 62 F34D0B 3E D3 00, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3E D3 01, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3E D3 02, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3E D3 03, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3E D3 04, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3E D3 05, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3E D3 06, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3E D3 07, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F34D0B 3E D3 08, EVEX_Vpcmpub_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+
+64, 62 F34D2B 3E D3 00, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3E D3 01, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3E D3 02, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3E D3 03, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3E D3 04, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3E D3 05, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3E D3 06, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3E D3 07, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F34D2B 3E D3 08, EVEX_Vpcmpub_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+
+64, 62 F34D4B 3E D3 00, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3E D3 01, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3E D3 02, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3E D3 03, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3E D3 04, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3E D3 05, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3E D3 06, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3E D3 07, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F34D4B 3E D3 08, EVEX_Vpcmpub_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+
+64, 62 F3CD0B 3E D3 00, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3E D3 01, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3E D3 02, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3E D3 03, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3E D3 04, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3E D3 05, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3E D3 06, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3E D3 07, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+64, 62 F3CD0B 3E D3 08, EVEX_Vpcmpuw_kr_k1_xmm_xmmm128_imm8, UsePseudoOps=true
+
+64, 62 F3CD2B 3E D3 00, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3E D3 01, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3E D3 02, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3E D3 03, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3E D3 04, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3E D3 05, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3E D3 06, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3E D3 07, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+64, 62 F3CD2B 3E D3 08, EVEX_Vpcmpuw_kr_k1_ymm_ymmm256_imm8, UsePseudoOps=true
+
+64, 62 F3CD4B 3E D3 00, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3E D3 01, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3E D3 02, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3E D3 03, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3E D3 04, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3E D3 05, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3E D3 06, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3E D3 07, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+64, 62 F3CD4B 3E D3 08, EVEX_Vpcmpuw_kr_k1_zmm_zmmm512_imm8, UsePseudoOps=true
+
+64, 62 F34D0B 1E D3 00, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1E D3 01, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1E D3 02, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1E D3 03, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1E D3 04, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1E D3 05, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1E D3 06, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1E D3 07, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+64, 62 F34D0B 1E D3 08, EVEX_Vpcmpud_kr_k1_xmm_xmmm128b32_imm8, UsePseudoOps=true
+
+64, 62 F34D2B 1E D3 00, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1E D3 01, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1E D3 02, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1E D3 03, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1E D3 04, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1E D3 05, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1E D3 06, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1E D3 07, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+64, 62 F34D2B 1E D3 08, EVEX_Vpcmpud_kr_k1_ymm_ymmm256b32_imm8, UsePseudoOps=true
+
+64, 62 F34D4B 1E D3 00, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1E D3 01, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1E D3 02, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1E D3 03, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1E D3 04, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1E D3 05, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1E D3 06, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1E D3 07, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+64, 62 F34D4B 1E D3 08, EVEX_Vpcmpud_kr_k1_zmm_zmmm512b32_imm8, UsePseudoOps=true
+
+64, 62 F3CD0B 1E D3 00, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1E D3 01, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1E D3 02, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1E D3 03, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1E D3 04, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1E D3 05, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1E D3 06, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1E D3 07, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+64, 62 F3CD0B 1E D3 08, EVEX_Vpcmpuq_kr_k1_xmm_xmmm128b64_imm8, UsePseudoOps=true
+
+64, 62 F3CD2B 1E D3 00, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1E D3 01, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1E D3 02, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1E D3 03, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1E D3 04, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1E D3 05, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1E D3 06, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1E D3 07, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+64, 62 F3CD2B 1E D3 08, EVEX_Vpcmpuq_kr_k1_ymm_ymmm256b64_imm8, UsePseudoOps=true
+
+64, 62 F3CD4B 1E D3 00, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1E D3 01, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1E D3 02, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1E D3 03, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1E D3 04, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1E D3 05, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1E D3 06, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1E D3 07, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+64, 62 F3CD4B 1E D3 08, EVEX_Vpcmpuq_kr_k1_zmm_zmmm512b64_imm8, UsePseudoOps=true
+
+64, 62 F34C0B C2 D3 00, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 01, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 02, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 03, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 04, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 05, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 06, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 07, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 08, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 09, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 0A, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 0B, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 0C, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 0D, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 0E, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 0F, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 10, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 11, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 12, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 13, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 14, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 15, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 16, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 17, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 18, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 19, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 1A, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 1B, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 1C, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 1D, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 1E, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 1F, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+64, 62 F34C0B C2 D3 20, EVEX_Vcmpph_kr_k1_xmm_xmmm128b16_imm8, UsePseudoOps=true
+
+64, 62 F34C2B C2 D3 00, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 01, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 02, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 03, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 04, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 05, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 06, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 07, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 08, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 09, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 0A, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 0B, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 0C, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 0D, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 0E, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 0F, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 10, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 11, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 12, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 13, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 14, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 15, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 16, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 17, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 18, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 19, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 1A, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 1B, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 1C, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 1D, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 1E, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 1F, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+64, 62 F34C2B C2 D3 20, EVEX_Vcmpph_kr_k1_ymm_ymmm256b16_imm8, UsePseudoOps=true
+
+64, 62 F34C5B C2 D3 00, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 01, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 02, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 03, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 04, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 05, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 06, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 07, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 08, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 09, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 0A, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 0B, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 0C, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 0D, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 0E, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 0F, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 10, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 11, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 12, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 13, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 14, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 15, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 16, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 17, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 18, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 19, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 1A, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 1B, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 1C, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 1D, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 1E, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 1F, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+64, 62 F34C5B C2 D3 20, EVEX_Vcmpph_kr_k1_zmm_zmmm512b16_imm8_sae, UsePseudoOps=true
+
+64, 62 F34E0B C2 D3 00, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 01, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 02, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 03, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 04, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 05, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 06, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 07, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 08, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 09, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 0A, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 0B, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 0C, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 0D, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 0E, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 0F, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 10, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 11, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 12, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 13, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 14, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 15, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 16, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 17, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 18, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 19, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 1A, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 1B, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 1C, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 1D, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 1E, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 1F, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+64, 62 F34E0B C2 D3 20, EVEX_Vcmpsh_kr_k1_xmm_xmmm16_imm8_sae, UsePseudoOps=true
+
+64, 62 F14808 C2 D3 00, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F14808 C2 D3 01, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F14808 C2 D3 02, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F14808 C2 D3 03, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F14808 C2 D3 04, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F14808 C2 D3 05, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F14808 C2 D3 06, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F14808 C2 D3 07, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F14808 C2 D3 08, MVEX_Vcmpps_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+
+64, 62 F1C908 C2 D3 00, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F1C908 C2 D3 01, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F1C908 C2 D3 02, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F1C908 C2 D3 03, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F1C908 C2 D3 04, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F1C908 C2 D3 05, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F1C908 C2 D3 06, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F1C908 C2 D3 07, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F1C908 C2 D3 08, MVEX_Vcmppd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+
+64, 62 F34908 1E D3 00, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1E D3 01, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1E D3 02, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1E D3 03, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1E D3 04, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1E D3 05, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1E D3 06, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1E D3 07, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1E D3 08, MVEX_Vpcmpud_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+
+64, 62 F34908 1F D3 00, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1F D3 01, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1F D3 02, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1F D3 03, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1F D3 04, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1F D3 05, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1F D3 06, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1F D3 07, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
+64, 62 F34908 1F D3 08, MVEX_Vpcmpd_kr_k1_zmm_zmmmt_imm8, DecoderOptions=KNC UsePseudoOps=true
 
 64, 66 6B C9 FF, Imul_r16_rm16_imm8, UsePseudoOps=false
 64, 6B C9 FF, Imul_r32_rm32_imm8, UsePseudoOps=false

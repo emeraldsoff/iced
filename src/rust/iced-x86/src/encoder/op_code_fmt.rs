@@ -1,29 +1,10 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::*;
-use super::op_code::OpCodeInfo;
-#[cfg(not(feature = "std"))]
+use crate::encoder::op_code::OpCodeInfo;
+#[cfg(feature = "mvex")]
+use crate::mvex::get_mvex_info;
+use crate::*;
 use alloc::string::String;
 use core::fmt;
 use core::fmt::Write;
@@ -51,9 +32,8 @@ static GEN_DEBUG_LKIND: [&str; 4] = [
 ];
 impl fmt::Debug for LKind {
 	#[inline]
-	fn fmt<'a>(&self, f: &mut fmt::Formatter<'a>) -> fmt::Result {
-		write!(f, "{}", GEN_DEBUG_LKIND[*self as usize])?;
-		Ok(())
+	fn fmt(&self, f: &mut fmt::Formatter<'_>) -> fmt::Result {
+		write!(f, "{}", GEN_DEBUG_LKIND[*self as usize])
 	}
 }
 impl Default for LKind {
@@ -88,6 +68,7 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 				Code::DeclareWord => String::from("<dw>"),
 				Code::DeclareDword => String::from("<dd>"),
 				Code::DeclareQword => String::from("<dq>"),
+				Code::Zero_bytes => String::from("<zero_bytes>"),
 				// GENERATOR-END: OpCodeFmtNotInstructionString
 				_ => unreachable!(),
 			}
@@ -95,13 +76,15 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 			match self.op_code.encoding() {
 				EncodingKind::Legacy => self.format_legacy(),
 				#[cfg(not(feature = "no_vex"))]
-				EncodingKind::VEX => self.format_vex_xop_evex("VEX"),
+				EncodingKind::VEX => self.format_vec_encoding("VEX"),
 				#[cfg(not(feature = "no_evex"))]
-				EncodingKind::EVEX => self.format_vex_xop_evex("EVEX"),
+				EncodingKind::EVEX => self.format_vec_encoding("EVEX"),
 				#[cfg(not(feature = "no_xop"))]
-				EncodingKind::XOP => self.format_vex_xop_evex("XOP"),
+				EncodingKind::XOP => self.format_vec_encoding("XOP"),
 				#[cfg(not(feature = "no_d3now"))]
 				EncodingKind::D3NOW => self.format_3dnow(),
+				#[cfg(feature = "mvex")]
+				EncodingKind::MVEX => self.format_vec_encoding("MVEX"),
 				#[cfg(feature = "no_vex")]
 				EncodingKind::VEX => String::new(),
 				#[cfg(feature = "no_evex")]
@@ -110,6 +93,8 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 				EncodingKind::XOP => String::new(),
 				#[cfg(feature = "no_d3now")]
 				EncodingKind::D3NOW => String::new(),
+				#[cfg(not(feature = "mvex"))]
+				EncodingKind::MVEX => String::new(),
 			}
 		}
 	}
@@ -122,7 +107,7 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 		if value_len == 1 {
 			self.append_hex_byte(value as u8);
 		} else {
-			debug_assert_eq!(2, value_len);
+			debug_assert_eq!(value_len, 2);
 			self.append_hex_byte((value >> 8) as u8);
 			if sep {
 				self.sb.push(' ');
@@ -137,9 +122,11 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 			OpCodeTableKind::T0F => self.append_op_code(0x0F, 1, sep),
 			OpCodeTableKind::T0F38 => self.append_op_code(0x0F38, 2, sep),
 			OpCodeTableKind::T0F3A => self.append_op_code(0x0F3A, 2, sep),
-			OpCodeTableKind::XOP8 => self.sb.push_str("X8"),
-			OpCodeTableKind::XOP9 => self.sb.push_str("X9"),
-			OpCodeTableKind::XOPA => self.sb.push_str("XA"),
+			OpCodeTableKind::MAP5 => self.sb.push_str("MAP5"),
+			OpCodeTableKind::MAP6 => self.sb.push_str("MAP6"),
+			OpCodeTableKind::MAP8 => self.sb.push_str("X8"),
+			OpCodeTableKind::MAP9 => self.sb.push_str("X9"),
+			OpCodeTableKind::MAP10 => self.sb.push_str("XA"),
 		}
 	}
 
@@ -150,8 +137,8 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 		}
 
 		match self.op_code.encoding() {
-			EncodingKind::Legacy => {}
-			EncodingKind::VEX | EncodingKind::EVEX | EncodingKind::XOP | EncodingKind::D3NOW => return true,
+			EncodingKind::Legacy | EncodingKind::VEX => {}
+			EncodingKind::EVEX | EncodingKind::XOP | EncodingKind::D3NOW | EncodingKind::MVEX => return true,
 		}
 
 		for &op_kind in self.op_code.op_kinds() {
@@ -297,7 +284,7 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 			self.sb.push(':');
 			self.append_bits("bbb", bbb, 3);
 		} else {
-			let is_vsib = self.op_code.encoding() == EncodingKind::EVEX && self.has_vsib();
+			let is_vsib = (self.op_code.encoding() == EncodingKind::EVEX || self.op_code.encoding() == EncodingKind::MVEX) && self.has_vsib();
 			if self.op_code.is_group() {
 				self.sb.push_str(" /");
 				write!(self.sb, "{}", self.op_code.group_index()).unwrap();
@@ -425,11 +412,22 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 		self.sb.clone()
 	}
 
-	#[cfg(any(not(feature = "no_vex"), not(feature = "no_xop"), not(feature = "no_evex")))]
-	fn format_vex_xop_evex(&mut self, encoding_name: &str) -> String {
+	#[cfg(any(not(feature = "no_vex"), not(feature = "no_xop"), not(feature = "no_evex"), feature = "mvex"))]
+	fn format_vec_encoding(&mut self, encoding_name: &str) -> String {
 		self.sb.clear();
 
 		self.sb.push_str(encoding_name);
+		#[cfg(feature = "mvex")]
+		{
+			if self.op_code.encoding() == EncodingKind::MVEX {
+				let mvex = get_mvex_info(self.op_code.code());
+				if mvex.is_ndd() {
+					self.sb.push_str(".NDD");
+				} else if mvex.is_nds() {
+					self.sb.push_str(".NDS");
+				}
+			}
+		}
 		self.sb.push('.');
 		if self.op_code.is_lig() {
 			self.sb.push_str("LIG");
@@ -464,13 +462,25 @@ impl<'a, 'b> OpCodeFormatter<'a, 'b> {
 				self.append_hex_byte(0xF2);
 			}
 		}
-		self.sb.push('.');
+		if self.op_code.table() != OpCodeTableKind::Normal {
+			self.sb.push('.');
+		}
 		self.append_table(false);
 		if self.op_code.is_wig() {
 			self.sb.push_str(".WIG");
 		} else {
 			self.sb.push_str(".W");
 			write!(self.sb, "{}", self.op_code.w()).unwrap();
+		}
+		#[cfg(feature = "mvex")]
+		{
+			if self.op_code.encoding() == EncodingKind::MVEX {
+				match get_mvex_info(self.op_code.code()).eh_bit {
+					MvexEHBit::None => {}
+					MvexEHBit::EH0 => self.sb.push_str(".EH0"),
+					MvexEHBit::EH1 => self.sb.push_str(".EH1"),
+				}
+			}
 		}
 		self.sb.push(' ');
 		self.append_op_code(self.op_code.op_code(), self.op_code.op_code_len(), true);

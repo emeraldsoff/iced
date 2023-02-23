@@ -1,39 +1,19 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::super::Instruction;
-use super::super::test_utils::get_formatter_unit_tests_dir;
-use super::super::*;
-use super::filter_removed_code_tests;
-use super::sym_res_test_case::*;
-use super::sym_res_test_parser::*;
-#[cfg(not(feature = "std"))]
+use crate::formatter::test_utils::get_formatter_unit_tests_dir;
+use crate::formatter::tests::filter_removed_code_tests;
+use crate::formatter::tests::sym_res_test_case::*;
+use crate::formatter::tests::sym_res_test_parser::*;
+#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
+use crate::Formatter;
+use crate::Instruction;
+use crate::{FormatterTextKind, SymResTextInfo, SymResTextPart, SymbolResolver, SymbolResult};
+#[cfg(feature = "fast_fmt")]
+use crate::{SpecializedFormatter, SpecializedFormatterTraitOptions};
 use alloc::boxed::Box;
-#[cfg(not(feature = "std"))]
 use alloc::vec::Vec;
-#[cfg(not(feature = "std"))]
-use hashbrown::HashSet;
-#[cfg(feature = "std")]
+use lazy_static::lazy_static;
 use std::collections::HashSet;
 
 lazy_static! {
@@ -51,10 +31,10 @@ struct SymbolResolverImpl<'a> {
 	vec: Vec<SymResTextPart<'a>>,
 }
 
-impl<'a> SymbolResolver for SymbolResolverImpl<'a> {
+impl SymbolResolver for SymbolResolverImpl<'_> {
 	fn symbol(
 		&mut self, _instruction: &Instruction, _operand: u32, _instruction_operand: Option<u32>, address: u64, address_size: u32,
-	) -> Option<SymbolResult> {
+	) -> Option<SymbolResult<'_>> {
 		for tc in &self.info.symbol_results {
 			if tc.address != address || tc.address_size != address_size {
 				continue;
@@ -76,7 +56,7 @@ fn get_infos_and_lines(dir: &str, filename: &str) -> (&'static [SymbolResolverTe
 	let mut path = get_formatter_unit_tests_dir();
 	path.push(dir);
 	path.push(format!("{}.txt", filename));
-	let &(ref infos, ref ignored) = &*ALL_INFOS;
+	let (infos, ignored) = &*ALL_INFOS;
 	let formatted_lines = filter_removed_code_tests(super::get_lines_ignore_comments(path.as_path()), ignored);
 	if infos.len() != formatted_lines.len() {
 		panic!("infos.len() ({}) != formatted_lines.len() ({})", infos.len(), formatted_lines.len());
@@ -98,8 +78,10 @@ pub(in super::super) fn symbol_resolver_test(
 		super::simple_format_test(
 			info.bitness,
 			&info.hex_bytes,
+			info.ip,
 			info.code,
 			info.decoder_options,
+			info.line_number,
 			formatted_line.as_str(),
 			formatter.as_mut(),
 			|decoder| {
@@ -112,8 +94,8 @@ pub(in super::super) fn symbol_resolver_test(
 }
 
 #[cfg(feature = "fast_fmt")]
-pub(in super::super) fn symbol_resolver_test_fast(
-	dir: &str, filename: &str, fmt_factory: fn(symbol_resolver: Box<dyn SymbolResolver>) -> Box<FastFormatter>,
+pub(in super::super) fn symbol_resolver_test_fast<TraitOptions: SpecializedFormatterTraitOptions>(
+	dir: &str, filename: &str, fmt_factory: fn(symbol_resolver: Box<dyn SymbolResolver>) -> Box<SpecializedFormatter<TraitOptions>>,
 ) {
 	let (infos, formatted_lines) = get_infos_and_lines(dir, filename);
 	for (info, formatted_line) in infos.iter().zip(formatted_lines.into_iter()) {
@@ -125,8 +107,10 @@ pub(in super::super) fn symbol_resolver_test_fast(
 		super::simple_format_test_fast(
 			info.bitness,
 			&info.hex_bytes,
+			info.ip,
 			info.code,
 			info.decoder_options,
+			info.line_number,
 			formatted_line.as_str(),
 			formatter.as_mut(),
 			|decoder| {

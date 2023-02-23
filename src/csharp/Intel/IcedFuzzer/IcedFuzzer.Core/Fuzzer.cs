@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -68,6 +48,7 @@ namespace IcedFuzzer.Core {
 		NoTZCNT					= 0x00000008,
 		NoLZCNT					= 0x00000010,
 		HasMPX					= 0x00000020,
+		UselessPrefixes			= 0x00000040,
 	}
 
 	public sealed class Fuzzer {
@@ -78,6 +59,8 @@ namespace IcedFuzzer.Core {
 		readonly int bitness;
 		readonly FuzzerOptions options;
 		readonly CpuDecoder cpuDecoder;
+
+		internal bool UselessPrefixes => (options & FuzzerOptions.UselessPrefixes) != 0;
 
 		public Fuzzer(int bitness, FuzzerOptions options, CpuDecoder cpuDecoder) {
 			writer = new CodeWriter();
@@ -172,7 +155,7 @@ namespace IcedFuzzer.Core {
 				Assert.True(info.EncodedDataLength <= 0xFF, "An instruction must be at most 0xFF bytes in length");
 
 				if (decoder is null) {
-					var decoderOptions = DecoderOptions.NoLockMovCR;
+					var decoderOptions = DecoderOptions.None;
 					if ((options & FuzzerOptions.HasMPX) != 0)
 						decoderOptions |= DecoderOptions.MPX;
 					if ((options & FuzzerOptions.NoPAUSE) != 0)
@@ -188,7 +171,6 @@ namespace IcedFuzzer.Core {
 						break;
 					case CpuDecoder.AMD:
 						decoderOptions |= DecoderOptions.AMD;
-						decoderOptions &= ~DecoderOptions.NoLockMovCR;
 						break;
 					default:
 						throw ThrowHelpers.Unreachable;
@@ -292,6 +274,7 @@ namespace IcedFuzzer.Core {
 				EncodingKind.EVEX => evexEncodings,
 				EncodingKind.XOP => xopEncodings,
 				EncodingKind.D3NOW => d3nowEncodings,
+				EncodingKind.MVEX => throw ThrowHelpers.Unreachable,
 				_ => throw ThrowHelpers.Unreachable,
 			};
 
@@ -592,7 +575,7 @@ namespace IcedFuzzer.Core {
 
 			WritePrefixes(info);
 
-			Assert.True(info.r <= 1 && info.x <= 1 && info.b <= 1 && info.r2 <= 1 && info.EVEX_res3to2 <= 3 && info.mmmmm <= 3);
+			Assert.True(info.r <= 1 && info.x <= 1 && info.b <= 1 && info.r2 <= 1 && info.EVEX_res3 <= 1 && info.mmmmm <= 7);
 			Assert.True(info.w <= 1 && info.vvvv <= 0xF && info.EVEX_res10 <= 1);
 			Assert.True(info.z <= 1 && info.l <= 3 && info.bcst <= 1 && info.v2 <= 1 && info.aaa <= 7);
 
@@ -609,7 +592,7 @@ namespace IcedFuzzer.Core {
 			vvvv ^= 0xF;
 			v2 ^= 1;
 			writer.WriteByte(0x62);
-			writer.WriteByte((byte)((r << 7) | (x << 6) | (b << 5) | (r2 << 4) | (info.EVEX_res3to2 << 2) | info.mmmmm));
+			writer.WriteByte((byte)((r << 7) | (x << 6) | (b << 5) | (r2 << 4) | (info.EVEX_res3 << 3) | info.mmmmm));
 			writer.WriteByte((byte)((info.w << 7) | (vvvv << 3) | (info.EVEX_res10 << 2) | info.pp));
 			writer.WriteByte((byte)((info.z << 7) | (info.l << 5) | (info.bcst << 4) | (v2 << 3) | info.aaa));
 			WriteOpCode(info);

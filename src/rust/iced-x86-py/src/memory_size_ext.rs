@@ -1,33 +1,13 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use crate::enum_utils::to_memory_size;
 use crate::memory_size_info::MemorySizeInfo;
 use pyo3::prelude::*;
 
 /// :class:`MemorySize` enum extension methods, see also :class:`MemorySizeInfo`
-#[pyclass(module = "_iced_x86_py")]
-#[text_signature = "(/)"]
+#[pyclass(module = "iced_x86._iced_x86_py")]
+#[pyo3(text_signature = "(/)")]
 pub(crate) struct MemorySizeExt {}
 
 #[pymethods]
@@ -46,9 +26,9 @@ impl MemorySizeExt {
 	///
 	///     from iced_x86 import *
 	///
-	///     info = MemorySizeExt.info(MemorySize.PACKED256_UINT16);
+	///     info = MemorySizeExt.info(MemorySize.PACKED256_UINT16)
 	///     assert info.size == 32
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn info(memory_size: u32) -> PyResult<MemorySizeInfo> {
 		Ok(MemorySizeInfo { info: to_memory_size(memory_size)?.info() })
@@ -71,7 +51,7 @@ impl MemorySizeExt {
 	///     assert MemorySizeExt.size(MemorySize.UINT32) == 4
 	///     assert MemorySizeExt.size(MemorySize.PACKED256_UINT16) == 32
 	///     assert MemorySizeExt.size(MemorySize.BROADCAST512_UINT64) == 8
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn size(memory_size: u32) -> PyResult<u32> {
 		Ok(to_memory_size(memory_size)?.size() as u32)
@@ -94,7 +74,7 @@ impl MemorySizeExt {
 	///     assert MemorySizeExt.element_size(MemorySize.UINT32) == 4
 	///     assert MemorySizeExt.element_size(MemorySize.PACKED256_UINT16) == 2
 	///     assert MemorySizeExt.element_size(MemorySize.BROADCAST512_UINT64) == 8
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn element_size(memory_size: u32) -> PyResult<u32> {
 		Ok(to_memory_size(memory_size)?.element_size() as u32)
@@ -117,7 +97,7 @@ impl MemorySizeExt {
 	///     assert MemorySizeExt.element_type(MemorySize.UINT32) == MemorySize.UINT32
 	///     assert MemorySizeExt.element_type(MemorySize.PACKED256_UINT16) == MemorySize.UINT16
 	///     assert MemorySizeExt.element_type(MemorySize.BROADCAST512_UINT64) == MemorySize.UINT64
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn element_type(memory_size: u32) -> PyResult<u32> {
 		Ok(to_memory_size(memory_size)?.element_type() as u32)
@@ -140,7 +120,7 @@ impl MemorySizeExt {
 	///     assert MemorySizeExt.element_type_info(MemorySize.UINT32).memory_size == MemorySize.UINT32
 	///     assert MemorySizeExt.element_type_info(MemorySize.PACKED256_UINT16).memory_size == MemorySize.UINT16
 	///     assert MemorySizeExt.element_type_info(MemorySize.BROADCAST512_UINT64).memory_size == MemorySize.UINT64
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn element_type_info(memory_size: u32) -> PyResult<MemorySizeInfo> {
 		Ok(MemorySizeInfo { info: to_memory_size(memory_size)?.element_type_info() })
@@ -163,7 +143,7 @@ impl MemorySizeExt {
 	///     assert not MemorySizeExt.is_signed(MemorySize.UINT32)
 	///     assert MemorySizeExt.is_signed(MemorySize.INT32)
 	///     assert MemorySizeExt.is_signed(MemorySize.FLOAT64)
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn is_signed(memory_size: u32) -> PyResult<bool> {
 		Ok(to_memory_size(memory_size)?.is_signed())
@@ -186,7 +166,7 @@ impl MemorySizeExt {
 	///     assert not MemorySizeExt.is_packed(MemorySize.UINT32)
 	///     assert MemorySizeExt.is_packed(MemorySize.PACKED256_UINT16)
 	///     assert not MemorySizeExt.is_packed(MemorySize.BROADCAST512_UINT64)
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn is_packed(memory_size: u32) -> PyResult<bool> {
 		Ok(to_memory_size(memory_size)?.is_packed())
@@ -209,7 +189,7 @@ impl MemorySizeExt {
 	///     assert MemorySizeExt.element_count(MemorySize.UINT32) == 1
 	///     assert MemorySizeExt.element_count(MemorySize.PACKED256_UINT16) == 16
 	///     assert MemorySizeExt.element_count(MemorySize.BROADCAST512_UINT64) == 1
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn element_count(memory_size: u32) -> PyResult<u32> {
 		Ok(to_memory_size(memory_size)?.element_count() as u32)
@@ -231,7 +211,7 @@ impl MemorySizeExt {
 	///
 	///     assert not MemorySizeExt.is_broadcast(MemorySize.PACKED64_FLOAT16)
 	///     assert MemorySizeExt.is_broadcast(MemorySize.BROADCAST512_UINT64)
-	#[text_signature = "(memory_size, /)"]
+	#[pyo3(text_signature = "(memory_size, /)")]
 	#[staticmethod]
 	fn is_broadcast(memory_size: u32) -> PyResult<bool> {
 		Ok(to_memory_size(memory_size)?.is_broadcast())

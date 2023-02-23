@@ -1,37 +1,19 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
 using System.Text;
+using Generator.Enums;
 
 namespace Generator {
 	/// <summary>
 	/// Converts C# PascalCase identifiers to eg. snake_case
 	/// </summary>
 	abstract class IdentifierConverter {
-		readonly StringBuilder sb = new StringBuilder();
+		readonly StringBuilder sb = new();
 
+		protected abstract string EnumSeparator { get; }
 		public abstract string Type(string name);
 		public abstract string Field(string name);
 		public abstract string EnumField(string name);
@@ -42,6 +24,8 @@ namespace Generator {
 		public abstract string Static(string name);
 		public abstract string Namespace(string name);
 		public abstract string Argument(string name);
+		public virtual string ToDeclTypeAndValue(EnumValue value) =>
+			$"{value.DeclaringType.Name(this)}{EnumSeparator}{value.Name(this)}";
 
 		protected string ToSnakeCase(string name) => ToSnakeCase(name, upper: false);
 
@@ -57,13 +41,14 @@ namespace Generator {
 				"OpKind_MemoryESEDI" => "OP_KIND_MEMORY_ES_EDI",
 				"OpKind_MemoryESRDI" => "OP_KIND_MEMORY_ES_RDI",
 				"HighLegacy8BitRegs" => "HIGH_LEGACY_8_BIT_REGS",
-				"TwoByteHandlers_0FXXIndex" => "TWO_BYTE_HANDLERS_0FXX_INDEX",
-				"ThreeByteHandlers_0F38XXIndex" => "THREE_BYTE_HANDLERS_0F38XX_INDEX",
-				"ThreeByteHandlers_0F3AXXIndex" => "THREE_BYTE_HANDLERS_0F3AXX_INDEX",
-				"XOPAIndex" => "XOPA_INDEX",
+				"Handlers_MAP0Index" => "HANDLERS_MAP0_INDEX",
+				"Handlers_0FIndex" => "HANDLERS_0F_INDEX",
+				"Handlers_0F38Index" => "HANDLERS_0F38_INDEX",
+				"Handlers_0F3AIndex" => "HANDLERS_0F3A_INDEX",
 				"Handler66Reg" => "HANDLER_66_REG",
 				"Handler66Mem" => "HANDLER_66_MEM",
 				"Cyrix_SMINT_0F7E" => "CYRIX_SMINT_0F7E",
+				"MAP0F" or "MAP0F38" or "MAP0F3A" or "D3NOW" => name,
 				_ => ToSnakeCase(name, upper: true),
 			};
 
@@ -95,6 +80,7 @@ namespace Generator {
 	sealed class CSharpIdentifierConverter : IdentifierConverter {
 		public static IdentifierConverter Create() => new CSharpIdentifierConverter();
 		CSharpIdentifierConverter() { }
+		protected override string EnumSeparator => ".";
 		public override string Type(string name) => name;
 		public override string Field(string name) => Escape(name);
 		public override string EnumField(string name) => Escape(name);
@@ -106,7 +92,7 @@ namespace Generator {
 		public override string Namespace(string name) => Escape(name);
 		public override string Argument(string name) => Escape(name);
 
-		static readonly HashSet<string> keywords = new HashSet<string>(StringComparer.Ordinal) {
+		static readonly HashSet<string> keywords = new(StringComparer.Ordinal) {
 			"abstract", "as", "base", "bool",
 			"break", "byte", "case", "catch",
 			"char", "checked", "class", "const",
@@ -135,6 +121,7 @@ namespace Generator {
 	sealed class RustIdentifierConverter : IdentifierConverter {
 		public static IdentifierConverter Create() => new RustIdentifierConverter();
 		RustIdentifierConverter() { }
+		protected override string EnumSeparator => "::";
 		public override string Type(string name) => name;
 		public override string Field(string name) => ToSnakeCase(name);
 		public override string EnumField(string name) => name;
@@ -150,6 +137,7 @@ namespace Generator {
 	sealed class RustJSIdentifierConverter : IdentifierConverter {
 		public static IdentifierConverter Create() => new RustJSIdentifierConverter();
 		RustJSIdentifierConverter() { }
+		protected override string EnumSeparator => "::";
 		public override string Type(string name) => name;
 		public override string Field(string name) => ToLowerCamelCase(name);
 		public override string EnumField(string name) => name;
@@ -165,6 +153,7 @@ namespace Generator {
 	sealed class PythonIdentifierConverter : IdentifierConverter {
 		public static IdentifierConverter Create() => new PythonIdentifierConverter();
 		PythonIdentifierConverter() { }
+		protected override string EnumSeparator => ".";
 		public override string Type(string name) => name;
 		public override string Field(string name) => "__" + ToSnakeCase(name);
 		public override string EnumField(string name) => ToScreamingSnakeCase(name);
@@ -175,5 +164,60 @@ namespace Generator {
 		public override string Static(string name) => ToScreamingSnakeCase(name);
 		public override string Namespace(string name) => ToSnakeCase(name);
 		public override string Argument(string name) => ToSnakeCase(name);
+	}
+
+	sealed class LuaIdentifierConverter : IdentifierConverter {
+		public static IdentifierConverter Create() => new LuaIdentifierConverter();
+		LuaIdentifierConverter() { }
+		protected override string EnumSeparator => ".";
+		public override string Type(string name) => name;
+		public override string Field(string name) => ToSnakeCase(name);
+		public override string EnumField(string name) => name;
+		public override string PropertyDoc(string name) => ToSnakeCase(name) + "()";
+		public override string MethodDoc(string name) => ToSnakeCase(name) + "()";
+		public override string Method(string name) => ToSnakeCase(name);
+		public override string Constant(string name) => ToScreamingSnakeCase(name);
+		public override string Static(string name) => ToScreamingSnakeCase(name);
+		public override string Namespace(string name) => ToSnakeCase(name);
+		public override string Argument(string name) => ToSnakeCase(name);
+	}
+
+	sealed class JavaIdentifierConverter : IdentifierConverter {
+		public static IdentifierConverter Create() => new JavaIdentifierConverter();
+		JavaIdentifierConverter() { }
+		protected override string EnumSeparator => ".";
+		public override string Type(string name) => name;
+		public override string Field(string name) => Escape(ToLowerCamelCase(name));
+		public override string EnumField(string name) => Escape(ToScreamingSnakeCase(name));
+		public override string PropertyDoc(string name) => Escape(ToLowerCamelCase("Get" + name)) + "()";
+		public override string MethodDoc(string name) => Escape(ToLowerCamelCase(name)) + "()";
+		public override string Method(string name) => Escape(ToLowerCamelCase(name));
+		public override string Constant(string name) => Escape(ToScreamingSnakeCase(name));
+		public override string Static(string name) => Escape(name);
+		public override string Namespace(string name) => Escape(name);
+		public override string Argument(string name) => Escape(name);
+
+		public override string ToDeclTypeAndValue(EnumValue value) {
+			var declTypeName = value.DeclaringType.Name(this);
+			bool uppercase = EnumUtils.UppercaseTypeFields(value.DeclaringType.RawName);
+			var variantName = EnumUtils.GetEnumNameValue(this, value, uppercase).name;
+			return declTypeName + EnumSeparator + variantName;
+		}
+
+		static readonly HashSet<string> keywords = new(StringComparer.Ordinal) {
+			"abstract", "assert", "boolean", "break", "byte",
+			"case", "catch", "char", "class", "const", "continue",
+			"default", "do", "double", "else", "enum", "extends",
+			"final", "finally", "float", "for", "goto", "if",
+			"implements", "import", "instanceof", "int", "interface",
+			"long", "native", "new", "package", "private", "protected",
+			"public", "return", "short", "static", "strictfp", "super",
+			"switch", "synchronized", "this", "throw", "throws",
+			"transient", "try", "void", "volatile", "while",
+			// Not keywords but need to be escaped if used as methods
+			"clone", "equals", "finalize", "notify", "wait",
+		};
+
+		static string Escape(string name) => keywords.Contains(name) ? name + "_" : name;
 	}
 }

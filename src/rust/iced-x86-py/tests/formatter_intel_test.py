@@ -1,31 +1,11 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 from iced_x86 import *
 
 FORMATTER_SYNTAX = FormatterSyntax.INTEL
 
-def test_default_options():
+def test_default_options() -> None:
 	formatter = Formatter(FORMATTER_SYNTAX)
 
 	assert not formatter.uppercase_prefixes
@@ -57,15 +37,15 @@ def test_default_options():
 	assert formatter.binary_suffix == "b"
 	assert formatter.binary_digit_group_size == 4
 	assert formatter.digit_separator == ""
-	assert not formatter.leading_zeroes
+	assert not formatter.leading_zeros
 	assert formatter.uppercase_hex
 	assert formatter.small_hex_numbers_in_decimal
 	assert formatter.add_leading_zero_to_hex_numbers
 	assert formatter.number_base == 16
-	assert formatter.branch_leading_zeroes
+	assert formatter.branch_leading_zeros
 	assert not formatter.signed_immediate_operands
 	assert formatter.signed_memory_displacements
-	assert not formatter.displacement_leading_zeroes
+	assert not formatter.displacement_leading_zeros
 	assert formatter.memory_size_options == MemorySizeOptions.DEFAULT
 	assert not formatter.rip_relative_addresses
 	assert formatter.show_branch_size
@@ -93,7 +73,7 @@ def test_default_options():
 	assert formatter.cc_le == CC_le.LE
 	assert formatter.cc_g == CC_g.G
 
-def test_format():
+def test_format() -> None:
 	instr, instr2 = [instr for instr in Decoder(64, b"\x62\xF2\x4F\xDD\x72\x50\x01\xF0\x00\x18")]
 	formatter = Formatter(FORMATTER_SYNTAX)
 

@@ -1,29 +1,8 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::enums::*;
-use super::enums_shared::MemorySizeOptions;
-#[cfg(not(feature = "std"))]
+use crate::formatter::enums::*;
+use crate::formatter::enums_shared::MemorySizeOptions;
 use alloc::string::String;
 use core::hash::{Hash, Hasher};
 
@@ -38,7 +17,7 @@ impl FormatterOptionString {
 	#[inline]
 	pub fn as_str(&self) -> &str {
 		match self {
-			&FormatterOptionString::String(ref s) => s.as_str(),
+			FormatterOptionString::String(s) => s.as_str(),
 			&FormatterOptionString::Str(s) => s,
 		}
 	}
@@ -64,7 +43,7 @@ impl PartialEq<FormatterOptionString> for FormatterOptionString {
 impl Hash for FormatterOptionString {
 	#[inline]
 	fn hash<H: Hasher>(&self, state: &mut H) {
-		state.write(self.as_str().as_bytes());
+		self.as_str().hash(state);
 	}
 }
 
@@ -84,14 +63,14 @@ impl Flags1 {
 	const ALWAYS_SHOW_SCALE: u32 = 0x0000_0800;
 	const ALWAYS_SHOW_SEGMENT_REGISTER: u32 = 0x0000_1000;
 	const SHOW_ZERO_DISPLACEMENTS: u32 = 0x0000_2000;
-	const LEADING_ZEROES: u32 = 0x0000_4000;
+	const LEADING_ZEROS: u32 = 0x0000_4000;
 	const UPPERCASE_HEX: u32 = 0x0000_8000;
 	const SMALL_HEX_NUMBERS_IN_DECIMAL: u32 = 0x0001_0000;
 	const ADD_LEADING_ZERO_TO_HEX_NUMBERS: u32 = 0x0002_0000;
-	const BRANCH_LEADING_ZEROES: u32 = 0x0004_0000;
+	const BRANCH_LEADING_ZEROS: u32 = 0x0004_0000;
 	const SIGNED_IMMEDIATE_OPERANDS: u32 = 0x0008_0000;
 	const SIGNED_MEMORY_DISPLACEMENTS: u32 = 0x0010_0000;
-	const DISPLACEMENT_LEADING_ZEROES: u32 = 0x0020_0000;
+	const DISPLACEMENT_LEADING_ZEROS: u32 = 0x0020_0000;
 	const RIP_RELATIVE_ADDRESSES: u32 = 0x0040_0000;
 	const SHOW_BRANCH_SIZE: u32 = 0x0080_0000;
 	const USE_PSEUDO_OPS: u32 = 0x0100_0000;
@@ -169,7 +148,7 @@ impl FormatterOptions {
 			options1: Flags1::UPPERCASE_HEX
 				| Flags1::SMALL_HEX_NUMBERS_IN_DECIMAL
 				| Flags1::ADD_LEADING_ZERO_TO_HEX_NUMBERS
-				| Flags1::BRANCH_LEADING_ZEROES
+				| Flags1::BRANCH_LEADING_ZEROS
 				| Flags1::SIGNED_MEMORY_DISPLACEMENTS
 				| Flags1::SHOW_BRANCH_SIZE
 				| Flags1::USE_PSEUDO_OPS
@@ -246,24 +225,24 @@ impl FormatterOptions {
 
 	// NOTE: These tables must render correctly by `cargo doc` and inside of IDEs, eg. VSCode.
 
-	/// Prefixes are upper cased
+	/// Prefixes are uppercased
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `REP stosd`
-	/// ✔️ | `false` | `rep stosd`
+	/// _ | `true` | `REP stosd`
+	/// 👍 | `false` | `rep stosd`
 	#[must_use]
 	#[inline]
-	pub fn uppercase_prefixes(&self) -> bool {
+	pub const fn uppercase_prefixes(&self) -> bool {
 		(self.options1 & Flags1::UPPERCASE_PREFIXES) != 0
 	}
 
-	/// Prefixes are upper cased
+	/// Prefixes are uppercased
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `REP stosd`
-	/// ✔️ | `false` | `rep stosd`
+	/// _ | `true` | `REP stosd`
+	/// 👍 | `false` | `rep stosd`
 	///
 	/// # Arguments
 	///
@@ -277,24 +256,24 @@ impl FormatterOptions {
 		}
 	}
 
-	/// Mnemonics are upper cased
+	/// Mnemonics are uppercased
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `MOV rcx,rax`
-	/// ✔️ | `false` | `mov rcx,rax`
+	/// _ | `true` | `MOV rcx,rax`
+	/// 👍 | `false` | `mov rcx,rax`
 	#[must_use]
 	#[inline]
-	pub fn uppercase_mnemonics(&self) -> bool {
+	pub const fn uppercase_mnemonics(&self) -> bool {
 		(self.options1 & Flags1::UPPERCASE_MNEMONICS) != 0
 	}
 
-	/// Mnemonics are upper cased
+	/// Mnemonics are uppercased
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `MOV rcx,rax`
-	/// ✔️ | `false` | `mov rcx,rax`
+	/// _ | `true` | `MOV rcx,rax`
+	/// 👍 | `false` | `mov rcx,rax`
 	///
 	/// # Arguments
 	///
@@ -308,24 +287,24 @@ impl FormatterOptions {
 		}
 	}
 
-	/// Registers are upper cased
+	/// Registers are uppercased
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov RCX,[RAX+RDX*8]`
-	/// ✔️ | `false` | `mov rcx,[rax+rdx*8]`
+	/// _ | `true` | `mov RCX,[RAX+RDX*8]`
+	/// 👍 | `false` | `mov rcx,[rax+rdx*8]`
 	#[must_use]
 	#[inline]
-	pub fn uppercase_registers(&self) -> bool {
+	pub const fn uppercase_registers(&self) -> bool {
 		(self.options1 & Flags1::UPPERCASE_REGISTERS) != 0
 	}
 
-	/// Registers are upper cased
+	/// Registers are uppercased
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov RCX,[RAX+RDX*8]`
-	/// ✔️ | `false` | `mov rcx,[rax+rdx*8]`
+	/// _ | `true` | `mov RCX,[RAX+RDX*8]`
+	/// 👍 | `false` | `mov rcx,[rax+rdx*8]`
 	///
 	/// # Arguments
 	///
@@ -339,24 +318,24 @@ impl FormatterOptions {
 		}
 	}
 
-	/// Keywords are upper cased (eg. `BYTE PTR`, `SHORT`)
+	/// Keywords are uppercased (eg. `BYTE PTR`, `SHORT`)
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov BYTE PTR [rcx],12h`
-	/// ✔️ | `false` | `mov byte ptr [rcx],12h`
+	/// _ | `true` | `mov BYTE PTR [rcx],12h`
+	/// 👍 | `false` | `mov byte ptr [rcx],12h`
 	#[must_use]
 	#[inline]
-	pub fn uppercase_keywords(&self) -> bool {
+	pub const fn uppercase_keywords(&self) -> bool {
 		(self.options1 & Flags1::UPPERCASE_KEYWORDS) != 0
 	}
 
-	/// Keywords are upper cased (eg. `BYTE PTR`, `SHORT`)
+	/// Keywords are uppercased (eg. `BYTE PTR`, `SHORT`)
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov BYTE PTR [rcx],12h`
-	/// ✔️ | `false` | `mov byte ptr [rcx],12h`
+	/// _ | `true` | `mov BYTE PTR [rcx],12h`
+	/// 👍 | `false` | `mov byte ptr [rcx],12h`
 	///
 	/// # Arguments
 	///
@@ -370,24 +349,24 @@ impl FormatterOptions {
 		}
 	}
 
-	/// Upper case decorators, eg. `{z}`, `{sae}`, `{rd-sae}` (but not op mask registers: `{k1}`)
+	/// Uppercase decorators, eg. `{z}`, `{sae}`, `{rd-sae}` (but not opmask registers: `{k1}`)
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `vunpcklps xmm2{k5}{Z},xmm6,dword bcst [rax+4]`
-	/// ✔️ | `false` | `vunpcklps xmm2{k5}{z},xmm6,dword bcst [rax+4]`
+	/// _ | `true` | `vunpcklps xmm2{k5}{Z},xmm6,dword bcst [rax+4]`
+	/// 👍 | `false` | `vunpcklps xmm2{k5}{z},xmm6,dword bcst [rax+4]`
 	#[must_use]
 	#[inline]
-	pub fn uppercase_decorators(&self) -> bool {
+	pub const fn uppercase_decorators(&self) -> bool {
 		(self.options1 & Flags1::UPPERCASE_DECORATORS) != 0
 	}
 
-	/// Upper case decorators, eg. `{z}`, `{sae}`, `{rd-sae}` (but not op mask registers: `{k1}`)
+	/// Uppercase decorators, eg. `{z}`, `{sae}`, `{rd-sae}` (but not opmask registers: `{k1}`)
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `vunpcklps xmm2{k5}{Z},xmm6,dword bcst [rax+4]`
-	/// ✔️ | `false` | `vunpcklps xmm2{k5}{z},xmm6,dword bcst [rax+4]`
+	/// _ | `true` | `vunpcklps xmm2{k5}{Z},xmm6,dword bcst [rax+4]`
+	/// 👍 | `false` | `vunpcklps xmm2{k5}{z},xmm6,dword bcst [rax+4]`
 	///
 	/// # Arguments
 	///
@@ -401,24 +380,24 @@ impl FormatterOptions {
 		}
 	}
 
-	/// Everything is upper cased, except numbers and their prefixes/suffixes
+	/// Everything is uppercased, except numbers and their prefixes/suffixes
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `MOV EAX,GS:[RCX*4+0ffh]`
-	/// ✔️ | `false` | `mov eax,gs:[rcx*4+0ffh]`
+	/// _ | `true` | `MOV EAX,GS:[RCX*4+0ffh]`
+	/// 👍 | `false` | `mov eax,gs:[rcx*4+0ffh]`
 	#[must_use]
 	#[inline]
-	pub fn uppercase_all(&self) -> bool {
+	pub const fn uppercase_all(&self) -> bool {
 		(self.options1 & Flags1::UPPERCASE_ALL) != 0
 	}
 
-	/// Everything is upper cased, except numbers and their prefixes/suffixes
+	/// Everything is uppercased, except numbers and their prefixes/suffixes
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `MOV EAX,GS:[RCX*4+0ffh]`
-	/// ✔️ | `false` | `mov eax,gs:[rcx*4+0ffh]`
+	/// _ | `true` | `MOV EAX,GS:[RCX*4+0ffh]`
+	/// 👍 | `false` | `mov eax,gs:[rcx*4+0ffh]`
 	///
 	/// # Arguments
 	///
@@ -437,11 +416,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `0` | `mov•rcx,rbp`
-	/// &nbsp; | `8` | `mov•••••rcx,rbp`
+	/// 👍 | `0` | `mov•rcx,rbp`
+	/// _ | `8` | `mov•••••rcx,rbp`
 	#[must_use]
 	#[inline]
-	pub fn first_operand_char_index(&self) -> u32 {
+	pub const fn first_operand_char_index(&self) -> u32 {
 		self.first_operand_char_index
 	}
 
@@ -450,8 +429,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `0` | `mov•rcx,rbp`
-	/// &nbsp; | `8` | `mov•••••rcx,rbp`
+	/// 👍 | `0` | `mov•rcx,rbp`
+	/// _ | `8` | `mov•••••rcx,rbp`
 	///
 	/// # Arguments
 	///
@@ -466,7 +445,7 @@ impl FormatterOptions {
 	/// - Default: `0`
 	#[must_use]
 	#[inline]
-	pub fn tab_size(&self) -> u32 {
+	pub const fn tab_size(&self) -> u32 {
 		self.tab_size
 	}
 
@@ -486,11 +465,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov rax, rcx`
-	/// ✔️ | `false` | `mov rax,rcx`
+	/// _ | `true` | `mov rax, rcx`
+	/// 👍 | `false` | `mov rax,rcx`
 	#[must_use]
 	#[inline]
-	pub fn space_after_operand_separator(&self) -> bool {
+	pub const fn space_after_operand_separator(&self) -> bool {
 		(self.options1 & Flags1::SPACE_AFTER_OPERAND_SEPARATOR) != 0
 	}
 
@@ -498,8 +477,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov rax, rcx`
-	/// ✔️ | `false` | `mov rax,rcx`
+	/// _ | `true` | `mov rax, rcx`
+	/// 👍 | `false` | `mov rax,rcx`
 	///
 	/// # Arguments
 	///
@@ -517,11 +496,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[ rcx+rdx ]`
-	/// ✔️ | `false` | `mov eax,[rcx+rdx]`
+	/// _ | `true` | `mov eax,[ rcx+rdx ]`
+	/// 👍 | `false` | `mov eax,[rcx+rdx]`
 	#[must_use]
 	#[inline]
-	pub fn space_after_memory_bracket(&self) -> bool {
+	pub const fn space_after_memory_bracket(&self) -> bool {
 		(self.options1 & Flags1::SPACE_AFTER_MEMORY_BRACKET) != 0
 	}
 
@@ -529,8 +508,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[ rcx+rdx ]`
-	/// ✔️ | `false` | `mov eax,[rcx+rdx]`
+	/// _ | `true` | `mov eax,[ rcx+rdx ]`
+	/// 👍 | `false` | `mov eax,[rcx+rdx]`
 	///
 	/// # Arguments
 	///
@@ -548,11 +527,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rcx + rdx*8 - 80h]`
-	/// ✔️ | `false` | `mov eax,[rcx+rdx*8-80h]`
+	/// _ | `true` | `mov eax,[rcx + rdx*8 - 80h]`
+	/// 👍 | `false` | `mov eax,[rcx+rdx*8-80h]`
 	#[must_use]
 	#[inline]
-	pub fn space_between_memory_add_operators(&self) -> bool {
+	pub const fn space_between_memory_add_operators(&self) -> bool {
 		(self.options1 & Flags1::SPACE_BETWEEN_MEMORY_ADD_OPERATORS) != 0
 	}
 
@@ -560,8 +539,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rcx + rdx*8 - 80h]`
-	/// ✔️ | `false` | `mov eax,[rcx+rdx*8-80h]`
+	/// _ | `true` | `mov eax,[rcx + rdx*8 - 80h]`
+	/// 👍 | `false` | `mov eax,[rcx+rdx*8-80h]`
 	///
 	/// # Arguments
 	///
@@ -579,11 +558,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rcx+rdx * 8-80h]`
-	/// ✔️ | `false` | `mov eax,[rcx+rdx*8-80h]`
+	/// _ | `true` | `mov eax,[rcx+rdx * 8-80h]`
+	/// 👍 | `false` | `mov eax,[rcx+rdx*8-80h]`
 	#[must_use]
 	#[inline]
-	pub fn space_between_memory_mul_operators(&self) -> bool {
+	pub const fn space_between_memory_mul_operators(&self) -> bool {
 		(self.options1 & Flags1::SPACE_BETWEEN_MEMORY_MUL_OPERATORS) != 0
 	}
 
@@ -591,8 +570,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rcx+rdx * 8-80h]`
-	/// ✔️ | `false` | `mov eax,[rcx+rdx*8-80h]`
+	/// _ | `true` | `mov eax,[rcx+rdx * 8-80h]`
+	/// 👍 | `false` | `mov eax,[rcx+rdx*8-80h]`
 	///
 	/// # Arguments
 	///
@@ -610,11 +589,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[8*rdx]`
-	/// ✔️ | `false` | `mov eax,[rdx*8]`
+	/// _ | `true` | `mov eax,[8*rdx]`
+	/// 👍 | `false` | `mov eax,[rdx*8]`
 	#[must_use]
 	#[inline]
-	pub fn scale_before_index(&self) -> bool {
+	pub const fn scale_before_index(&self) -> bool {
 		(self.options1 & Flags1::SCALE_BEFORE_INDEX) != 0
 	}
 
@@ -622,8 +601,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[8*rdx]`
-	/// ✔️ | `false` | `mov eax,[rdx*8]`
+	/// _ | `true` | `mov eax,[8*rdx]`
+	/// 👍 | `false` | `mov eax,[rdx*8]`
 	///
 	/// # Arguments
 	///
@@ -641,11 +620,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rbx+rcx*1]`
-	/// ✔️ | `false` | `mov eax,[rbx+rcx]`
+	/// _ | `true` | `mov eax,[rbx+rcx*1]`
+	/// 👍 | `false` | `mov eax,[rbx+rcx]`
 	#[must_use]
 	#[inline]
-	pub fn always_show_scale(&self) -> bool {
+	pub const fn always_show_scale(&self) -> bool {
 		(self.options1 & Flags1::ALWAYS_SHOW_SCALE) != 0
 	}
 
@@ -653,8 +632,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rbx+rcx*1]`
-	/// ✔️ | `false` | `mov eax,[rbx+rcx]`
+	/// _ | `true` | `mov eax,[rbx+rcx*1]`
+	/// 👍 | `false` | `mov eax,[rbx+rcx]`
 	///
 	/// # Arguments
 	///
@@ -673,11 +652,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,ds:[ecx]`
-	/// ✔️ | `false` | `mov eax,[ecx]`
+	/// _ | `true` | `mov eax,ds:[ecx]`
+	/// 👍 | `false` | `mov eax,[ecx]`
 	#[must_use]
 	#[inline]
-	pub fn always_show_segment_register(&self) -> bool {
+	pub const fn always_show_segment_register(&self) -> bool {
 		(self.options1 & Flags1::ALWAYS_SHOW_SEGMENT_REGISTER) != 0
 	}
 
@@ -686,8 +665,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,ds:[ecx]`
-	/// ✔️ | `false` | `mov eax,[ecx]`
+	/// _ | `true` | `mov eax,ds:[ecx]`
+	/// 👍 | `false` | `mov eax,[ecx]`
 	///
 	/// # Arguments
 	///
@@ -705,11 +684,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rcx*2+0]`
-	/// ✔️ | `false` | `mov eax,[rcx*2]`
+	/// _ | `true` | `mov eax,[rcx*2+0]`
+	/// 👍 | `false` | `mov eax,[rcx*2]`
 	#[must_use]
 	#[inline]
-	pub fn show_zero_displacements(&self) -> bool {
+	pub const fn show_zero_displacements(&self) -> bool {
 		(self.options1 & Flags1::SHOW_ZERO_DISPLACEMENTS) != 0
 	}
 
@@ -717,8 +696,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rcx*2+0]`
-	/// ✔️ | `false` | `mov eax,[rcx*2]`
+	/// _ | `true` | `mov eax,[rcx*2+0]`
+	/// 👍 | `false` | `mov eax,[rcx*2]`
 	///
 	/// # Arguments
 	///
@@ -804,11 +783,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `0` | `0x12345678`
-	/// ✔️ | `4` | `0x1234_5678`
+	/// _ | `0` | `0x12345678`
+	/// 👍 | `4` | `0x1234_5678`
 	#[must_use]
 	#[inline]
-	pub fn hex_digit_group_size(&self) -> u32 {
+	pub const fn hex_digit_group_size(&self) -> u32 {
 		self.hex_digit_group_size
 	}
 
@@ -818,8 +797,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `0` | `0x12345678`
-	/// ✔️ | `4` | `0x1234_5678`
+	/// _ | `0` | `0x12345678`
+	/// 👍 | `4` | `0x1234_5678`
 	///
 	/// # Arguments
 	///
@@ -901,11 +880,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `0` | `12345678`
-	/// ✔️ | `3` | `12_345_678`
+	/// _ | `0` | `12345678`
+	/// 👍 | `3` | `12_345_678`
 	#[must_use]
 	#[inline]
-	pub fn decimal_digit_group_size(&self) -> u32 {
+	pub const fn decimal_digit_group_size(&self) -> u32 {
 		self.decimal_digit_group_size
 	}
 
@@ -915,8 +894,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `0` | `12345678`
-	/// ✔️ | `3` | `12_345_678`
+	/// _ | `0` | `12345678`
+	/// 👍 | `3` | `12_345_678`
 	///
 	/// # Arguments
 	///
@@ -998,11 +977,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `0` | `12345670`
-	/// ✔️ | `4` | `1234_5670`
+	/// _ | `0` | `12345670`
+	/// 👍 | `4` | `1234_5670`
 	#[must_use]
 	#[inline]
-	pub fn octal_digit_group_size(&self) -> u32 {
+	pub const fn octal_digit_group_size(&self) -> u32 {
 		self.octal_digit_group_size
 	}
 
@@ -1012,8 +991,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `0` | `12345670`
-	/// ✔️ | `4` | `1234_5670`
+	/// _ | `0` | `12345670`
+	/// 👍 | `4` | `1234_5670`
 	///
 	/// # Arguments
 	///
@@ -1095,11 +1074,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `0` | `11010111`
-	/// ✔️ | `4` | `1101_0111`
+	/// _ | `0` | `11010111`
+	/// 👍 | `4` | `1101_0111`
 	#[must_use]
 	#[inline]
-	pub fn binary_digit_group_size(&self) -> u32 {
+	pub const fn binary_digit_group_size(&self) -> u32 {
 		self.binary_digit_group_size
 	}
 
@@ -1109,8 +1088,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `0` | `11010111`
-	/// ✔️ | `4` | `1101_0111`
+	/// _ | `0` | `11010111`
+	/// 👍 | `4` | `1101_0111`
 	///
 	/// # Arguments
 	///
@@ -1126,8 +1105,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `""` | `0x12345678`
-	/// &nbsp; | `"_"` | `0x1234_5678`
+	/// 👍 | `""` | `0x12345678`
+	/// _ | `"_"` | `0x1234_5678`
 	#[must_use]
 	#[inline]
 	pub fn digit_separator(&self) -> &str {
@@ -1140,8 +1119,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `""` | `0x12345678`
-	/// &nbsp; | `"_"` | `0x1234_5678`
+	/// 👍 | `""` | `0x12345678`
+	/// _ | `"_"` | `0x1234_5678`
 	///
 	/// # Arguments
 	///
@@ -1157,8 +1136,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `""` | `0x12345678`
-	/// &nbsp; | `"_"` | `0x1234_5678`
+	/// 👍 | `""` | `0x12345678`
+	/// _ | `"_"` | `0x1234_5678`
 	///
 	/// # Arguments
 	///
@@ -1168,65 +1147,78 @@ impl FormatterOptions {
 		self.digit_separator = FormatterOptionString::String(value)
 	}
 
-	/// Add leading zeroes to hexadecimal/octal/binary numbers.
-	/// This option has no effect on branch targets and displacements, use [`branch_leading_zeroes`]
-	/// and [`displacement_leading_zeroes`].
+	/// Add leading zeros to hexadecimal/octal/binary numbers.
+	/// This option has no effect on branch targets and displacements, use [`branch_leading_zeros`]
+	/// and [`displacement_leading_zeros`].
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `0x0000000A`/`0000000Ah`
-	/// ✔️ | `false` | `0xA`/`0Ah`
+	/// _ | `true` | `0x0000000A`/`0000000Ah`
+	/// 👍 | `false` | `0xA`/`0Ah`
 	///
-	/// [`branch_leading_zeroes`]: #method.branch_leading_zeroes
-	/// [`displacement_leading_zeroes`]: #method.displacement_leading_zeroes
+	/// [`branch_leading_zeros`]: #method.branch_leading_zeros
+	/// [`displacement_leading_zeros`]: #method.displacement_leading_zeros
 	#[must_use]
 	#[inline]
-	pub fn leading_zeroes(&self) -> bool {
-		(self.options1 & Flags1::LEADING_ZEROES) != 0
+	pub const fn leading_zeros(&self) -> bool {
+		(self.options1 & Flags1::LEADING_ZEROS) != 0
 	}
 
-	/// Add leading zeroes to hexadecimal/octal/binary numbers.
-	/// This option has no effect on branch targets and displacements, use [`branch_leading_zeroes`]
-	/// and [`displacement_leading_zeroes`].
+	/// Add leading zeros to hexadecimal/octal/binary numbers.
+	/// This option has no effect on branch targets and displacements, use [`branch_leading_zeros`]
+	/// and [`displacement_leading_zeros`].
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `0x0000000A`/`0000000Ah`
-	/// ✔️ | `false` | `0xA`/`0Ah`
+	/// _ | `true` | `0x0000000A`/`0000000Ah`
+	/// 👍 | `false` | `0xA`/`0Ah`
 	///
-	/// [`branch_leading_zeroes`]: #method.branch_leading_zeroes
-	/// [`displacement_leading_zeroes`]: #method.displacement_leading_zeroes
+	/// [`branch_leading_zeros`]: #method.branch_leading_zeros
+	/// [`displacement_leading_zeros`]: #method.displacement_leading_zeros
 	///
 	/// # Arguments
 	///
 	/// * `value`: New value
 	#[inline]
-	pub fn set_leading_zeroes(&mut self, value: bool) {
+	pub fn set_leading_zeros(&mut self, value: bool) {
 		if value {
-			self.options1 |= Flags1::LEADING_ZEROES;
+			self.options1 |= Flags1::LEADING_ZEROS;
 		} else {
-			self.options1 &= !Flags1::LEADING_ZEROES;
+			self.options1 &= !Flags1::LEADING_ZEROS;
 		}
 	}
 
-	/// Use upper case hex digits
+	#[must_use]
+	#[inline]
+	#[doc(hidden)]
+	pub const fn leading_zeroes(&self) -> bool {
+		self.leading_zeros()
+	}
+
+	#[inline]
+	#[doc(hidden)]
+	pub fn set_leading_zeroes(&mut self, value: bool) {
+		self.set_leading_zeros(value);
+	}
+
+	/// Use uppercase hex digits
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `0xFF`
-	/// &nbsp; | `false` | `0xff`
+	/// 👍 | `true` | `0xFF`
+	/// _ | `false` | `0xff`
 	#[must_use]
 	#[inline]
-	pub fn uppercase_hex(&self) -> bool {
+	pub const fn uppercase_hex(&self) -> bool {
 		(self.options1 & Flags1::UPPERCASE_HEX) != 0
 	}
 
-	/// Use upper case hex digits
+	/// Use uppercase hex digits
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `0xFF`
-	/// &nbsp; | `false` | `0xff`
+	/// 👍 | `true` | `0xFF`
+	/// _ | `false` | `0xff`
 	///
 	/// # Arguments
 	///
@@ -1244,11 +1236,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `9`
-	/// &nbsp; | `false` | `0x9`
+	/// 👍 | `true` | `9`
+	/// _ | `false` | `0x9`
 	#[must_use]
 	#[inline]
-	pub fn small_hex_numbers_in_decimal(&self) -> bool {
+	pub const fn small_hex_numbers_in_decimal(&self) -> bool {
 		(self.options1 & Flags1::SMALL_HEX_NUMBERS_IN_DECIMAL) != 0
 	}
 
@@ -1256,8 +1248,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `9`
-	/// &nbsp; | `false` | `0x9`
+	/// 👍 | `true` | `9`
+	/// _ | `false` | `0x9`
 	///
 	/// # Arguments
 	///
@@ -1275,11 +1267,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `0FFh`
-	/// &nbsp; | `false` | `FFh`
+	/// 👍 | `true` | `0FFh`
+	/// _ | `false` | `FFh`
 	#[must_use]
 	#[inline]
-	pub fn add_leading_zero_to_hex_numbers(&self) -> bool {
+	pub const fn add_leading_zero_to_hex_numbers(&self) -> bool {
 		(self.options1 & Flags1::ADD_LEADING_ZERO_TO_HEX_NUMBERS) != 0
 	}
 
@@ -1287,8 +1279,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `0FFh`
-	/// &nbsp; | `false` | `FFh`
+	/// 👍 | `true` | `0FFh`
+	/// _ | `false` | `FFh`
 	///
 	/// # Arguments
 	///
@@ -1309,7 +1301,7 @@ impl FormatterOptions {
 	/// [`Hexadecimal`]: enum.NumberBase.html#variant.Hexadecimal
 	#[must_use]
 	#[inline]
-	pub fn number_base(&self) -> NumberBase {
+	pub const fn number_base(&self) -> NumberBase {
 		self.number_base
 	}
 
@@ -1327,46 +1319,59 @@ impl FormatterOptions {
 		self.number_base = value
 	}
 
-	/// Add leading zeroes to branch offsets. Used by `CALL NEAR`, `CALL FAR`, `JMP NEAR`, `JMP FAR`, `Jcc`, `LOOP`, `LOOPcc`, `XBEGIN`
+	/// Add leading zeros to branch offsets. Used by `CALL NEAR`, `CALL FAR`, `JMP NEAR`, `JMP FAR`, `Jcc`, `LOOP`, `LOOPcc`, `XBEGIN`
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `je 00000123h`
-	/// &nbsp; | `false` | `je 123h`
+	/// 👍 | `true` | `je 00000123h`
+	/// _ | `false` | `je 123h`
 	#[must_use]
 	#[inline]
-	pub fn branch_leading_zeroes(&self) -> bool {
-		(self.options1 & Flags1::BRANCH_LEADING_ZEROES) != 0
+	pub const fn branch_leading_zeros(&self) -> bool {
+		(self.options1 & Flags1::BRANCH_LEADING_ZEROS) != 0
 	}
 
-	/// Add leading zeroes to branch offsets. Used by `CALL NEAR`, `CALL FAR`, `JMP NEAR`, `JMP FAR`, `Jcc`, `LOOP`, `LOOPcc`, `XBEGIN`
+	/// Add leading zeros to branch offsets. Used by `CALL NEAR`, `CALL FAR`, `JMP NEAR`, `JMP FAR`, `Jcc`, `LOOP`, `LOOPcc`, `XBEGIN`
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `je 00000123h`
-	/// &nbsp; | `false` | `je 123h`
+	/// 👍 | `true` | `je 00000123h`
+	/// _ | `false` | `je 123h`
 	///
 	/// # Arguments
 	///
 	/// * `value`: New value
 	#[inline]
-	pub fn set_branch_leading_zeroes(&mut self, value: bool) {
+	pub fn set_branch_leading_zeros(&mut self, value: bool) {
 		if value {
-			self.options1 |= Flags1::BRANCH_LEADING_ZEROES;
+			self.options1 |= Flags1::BRANCH_LEADING_ZEROS;
 		} else {
-			self.options1 &= !Flags1::BRANCH_LEADING_ZEROES;
+			self.options1 &= !Flags1::BRANCH_LEADING_ZEROS;
 		}
+	}
+
+	#[must_use]
+	#[inline]
+	#[doc(hidden)]
+	pub const fn branch_leading_zeroes(&self) -> bool {
+		self.branch_leading_zeros()
+	}
+
+	#[inline]
+	#[doc(hidden)]
+	pub fn set_branch_leading_zeroes(&mut self, value: bool) {
+		self.set_branch_leading_zeros(value);
 	}
 
 	/// Show immediate operands as signed numbers
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,-1`
-	/// ✔️ | `false` | `mov eax,FFFFFFFF`
+	/// _ | `true` | `mov eax,-1`
+	/// 👍 | `false` | `mov eax,FFFFFFFF`
 	#[must_use]
 	#[inline]
-	pub fn signed_immediate_operands(&self) -> bool {
+	pub const fn signed_immediate_operands(&self) -> bool {
 		(self.options1 & Flags1::SIGNED_IMMEDIATE_OPERANDS) != 0
 	}
 
@@ -1374,8 +1379,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,-1`
-	/// ✔️ | `false` | `mov eax,FFFFFFFF`
+	/// _ | `true` | `mov eax,-1`
+	/// 👍 | `false` | `mov eax,FFFFFFFF`
 	///
 	/// # Arguments
 	///
@@ -1393,11 +1398,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `mov al,[eax-2000h]`
-	/// &nbsp; | `false` | `mov al,[eax+0FFFFE000h]`
+	/// 👍 | `true` | `mov al,[eax-2000h]`
+	/// _ | `false` | `mov al,[eax+0FFFFE000h]`
 	#[must_use]
 	#[inline]
-	pub fn signed_memory_displacements(&self) -> bool {
+	pub const fn signed_memory_displacements(&self) -> bool {
 		(self.options1 & Flags1::SIGNED_MEMORY_DISPLACEMENTS) != 0
 	}
 
@@ -1405,8 +1410,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `mov al,[eax-2000h]`
-	/// &nbsp; | `false` | `mov al,[eax+0FFFFE000h]`
+	/// 👍 | `true` | `mov al,[eax-2000h]`
+	/// _ | `false` | `mov al,[eax+0FFFFE000h]`
 	///
 	/// # Arguments
 	///
@@ -1420,35 +1425,48 @@ impl FormatterOptions {
 		}
 	}
 
-	/// Add leading zeroes to displacements
+	/// Add leading zeros to displacements
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov al,[eax+00000012h]`
-	/// ✔️ | `false` | `mov al,[eax+12h]`
+	/// _ | `true` | `mov al,[eax+00000012h]`
+	/// 👍 | `false` | `mov al,[eax+12h]`
 	#[must_use]
 	#[inline]
-	pub fn displacement_leading_zeroes(&self) -> bool {
-		(self.options1 & Flags1::DISPLACEMENT_LEADING_ZEROES) != 0
+	pub const fn displacement_leading_zeros(&self) -> bool {
+		(self.options1 & Flags1::DISPLACEMENT_LEADING_ZEROS) != 0
 	}
 
-	/// Add leading zeroes to displacements
+	/// Add leading zeros to displacements
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov al,[eax+00000012h]`
-	/// ✔️ | `false` | `mov al,[eax+12h]`
+	/// _ | `true` | `mov al,[eax+00000012h]`
+	/// 👍 | `false` | `mov al,[eax+12h]`
 	///
 	/// # Arguments
 	///
 	/// * `value`: New value
 	#[inline]
-	pub fn set_displacement_leading_zeroes(&mut self, value: bool) {
+	pub fn set_displacement_leading_zeros(&mut self, value: bool) {
 		if value {
-			self.options1 |= Flags1::DISPLACEMENT_LEADING_ZEROES;
+			self.options1 |= Flags1::DISPLACEMENT_LEADING_ZEROS;
 		} else {
-			self.options1 &= !Flags1::DISPLACEMENT_LEADING_ZEROES;
+			self.options1 &= !Flags1::DISPLACEMENT_LEADING_ZEROS;
 		}
+	}
+
+	#[must_use]
+	#[inline]
+	#[doc(hidden)]
+	pub const fn displacement_leading_zeroes(&self) -> bool {
+		self.displacement_leading_zeros()
+	}
+
+	#[inline]
+	#[doc(hidden)]
+	pub fn set_displacement_leading_zeroes(&mut self, value: bool) {
+		self.set_displacement_leading_zeros(value);
 	}
 
 	/// Options that control if the memory size (eg. `DWORD PTR`) is shown or not.
@@ -1459,7 +1477,7 @@ impl FormatterOptions {
 	/// [`Default`]: enum.MemorySizeOptions.html#variant.Default
 	#[must_use]
 	#[inline]
-	pub fn memory_size_options(&self) -> MemorySizeOptions {
+	pub const fn memory_size_options(&self) -> MemorySizeOptions {
 		self.memory_size_options
 	}
 
@@ -1482,11 +1500,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rip+12345678h]`
-	/// ✔️ | `false` | `mov eax,[1029384756AFBECDh]`
+	/// _ | `true` | `mov eax,[rip+12345678h]`
+	/// 👍 | `false` | `mov eax,[1029384756AFBECDh]`
 	#[must_use]
 	#[inline]
-	pub fn rip_relative_addresses(&self) -> bool {
+	pub const fn rip_relative_addresses(&self) -> bool {
 		(self.options1 & Flags1::RIP_RELATIVE_ADDRESSES) != 0
 	}
 
@@ -1494,8 +1512,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[rip+12345678h]`
-	/// ✔️ | `false` | `mov eax,[1029384756AFBECDh]`
+	/// _ | `true` | `mov eax,[rip+12345678h]`
+	/// 👍 | `false` | `mov eax,[1029384756AFBECDh]`
 	///
 	/// # Arguments
 	///
@@ -1513,11 +1531,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `je short 1234h`
-	/// &nbsp; | `false` | `je 1234h`
+	/// 👍 | `true` | `je short 1234h`
+	/// _ | `false` | `je 1234h`
 	#[must_use]
 	#[inline]
-	pub fn show_branch_size(&self) -> bool {
+	pub const fn show_branch_size(&self) -> bool {
 		(self.options1 & Flags1::SHOW_BRANCH_SIZE) != 0
 	}
 
@@ -1525,8 +1543,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `je short 1234h`
-	/// &nbsp; | `false` | `je 1234h`
+	/// 👍 | `true` | `je short 1234h`
+	/// _ | `false` | `je 1234h`
 	///
 	/// # Arguments
 	///
@@ -1544,11 +1562,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `vcmpnltsd xmm2,xmm6,xmm3`
-	/// &nbsp; | `false` | `vcmpsd xmm2,xmm6,xmm3,5`
+	/// 👍 | `true` | `vcmpnltsd xmm2,xmm6,xmm3`
+	/// _ | `false` | `vcmpsd xmm2,xmm6,xmm3,5`
 	#[must_use]
 	#[inline]
-	pub fn use_pseudo_ops(&self) -> bool {
+	pub const fn use_pseudo_ops(&self) -> bool {
 		(self.options1 & Flags1::USE_PSEUDO_OPS) != 0
 	}
 
@@ -1556,8 +1574,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `vcmpnltsd xmm2,xmm6,xmm3`
-	/// &nbsp; | `false` | `vcmpsd xmm2,xmm6,xmm3,5`
+	/// 👍 | `true` | `vcmpnltsd xmm2,xmm6,xmm3`
+	/// _ | `false` | `vcmpsd xmm2,xmm6,xmm3,5`
 	///
 	/// # Arguments
 	///
@@ -1575,11 +1593,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[myfield (12345678)]`
-	/// ✔️ | `false` | `mov eax,[myfield]`
+	/// _ | `true` | `mov eax,[myfield (12345678)]`
+	/// 👍 | `false` | `mov eax,[myfield]`
 	#[must_use]
 	#[inline]
-	pub fn show_symbol_address(&self) -> bool {
+	pub const fn show_symbol_address(&self) -> bool {
 		(self.options1 & Flags1::SHOW_SYMBOL_ADDRESS) != 0
 	}
 
@@ -1587,8 +1605,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,[myfield (12345678)]`
-	/// ✔️ | `false` | `mov eax,[myfield]`
+	/// _ | `true` | `mov eax,[myfield (12345678)]`
+	/// 👍 | `false` | `mov eax,[myfield]`
 	///
 	/// # Arguments
 	///
@@ -1606,11 +1624,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,ecx`
-	/// ✔️ | `false` | `mov %eax,%ecx`
+	/// _ | `true` | `mov eax,ecx`
+	/// 👍 | `false` | `mov %eax,%ecx`
 	#[must_use]
 	#[inline]
-	pub fn gas_naked_registers(&self) -> bool {
+	pub const fn gas_naked_registers(&self) -> bool {
 		(self.options1 & Flags1::GAS_NAKED_REGISTERS) != 0
 	}
 
@@ -1618,8 +1636,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `mov eax,ecx`
-	/// ✔️ | `false` | `mov %eax,%ecx`
+	/// _ | `true` | `mov eax,ecx`
+	/// 👍 | `false` | `mov %eax,%ecx`
 	///
 	/// # Arguments
 	///
@@ -1637,11 +1655,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `movl %eax,%ecx`
-	/// ✔️ | `false` | `mov %eax,%ecx`
+	/// _ | `true` | `movl %eax,%ecx`
+	/// 👍 | `false` | `mov %eax,%ecx`
 	#[must_use]
 	#[inline]
-	pub fn gas_show_mnemonic_size_suffix(&self) -> bool {
+	pub const fn gas_show_mnemonic_size_suffix(&self) -> bool {
 		(self.options1 & Flags1::GAS_SHOW_MNEMONIC_SIZE_SUFFIX) != 0
 	}
 
@@ -1649,8 +1667,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `movl %eax,%ecx`
-	/// ✔️ | `false` | `mov %eax,%ecx`
+	/// _ | `true` | `movl %eax,%ecx`
+	/// 👍 | `false` | `mov %eax,%ecx`
 	///
 	/// # Arguments
 	///
@@ -1668,11 +1686,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `(%eax, %ecx, 2)`
-	/// ✔️ | `false` | `(%eax,%ecx,2)`
+	/// _ | `true` | `(%eax, %ecx, 2)`
+	/// 👍 | `false` | `(%eax,%ecx,2)`
 	#[must_use]
 	#[inline]
-	pub fn gas_space_after_memory_operand_comma(&self) -> bool {
+	pub const fn gas_space_after_memory_operand_comma(&self) -> bool {
 		(self.options1 & Flags1::GAS_SPACE_AFTER_MEMORY_OPERAND_COMMA) != 0
 	}
 
@@ -1680,8 +1698,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `(%eax, %ecx, 2)`
-	/// ✔️ | `false` | `(%eax,%ecx,2)`
+	/// _ | `true` | `(%eax, %ecx, 2)`
+	/// 👍 | `false` | `(%eax,%ecx,2)`
 	///
 	/// # Arguments
 	///
@@ -1699,11 +1717,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `mov eax,ds:[12345678]`
-	/// &nbsp; | `false` | `mov eax,[12345678]`
+	/// 👍 | `true` | `mov eax,ds:[12345678]`
+	/// _ | `false` | `mov eax,[12345678]`
 	#[must_use]
 	#[inline]
-	pub fn masm_add_ds_prefix32(&self) -> bool {
+	pub const fn masm_add_ds_prefix32(&self) -> bool {
 		(self.options1 & Flags1::MASM_ADD_DS_PREFIX32) != 0
 	}
 
@@ -1711,8 +1729,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `mov eax,ds:[12345678]`
-	/// &nbsp; | `false` | `mov eax,[12345678]`
+	/// 👍 | `true` | `mov eax,ds:[12345678]`
+	/// _ | `false` | `mov eax,[12345678]`
 	///
 	/// # Arguments
 	///
@@ -1730,11 +1748,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `[ecx+symbol]` / `[symbol]`
-	/// &nbsp; | `false` | `symbol[ecx]` / `symbol`
+	/// 👍 | `true` | `[ecx+symbol]` / `[symbol]`
+	/// _ | `false` | `symbol[ecx]` / `symbol`
 	#[must_use]
 	#[inline]
-	pub fn masm_symbol_displ_in_brackets(&self) -> bool {
+	pub const fn masm_symbol_displ_in_brackets(&self) -> bool {
 		(self.options1 & Flags1::MASM_SYMBOL_DISPL_IN_BRACKETS) != 0
 	}
 
@@ -1742,8 +1760,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `[ecx+symbol]` / `[symbol]`
-	/// &nbsp; | `false` | `symbol[ecx]` / `symbol`
+	/// 👍 | `true` | `[ecx+symbol]` / `[symbol]`
+	/// _ | `false` | `symbol[ecx]` / `symbol`
 	///
 	/// # Arguments
 	///
@@ -1761,11 +1779,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `[ecx+1234h]`
-	/// &nbsp; | `false` | `1234h[ecx]`
+	/// 👍 | `true` | `[ecx+1234h]`
+	/// _ | `false` | `1234h[ecx]`
 	#[must_use]
 	#[inline]
-	pub fn masm_displ_in_brackets(&self) -> bool {
+	pub const fn masm_displ_in_brackets(&self) -> bool {
 		(self.options1 & Flags1::MASM_DISPL_IN_BRACKETS) != 0
 	}
 
@@ -1773,8 +1791,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// ✔️ | `true` | `[ecx+1234h]`
-	/// &nbsp; | `false` | `1234h[ecx]`
+	/// 👍 | `true` | `[ecx+1234h]`
+	/// _ | `false` | `1234h[ecx]`
 	///
 	/// # Arguments
 	///
@@ -1792,11 +1810,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `or rcx,byte -1`
-	/// ✔️ | `false` | `or rcx,-1`
+	/// _ | `true` | `or rcx,byte -1`
+	/// 👍 | `false` | `or rcx,-1`
 	#[must_use]
 	#[inline]
-	pub fn nasm_show_sign_extended_immediate_size(&self) -> bool {
+	pub const fn nasm_show_sign_extended_immediate_size(&self) -> bool {
 		(self.options2 & Flags2::NASM_SHOW_SIGN_EXTENDED_IMMEDIATE_SIZE) != 0
 	}
 
@@ -1804,8 +1822,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `or rcx,byte -1`
-	/// ✔️ | `false` | `or rcx,-1`
+	/// _ | `true` | `or rcx,byte -1`
+	/// 👍 | `false` | `or rcx,-1`
 	///
 	/// # Arguments
 	///
@@ -1823,11 +1841,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `fadd st(0),st(3)`
-	/// ✔️ | `false` | `fadd st,st(3)`
+	/// _ | `true` | `fadd st(0),st(3)`
+	/// 👍 | `false` | `fadd st,st(3)`
 	#[must_use]
 	#[inline]
-	pub fn prefer_st0(&self) -> bool {
+	pub const fn prefer_st0(&self) -> bool {
 		(self.options2 & Flags2::PREFER_ST0) != 0
 	}
 
@@ -1835,8 +1853,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `fadd st(0),st(3)`
-	/// ✔️ | `false` | `fadd st,st(3)`
+	/// _ | `true` | `fadd st(0),st(3)`
+	/// 👍 | `false` | `fadd st,st(3)`
 	///
 	/// # Arguments
 	///
@@ -1854,11 +1872,11 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `es rep add eax,ecx`
-	/// ✔️ | `false` | `add eax,ecx`
+	/// _ | `true` | `es rep add eax,ecx`
+	/// 👍 | `false` | `add eax,ecx`
 	#[must_use]
 	#[inline]
-	pub fn show_useless_prefixes(&self) -> bool {
+	pub const fn show_useless_prefixes(&self) -> bool {
 		(self.options2 & Flags2::SHOW_USELESS_PREFIXES) != 0
 	}
 
@@ -1866,8 +1884,8 @@ impl FormatterOptions {
 	///
 	/// Default | Value | Example
 	/// --------|-------|--------
-	/// &nbsp; | `true` | `es rep add eax,ecx`
-	/// ✔️ | `false` | `add eax,ecx`
+	/// _ | `true` | `es rep add eax,ecx`
+	/// 👍 | `false` | `add eax,ecx`
 	///
 	/// # Arguments
 	///
@@ -1886,7 +1904,7 @@ impl FormatterOptions {
 	/// Default: `JB`, `CMOVB`, `SETB`
 	#[must_use]
 	#[inline]
-	pub fn cc_b(&self) -> CC_b {
+	pub const fn cc_b(&self) -> CC_b {
 		self.cc_b
 	}
 
@@ -1907,7 +1925,7 @@ impl FormatterOptions {
 	/// Default: `JAE`, `CMOVAE`, `SETAE`
 	#[must_use]
 	#[inline]
-	pub fn cc_ae(&self) -> CC_ae {
+	pub const fn cc_ae(&self) -> CC_ae {
 		self.cc_ae
 	}
 
@@ -1928,7 +1946,7 @@ impl FormatterOptions {
 	/// Default: `JE`, `CMOVE`, `SETE`, `LOOPE`, `REPE`
 	#[must_use]
 	#[inline]
-	pub fn cc_e(&self) -> CC_e {
+	pub const fn cc_e(&self) -> CC_e {
 		self.cc_e
 	}
 
@@ -1949,7 +1967,7 @@ impl FormatterOptions {
 	/// Default: `JNE`, `CMOVNE`, `SETNE`, `LOOPNE`, `REPNE`
 	#[must_use]
 	#[inline]
-	pub fn cc_ne(&self) -> CC_ne {
+	pub const fn cc_ne(&self) -> CC_ne {
 		self.cc_ne
 	}
 
@@ -1970,7 +1988,7 @@ impl FormatterOptions {
 	/// Default: `JBE`, `CMOVBE`, `SETBE`
 	#[must_use]
 	#[inline]
-	pub fn cc_be(&self) -> CC_be {
+	pub const fn cc_be(&self) -> CC_be {
 		self.cc_be
 	}
 
@@ -1991,7 +2009,7 @@ impl FormatterOptions {
 	/// Default: `JA`, `CMOVA`, `SETA`
 	#[must_use]
 	#[inline]
-	pub fn cc_a(&self) -> CC_a {
+	pub const fn cc_a(&self) -> CC_a {
 		self.cc_a
 	}
 
@@ -2012,7 +2030,7 @@ impl FormatterOptions {
 	/// Default: `JP`, `CMOVP`, `SETP`
 	#[must_use]
 	#[inline]
-	pub fn cc_p(&self) -> CC_p {
+	pub const fn cc_p(&self) -> CC_p {
 		self.cc_p
 	}
 
@@ -2033,7 +2051,7 @@ impl FormatterOptions {
 	/// Default: `JNP`, `CMOVNP`, `SETNP`
 	#[must_use]
 	#[inline]
-	pub fn cc_np(&self) -> CC_np {
+	pub const fn cc_np(&self) -> CC_np {
 		self.cc_np
 	}
 
@@ -2054,7 +2072,7 @@ impl FormatterOptions {
 	/// Default: `JL`, `CMOVL`, `SETL`
 	#[must_use]
 	#[inline]
-	pub fn cc_l(&self) -> CC_l {
+	pub const fn cc_l(&self) -> CC_l {
 		self.cc_l
 	}
 
@@ -2075,7 +2093,7 @@ impl FormatterOptions {
 	/// Default: `JGE`, `CMOVGE`, `SETGE`
 	#[must_use]
 	#[inline]
-	pub fn cc_ge(&self) -> CC_ge {
+	pub const fn cc_ge(&self) -> CC_ge {
 		self.cc_ge
 	}
 
@@ -2096,7 +2114,7 @@ impl FormatterOptions {
 	/// Default: `JLE`, `CMOVLE`, `SETLE`
 	#[must_use]
 	#[inline]
-	pub fn cc_le(&self) -> CC_le {
+	pub const fn cc_le(&self) -> CC_le {
 		self.cc_le
 	}
 
@@ -2117,7 +2135,7 @@ impl FormatterOptions {
 	/// Default: `JG`, `CMOVG`, `SETG`
 	#[must_use]
 	#[inline]
-	pub fn cc_g(&self) -> CC_g {
+	pub const fn cc_g(&self) -> CC_g {
 		self.cc_g
 	}
 

@@ -1,25 +1,5 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 data16 push es
 push es
@@ -608,7 +588,7 @@ jmpe cx
 jmpe word ptr [eax]
 jmpe edx
 jmpe dword ptr [eax]
-loadallreset286
+storeall
 loadall286
 loadall386
 umov dh,cl
@@ -749,3 +729,13 @@ rep ccs_hash
 addr16 rep ccs_hash
 rep ccs_encrypt
 addr16 rep ccs_encrypt
+addr16 rep undoc
+rep undoc
+addr16 rep undoc
+rep undoc
+addr16 rep xsha512
+rep xsha512
+addr16 rep xstore_alt
+rep xstore_alt
+addr16 rep xsha512_alt
+rep xsha512_alt

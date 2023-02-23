@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -41,21 +21,25 @@ namespace Generator.Constants.CSharp {
 			public readonly string Filename;
 			public readonly string Namespace;
 			public readonly string? Define;
+			public readonly bool PartialClass;
 
-			public FullConstantsFileInfo(string filename, string @namespace, string? define = null) {
+			public FullConstantsFileInfo(string filename, string @namespace, string? define = null, bool partialClass = false) {
 				Filename = filename;
 				Namespace = @namespace;
 				Define = define;
+				PartialClass = partialClass;
 			}
 		}
 
 		sealed class PartialConstantsFileInfo {
 			public readonly string Id;
 			public readonly string Filename;
+			public readonly bool PartialClass;
 
-			public PartialConstantsFileInfo(string id, string filename) {
+			public PartialConstantsFileInfo(string id, string filename, bool partialClass = false) {
 				Id = id;
 				Filename = filename;
+				PartialClass = partialClass;
 			}
 		}
 
@@ -67,7 +51,7 @@ namespace Generator.Constants.CSharp {
 
 			var dirs = genTypes.Dirs;
 			toFullFileInfo = new Dictionary<TypeId, FullConstantsFileInfo>();
-			toFullFileInfo.Add(TypeIds.IcedConstants, new FullConstantsFileInfo(CSharpConstants.GetFilename(genTypes, CSharpConstants.IcedNamespace, nameof(TypeIds.IcedConstants) + ".g.cs"), CSharpConstants.IcedNamespace));
+			toFullFileInfo.Add(TypeIds.IcedConstants, new FullConstantsFileInfo(CSharpConstants.GetFilename(genTypes, CSharpConstants.IcedNamespace, nameof(TypeIds.IcedConstants) + ".g.cs"), CSharpConstants.IcedNamespace, partialClass: true));
 			toFullFileInfo.Add(TypeIds.DecoderConstants, new FullConstantsFileInfo(dirs.GetCSharpTestFilename("Intel", nameof(TypeIds.DecoderConstants) + ".g.cs"), CSharpConstants.IcedUnitTestsNamespace));
 
 			toPartialFileInfo = new Dictionary<TypeId, PartialConstantsFileInfo?>();
@@ -86,7 +70,7 @@ namespace Generator.Constants.CSharp {
 				WriteFile(fullFileInfo, constantsType);
 			else if (toPartialFileInfo.TryGetValue(constantsType.TypeId, out var partialInfo)) {
 				if (partialInfo is not null)
-					new FileUpdater(TargetLanguage.CSharp, partialInfo.Id, partialInfo.Filename).Generate(writer => WriteConstants(writer, constantsType));
+					new FileUpdater(TargetLanguage.CSharp, partialInfo.Id, partialInfo.Filename).Generate(writer => WriteConstants(writer, constantsType, isPartialClass: partialInfo.PartialClass));
 			}
 			else
 				throw new InvalidOperationException();
@@ -103,7 +87,7 @@ namespace Generator.Constants.CSharp {
 				if (constantsType.IsPublic && constantsType.IsMissingDocs)
 					writer.WriteLine(CSharpConstants.PragmaMissingDocsDisable);
 				using (writer.Indent())
-					WriteConstants(writer, constantsType);
+					WriteConstants(writer, constantsType, isPartialClass: info.PartialClass);
 				writer.WriteLine("}");
 
 				if (info.Define is not null)
@@ -111,14 +95,15 @@ namespace Generator.Constants.CSharp {
 			}
 		}
 
-		void WriteConstants(FileWriter writer, ConstantsType constantsType) {
-			docWriter.WriteSummary(writer, constantsType.Documentation, constantsType.RawName);
+		void WriteConstants(FileWriter writer, ConstantsType constantsType, bool isPartialClass) {
+			docWriter.WriteSummary(writer, constantsType.Documentation.GetComment(TargetLanguage.CSharp), constantsType.RawName);
 			var pub = constantsType.IsPublic ? "public " : string.Empty;
-			writer.WriteLine($"{pub}static class {constantsType.Name(idConverter)} {{");
+			var partial = isPartialClass ? " partial" : string.Empty;
+			writer.WriteLine($"{pub}static{partial} class {constantsType.Name(idConverter)} {{");
 
 			using (writer.Indent()) {
 				foreach (var constant in constantsType.Constants) {
-					docWriter.WriteSummary(writer, constant.Documentation, constantsType.RawName);
+					docWriter.WriteSummary(writer, constant.Documentation.GetComment(TargetLanguage.CSharp), constantsType.RawName);
 					deprecatedWriter.WriteDeprecated(writer, constant);
 					writer.Write(constant.IsPublic ? "public " : "internal ");
 					writer.Write("const ");
@@ -186,7 +171,7 @@ namespace Generator.Constants.CSharp {
 		string GetValueString(Constant constant) {
 			var enumType = EnumUtils.GetEnumType(genTypes, constant.Kind);
 			var enumValue = enumType.Values.First(a => a.Value == constant.ValueUInt64);
-			return $"{enumType.Name(idConverter)}.{enumValue.Name(idConverter)}";
+			return idConverter.ToDeclTypeAndValue(enumValue);
 		}
 	}
 }

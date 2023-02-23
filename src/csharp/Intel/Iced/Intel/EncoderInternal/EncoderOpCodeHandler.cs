@@ -1,51 +1,31 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER
 using System;
 using System.Diagnostics;
 
 namespace Iced.Intel.EncoderInternal {
-	delegate bool TryConvertToDisp8N(Encoder encoder, OpCodeHandler handler, int displ, out sbyte compressedValue);
+	delegate bool TryConvertToDisp8N(Encoder encoder, OpCodeHandler handler, in Instruction instruction, int displ, out sbyte compressedValue);
 
 	abstract class OpCodeHandler {
 		internal readonly uint OpCode;
 		internal readonly bool Is2ByteOpCode;
 		internal readonly int GroupIndex;
 		internal readonly int RmGroupIndex;
-		internal readonly bool IsDeclareData;
+		internal readonly bool IsSpecialInstr;
 		internal readonly EncFlags3 EncFlags3;
 		internal readonly CodeSize OpSize;
 		internal readonly CodeSize AddrSize;
 		internal readonly TryConvertToDisp8N? TryConvertToDisp8N;
 		internal readonly Op[] Operands;
-		protected OpCodeHandler(EncFlags2 encFlags2, EncFlags3 encFlags3, bool isDeclareData, TryConvertToDisp8N? tryConvertToDisp8N, Op[] operands) {
+		protected OpCodeHandler(EncFlags2 encFlags2, EncFlags3 encFlags3, bool isSpecialInstr, TryConvertToDisp8N? tryConvertToDisp8N, Op[] operands) {
 			EncFlags3 = encFlags3;
 			OpCode = GetOpCode(encFlags2);
 			Is2ByteOpCode = (encFlags2 & EncFlags2.OpCodeIs2Bytes) != 0;
 			GroupIndex = (encFlags2 & EncFlags2.HasGroupIndex) == 0 ? -1 : (int)(((uint)encFlags2 >> (int)EncFlags2.GroupIndexShift) & 7);
-			RmGroupIndex = (encFlags2 & EncFlags2.HasRmGroupIndex) == 0 ? -1 : (int)(((uint)encFlags2 >> (int)EncFlags2.GroupIndexShift) & 7);
-			IsDeclareData = isDeclareData;
+			RmGroupIndex = (encFlags3 & EncFlags3.HasRmGroupIndex) == 0 ? -1 : (int)(((uint)encFlags2 >> (int)EncFlags2.GroupIndexShift) & 7);
+			IsSpecialInstr = isSpecialInstr;
 			OpSize = (CodeSize)(((uint)encFlags3 >> (int)EncFlags3.OperandSizeShift) & (uint)EncFlags3.OperandSizeMask);
 			AddrSize = (CodeSize)(((uint)encFlags3 >> (int)EncFlags3.AddressSizeShift) & (uint)EncFlags3.AddressSizeMask);
 			TryConvertToDisp8N = tryConvertToDisp8N;
@@ -67,6 +47,7 @@ namespace Iced.Intel.EncoderInternal {
 
 	sealed class DeclareDataHandler : OpCodeHandler {
 		readonly int elemLength;
+		readonly int maxLength;
 
 		public DeclareDataHandler(Code code)
 			: base(EncFlags2.None, EncFlags3.Bit16or32 | EncFlags3.Bit64, true, null, Array2.Empty<Op>()) {
@@ -77,12 +58,27 @@ namespace Iced.Intel.EncoderInternal {
 				Code.DeclareQword => 8,
 				_ => throw new InvalidOperationException(),
 			};
+			maxLength = 16 / elemLength;
 		}
 
 		public override void Encode(Encoder encoder, in Instruction instruction) {
-			int length = instruction.DeclareDataCount * elemLength;
+			var declDataCount = instruction.DeclareDataCount;
+			if (declDataCount < 1 || declDataCount > maxLength) {
+				encoder.ErrorMessage = $"Invalid db/dw/dd/dq data count. Count = {declDataCount}, max count = {maxLength}";
+				return;
+			}
+			int length = declDataCount * elemLength;
 			for (int i = 0; i < length; i++)
 				encoder.WriteByteInternal(instruction.GetDeclareByteValue(i));
+		}
+	}
+
+	sealed class ZeroBytesHandler : OpCodeHandler {
+		public ZeroBytesHandler(Code code)
+			: base(EncFlags2.None, EncFlags3.Bit16or32 | EncFlags3.Bit64, true, null, Array2.Empty<Op>()) {
+		}
+
+		public override void Encode(Encoder encoder, in Instruction instruction) {
 		}
 	}
 
@@ -115,22 +111,22 @@ namespace Iced.Intel.EncoderInternal {
 		public LegacyHandler(EncFlags1 encFlags1, EncFlags2 encFlags2, EncFlags3 encFlags3)
 			: base(encFlags2, encFlags3, false, null, CreateOps(encFlags1)) {
 			switch ((LegacyOpCodeTable)(((uint)encFlags2 >> (int)EncFlags2.TableShift) & (uint)EncFlags2.TableMask)) {
-			case LegacyOpCodeTable.Normal:
+			case LegacyOpCodeTable.MAP0:
 				tableByte1 = 0;
 				tableByte2 = 0;
 				break;
 
-			case LegacyOpCodeTable.Table0F:
+			case LegacyOpCodeTable.MAP0F:
 				tableByte1 = 0x0F;
 				tableByte2 = 0;
 				break;
 
-			case LegacyOpCodeTable.Table0F38:
+			case LegacyOpCodeTable.MAP0F38:
 				tableByte1 = 0x0F;
 				tableByte2 = 0x38;
 				break;
 
-			case LegacyOpCodeTable.Table0F3A:
+			case LegacyOpCodeTable.MAP0F3A:
 				tableByte1 = 0x0F;
 				tableByte2 = 0x3A;
 				break;
@@ -246,11 +242,11 @@ namespace Iced.Intel.EncoderInternal {
 			uint b = lastByte;
 			b |= (~encoderFlags >> ((int)EncoderFlags.VvvvvShift - 3)) & 0x78;
 
-			if ((encoder.Internal_PreventVEX2 | W1 | (table - (uint)VexOpCodeTable.Table0F) | (encoderFlags & (uint)(EncoderFlags.X | EncoderFlags.B | EncoderFlags.W))) != 0) {
+			if ((encoder.Internal_PreventVEX2 | W1 | (table - (uint)VexOpCodeTable.MAP0F) | (encoderFlags & (uint)(EncoderFlags.X | EncoderFlags.B | EncoderFlags.W))) != 0) {
 				encoder.WriteByteInternal(0xC4);
-				Static.Assert((int)VexOpCodeTable.Table0F == 1 ? 0 : -1);
-				Static.Assert((int)VexOpCodeTable.Table0F38 == 2 ? 0 : -1);
-				Static.Assert((int)VexOpCodeTable.Table0F3A == 3 ? 0 : -1);
+				Static.Assert((int)VexOpCodeTable.MAP0F == 1 ? 0 : -1);
+				Static.Assert((int)VexOpCodeTable.MAP0F38 == 2 ? 0 : -1);
+				Static.Assert((int)VexOpCodeTable.MAP0F3A == 3 ? 0 : -1);
 				uint b2 = table;
 				Static.Assert((int)EncoderFlags.B == 1 ? 0 : -1);
 				Static.Assert((int)EncoderFlags.X == 2 ? 0 : -1);
@@ -300,9 +296,9 @@ namespace Iced.Intel.EncoderInternal {
 
 		public XopHandler(EncFlags1 encFlags1, EncFlags2 encFlags2, EncFlags3 encFlags3)
 			: base(encFlags2, encFlags3, false, null, CreateOps(encFlags1)) {
-			Static.Assert((int)XopOpCodeTable.XOP8 == 0 ? 0 : -1);
-			Static.Assert((int)XopOpCodeTable.XOP9 == 1 ? 0 : -1);
-			Static.Assert((int)XopOpCodeTable.XOPA == 2 ? 0 : -1);
+			Static.Assert((int)XopOpCodeTable.MAP8 == 0 ? 0 : -1);
+			Static.Assert((int)XopOpCodeTable.MAP9 == 1 ? 0 : -1);
+			Static.Assert((int)XopOpCodeTable.MAP10 == 2 ? 0 : -1);
 			table = 8 + (((uint)encFlags2 >> (int)EncFlags2.TableShift) & (uint)EncFlags2.TableMask);
 			Debug.Assert(table == 8 || table == 9 || table == 10);
 			switch ((LBit)(((uint)encFlags2 >> (int)EncFlags2.LBitShift) & (int)EncFlags2.LBitMask)) {
@@ -412,7 +408,7 @@ namespace Iced.Intel.EncoderInternal {
 		}
 
 		sealed class TryConvertToDisp8NImpl {
-			public static bool TryConvertToDisp8N(Encoder encoder, OpCodeHandler handler, int displ, out sbyte compressedValue) {
+			public static bool TryConvertToDisp8N(Encoder encoder, OpCodeHandler handler, in Instruction instruction, int displ, out sbyte compressedValue) {
 				var evexHandler = (EvexHandler)handler;
 				int n = (int)TupleTypeTable.GetDisp8N(evexHandler.tupleType, (encoder.EncoderFlags & EncoderFlags.Broadcast) != 0);
 				int res = displ / n;
@@ -433,9 +429,11 @@ namespace Iced.Intel.EncoderInternal {
 
 			encoder.WriteByteInternal(0x62);
 
-			Static.Assert((int)EvexOpCodeTable.Table0F == 1 ? 0 : -1);
-			Static.Assert((int)EvexOpCodeTable.Table0F38 == 2 ? 0 : -1);
-			Static.Assert((int)EvexOpCodeTable.Table0F3A == 3 ? 0 : -1);
+			Static.Assert((int)EvexOpCodeTable.MAP0F == 1 ? 0 : -1);
+			Static.Assert((int)EvexOpCodeTable.MAP0F38 == 2 ? 0 : -1);
+			Static.Assert((int)EvexOpCodeTable.MAP0F3A == 3 ? 0 : -1);
+			Static.Assert((int)EvexOpCodeTable.MAP5 == 5 ? 0 : -1);
+			Static.Assert((int)EvexOpCodeTable.MAP6 == 6 ? 0 : -1);
 			uint b = table;
 			Static.Assert((int)EncoderFlags.B == 1 ? 0 : -1);
 			Static.Assert((int)EncoderFlags.X == 2 ? 0 : -1);
@@ -479,11 +477,10 @@ namespace Iced.Intel.EncoderInternal {
 			}
 			else if ((EncFlags3 & EncFlags3.SuppressAllExceptions) == 0 || !instruction.SuppressAllExceptions)
 				b |= llBits;
-			if ((encoderFlags & (uint)EncoderFlags.Broadcast) != 0) {
-				if ((EncFlags3 & EncFlags3.Broadcast) == 0)
-					encoder.ErrorMessage = "The instruction doesn't support broadcasting";
+			if ((encoderFlags & (uint)EncoderFlags.Broadcast) != 0)
 				b |= 0x10;
-			}
+			else if (instruction.IsBroadcast)
+				encoder.ErrorMessage = "The instruction doesn't support broadcasting";
 			if (instruction.ZeroingMasking) {
 				if ((EncFlags3 & EncFlags3.ZeroingMasking) == 0)
 					encoder.ErrorMessage = "The instruction doesn't support zeroing masking";
@@ -491,6 +488,167 @@ namespace Iced.Intel.EncoderInternal {
 			}
 			b ^= 8;
 			b |= mask_LL & encoder.Internal_EVEX_LIG;
+			encoder.WriteByteInternal(b);
+		}
+	}
+#endif
+
+#if MVEX
+	sealed class MvexHandler : OpCodeHandler {
+		readonly WBit wbit;
+		readonly uint table;
+		readonly uint p1Bits;
+		readonly uint mask_W;
+
+		static Op[] CreateOps(EncFlags1 encFlags1) {
+			var op0 = (int)(((uint)encFlags1 >> (int)EncFlags1.MVEX_Op0Shift) & (uint)EncFlags1.MVEX_OpMask);
+			var op1 = (int)(((uint)encFlags1 >> (int)EncFlags1.MVEX_Op1Shift) & (uint)EncFlags1.MVEX_OpMask);
+			var op2 = (int)(((uint)encFlags1 >> (int)EncFlags1.MVEX_Op2Shift) & (uint)EncFlags1.MVEX_OpMask);
+			var op3 = (int)(((uint)encFlags1 >> (int)EncFlags1.MVEX_Op3Shift) & (uint)EncFlags1.MVEX_OpMask);
+			if (op3 != 0) {
+				Debug.Assert(op0 != 0 && op1 != 0 && op2 != 0);
+				return new Op[] { OpHandlerData.MvexOps[op0 - 1], OpHandlerData.MvexOps[op1 - 1], OpHandlerData.MvexOps[op2 - 1], OpHandlerData.MvexOps[op3 - 1] };
+			}
+			if (op2 != 0) {
+				Debug.Assert(op0 != 0 && op1 != 0);
+				return new Op[] { OpHandlerData.MvexOps[op0 - 1], OpHandlerData.MvexOps[op1 - 1], OpHandlerData.MvexOps[op2 - 1] };
+			}
+			if (op1 != 0) {
+				Debug.Assert(op0 != 0);
+				return new Op[] { OpHandlerData.MvexOps[op0 - 1], OpHandlerData.MvexOps[op1 - 1] };
+			}
+			if (op0 != 0)
+				return new Op[] { OpHandlerData.MvexOps[op0 - 1] };
+			return Array2.Empty<Op>();
+		}
+
+		static readonly TryConvertToDisp8N tryConvertToDisp8N = TryConvertToDisp8NImpl.TryConvertToDisp8N;
+
+		public MvexHandler(EncFlags1 encFlags1, EncFlags2 encFlags2, EncFlags3 encFlags3)
+			: base(encFlags2, encFlags3, false, tryConvertToDisp8N, CreateOps(encFlags1)) {
+			table = ((uint)encFlags2 >> (int)EncFlags2.TableShift) & (uint)EncFlags2.TableMask;
+			Static.Assert((int)MandatoryPrefixByte.None == 0 ? 0 : -1);
+			Static.Assert((int)MandatoryPrefixByte.P66 == 1 ? 0 : -1);
+			Static.Assert((int)MandatoryPrefixByte.PF3 == 2 ? 0 : -1);
+			Static.Assert((int)MandatoryPrefixByte.PF2 == 3 ? 0 : -1);
+			p1Bits = ((uint)encFlags2 >> (int)EncFlags2.MandatoryPrefixShift) & (uint)EncFlags2.MandatoryPrefixMask;
+			wbit = (WBit)(((uint)encFlags2 >> (int)EncFlags2.WBitShift) & (uint)EncFlags2.WBitMask);
+			if (wbit == WBit.W1)
+				p1Bits |= 0x80;
+			if (wbit == WBit.WIG)
+				mask_W |= 0x80;
+		}
+
+		sealed class TryConvertToDisp8NImpl {
+			public static bool TryConvertToDisp8N(Encoder encoder, OpCodeHandler handler, in Instruction instruction, int displ, out sbyte compressedValue) {
+				var mvex = new MvexInfo(instruction.Code);
+				int sss = ((int)instruction.MvexRegMemConv - (int)MvexRegMemConv.MemConvNone) & 7;
+				var tupleType = (TupleType)MvexTupleTypeLut.Data[(int)mvex.TupleTypeLutKind * 8 + sss];
+
+				int n = (int)TupleTypeTable.GetDisp8N(tupleType, false);
+				int res = displ / n;
+				if (res * n == displ && sbyte.MinValue <= res && res <= sbyte.MaxValue) {
+					compressedValue = (sbyte)res;
+					return true;
+				}
+
+				compressedValue = 0;
+				return false;
+			}
+		}
+
+		public override void Encode(Encoder encoder, in Instruction instruction) {
+			encoder.WritePrefixes(instruction);
+
+			uint encoderFlags = (uint)encoder.EncoderFlags;
+
+			encoder.WriteByteInternal(0x62);
+
+			Static.Assert((int)MvexOpCodeTable.MAP0F == 1 ? 0 : -1);
+			Static.Assert((int)MvexOpCodeTable.MAP0F38 == 2 ? 0 : -1);
+			Static.Assert((int)MvexOpCodeTable.MAP0F3A == 3 ? 0 : -1);
+			uint b = table;
+			Static.Assert((int)EncoderFlags.B == 1 ? 0 : -1);
+			Static.Assert((int)EncoderFlags.X == 2 ? 0 : -1);
+			Static.Assert((int)EncoderFlags.R == 4 ? 0 : -1);
+			b |= (encoderFlags & 7) << 5;
+			Static.Assert((int)EncoderFlags.R2 == 0x00000200 ? 0 : -1);
+			b |= (encoderFlags >> (9 - 4)) & 0x10;
+			b ^= ~0xFU;
+			encoder.WriteByteInternal(b);
+
+			b = p1Bits;
+			b |= (~encoderFlags >> ((int)EncoderFlags.VvvvvShift - 3)) & 0x78;
+			b |= mask_W & encoder.Internal_MVEX_WIG;
+			encoder.WriteByteInternal(b);
+
+			b = instruction.InternalOpMask;
+			if (b != 0) {
+				if ((EncFlags3 & EncFlags3.OpMaskRegister) == 0)
+					encoder.ErrorMessage = "The instruction doesn't support opmask registers";
+			}
+			else {
+				if ((EncFlags3 & EncFlags3.RequireOpMaskRegister) != 0)
+					encoder.ErrorMessage = "The instruction must use an opmask register";
+			}
+			b |= (encoderFlags >> ((int)EncoderFlags.VvvvvShift + 4 - 3)) & 8;
+			var mvex = new MvexInfo(instruction.Code);
+			var conv = instruction.MvexRegMemConv;
+			// Memory ops can only be op0-op2, never op3 (imm8)
+			if (instruction.Op0Kind == OpKind.Memory || instruction.Op1Kind == OpKind.Memory || instruction.Op2Kind == OpKind.Memory) {
+				if (conv >= MvexRegMemConv.MemConvNone && conv <= MvexRegMemConv.MemConvSint16)
+					b |= ((uint)conv - (uint)MvexRegMemConv.MemConvNone) << 4;
+				else if (conv == MvexRegMemConv.None) {
+					// Nothing, treat it as MvexRegMemConv.MemConvNone
+				}
+				else
+					encoder.ErrorMessage = "Memory operands must use a valid MvexRegMemConv variant, eg. MvexRegMemConv.MemConvNone";
+				if (instruction.IsMvexEvictionHint) {
+					if (mvex.CanUseEvictionHint)
+						b |= 0x80;
+					else
+						encoder.ErrorMessage = "This instruction doesn't support eviction hint (`{eh}`)";
+				}
+			}
+			else {
+				if (instruction.IsMvexEvictionHint)
+					encoder.ErrorMessage = "Only memory operands can enable eviction hint (`{eh}`)";
+				if (conv == MvexRegMemConv.None) {
+					b |= 0x80;
+					if (instruction.SuppressAllExceptions) {
+						b |= 0x40;
+						if ((EncFlags3 & EncFlags3.SuppressAllExceptions) == 0)
+							encoder.ErrorMessage = "The instruction doesn't support suppress-all-exceptions";
+					}
+					var rc = instruction.RoundingControl;
+					if (rc == RoundingControl.None) {
+						// Nothing
+					}
+					else {
+						if ((EncFlags3 & EncFlags3.RoundingControl) == 0)
+							encoder.ErrorMessage = "The instruction doesn't support rounding control";
+						else {
+							Static.Assert((int)RoundingControl.RoundToNearest == 1 ? 0 : -1);
+							Static.Assert((int)RoundingControl.RoundDown == 2 ? 0 : -1);
+							Static.Assert((int)RoundingControl.RoundUp == 3 ? 0 : -1);
+							Static.Assert((int)RoundingControl.RoundTowardZero == 4 ? 0 : -1);
+							b |= ((uint)rc - (uint)RoundingControl.RoundToNearest) << 4;
+						}
+					}
+				}
+				else if (conv >= MvexRegMemConv.RegSwizzleNone && conv <= MvexRegMemConv.RegSwizzleDddd) {
+					if (instruction.SuppressAllExceptions)
+						encoder.ErrorMessage = "Can't use {sae} with register swizzles";
+					else if (instruction.RoundingControl != RoundingControl.None)
+						encoder.ErrorMessage = "Can't use rounding control with register swizzles";
+					b |= (((uint)conv - (uint)MvexRegMemConv.RegSwizzleNone) & 7) << 4;
+				}
+				else
+					encoder.ErrorMessage = "Register operands can't use memory up/down conversions";
+			}
+			if (mvex.EHBit == MvexEHBit.EH1)
+				b |= 0x80;
+			b ^= 8;
 			encoder.WriteByteInternal(b);
 		}
 	}

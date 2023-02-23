@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if GAS || INTEL || MASM || NASM || FAST_FMT
 using Iced.Intel;
@@ -41,13 +21,13 @@ namespace Iced.UnitTests.Intel.FormatterTests {
 				(64, true),
 			};
 			foreach (var args in allArgs) {
-				var data = FormatterTestCases.GetInstructionInfos(args.bitness, args.isMisc);
-				foreach (var info in data.infos)
-					tested[(int)info.Code] = 1;
+				var data = FormatterTestCases.GetTests(args.bitness, args.isMisc);
+				foreach (var tc in data.tests)
+					tested[(int)tc.Code] = 1;
 			}
 #if ENCODER
-			foreach (var info in NonDecodedInstructions.GetTests())
-				tested[(int)info.instruction.Code] = 1;
+			foreach (var tc in NonDecodedInstructions.GetTests())
+				tested[(int)tc.instruction.Code] = 1;
 #else
 			foreach (var code in CodeValueTests.NonDecodedCodeValues1632)
 				tested[(int)code] = 1;

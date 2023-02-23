@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use crate::instruction::Instruction;
 use pyo3::prelude::*;
@@ -44,8 +24,8 @@ use pyo3::prelude::*;
 ///     formatter.space_after_operand_separator = True
 ///     disasm = formatter.format(instr)
 ///     assert disasm == "vcvtne2ps2bf16 zmm2{k5}{z}, zmm6, dword bcst [rax+4h]"
-#[pyclass(module = "_iced_x86_py")]
-#[text_signature = "(/)"]
+#[pyclass(module = "iced_x86._iced_x86_py")]
+#[pyo3(text_signature = "(/)")]
 pub(crate) struct FastFormatter {
 	fmt_output: String,
 	formatter: iced_x86::FastFormatter,
@@ -67,7 +47,7 @@ impl FastFormatter {
 	///
 	/// Returns:
 	///     str: The formatted string
-	#[text_signature = "($self, instruction, /)"]
+	#[pyo3(text_signature = "($self, instruction, /)")]
 	fn format(&mut self, instruction: &Instruction) -> &str {
 		self.fmt_output.clear();
 		self.formatter.format(&instruction.instr, &mut self.fmt_output);
@@ -80,7 +60,7 @@ impl FastFormatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov rax, rcx``
-	/// ✔️          ``False``   ``mov rax,rcx``
+	/// 👍          ``False``   ``mov rax,rcx``
 	/// =========== ========== ================================================
 	#[getter]
 	fn space_after_operand_separator(&self) -> bool {
@@ -98,7 +78,7 @@ impl FastFormatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[rip+12345678h]``
-	/// ✔️          ``False``   ``mov eax,[1029384756AFBECDh]``
+	/// 👍          ``False``   ``mov eax,[1029384756AFBECDh]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn rip_relative_addresses(&self) -> bool {
@@ -115,7 +95,7 @@ impl FastFormatter {
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``vcmpnltsd xmm2,xmm6,xmm3``
+	/// 👍          ``True``   ``vcmpnltsd xmm2,xmm6,xmm3``
 	/// \           ``False``   ``vcmpsd xmm2,xmm6,xmm3,5``
 	/// =========== ========== ================================================
 	#[getter]
@@ -134,7 +114,7 @@ impl FastFormatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,[myfield (12345678)]``
-	/// ✔️          ``False``   ``mov eax,[myfield]``
+	/// 👍          ``False``   ``mov eax,[myfield]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn show_symbol_address(&self) -> bool {
@@ -154,7 +134,7 @@ impl FastFormatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``mov eax,ds:[ecx]``
-	/// ✔️          ``False``   ``mov eax,[ecx]``
+	/// 👍          ``False``   ``mov eax,[ecx]``
 	/// =========== ========== ================================================
 	#[getter]
 	fn always_show_segment_register(&self) -> bool {
@@ -172,7 +152,7 @@ impl FastFormatter {
 	/// Default     Value      Example                       Example
 	/// =========== ========== ============================= ===================
 	/// \           ``True``   ``mov eax,dword ptr [ebx]``   ``add byte ptr [eax],0x12``
-	/// ✔️          ``False``   ``mov eax,[ebx]``            ``add byte ptr [eax],0x12``
+	/// 👍          ``False``   ``mov eax,[ebx]``            ``add byte ptr [eax],0x12``
 	/// =========== ========== ============================= ===================
 	#[getter]
 	fn always_show_memory_size(&self) -> bool {
@@ -184,12 +164,12 @@ impl FastFormatter {
 		self.formatter.options_mut().set_always_show_memory_size(new_value)
 	}
 
-	/// bool: Use upper case hex digits
+	/// bool: Use uppercase hex digits
 	///
 	/// =========== ========== ================================================
 	/// Default     Value      Example
 	/// =========== ========== ================================================
-	/// ✔️          ``True``   ``0xFF``
+	/// 👍          ``True``   ``0xFF``
 	/// \           ``False``   ``0xff``
 	/// =========== ========== ================================================
 	#[getter]
@@ -208,7 +188,7 @@ impl FastFormatter {
 	/// Default     Value      Example
 	/// =========== ========== ================================================
 	/// \           ``True``   ``0x5A``
-	/// ✔️          ``False``   ``5Ah``
+	/// 👍          ``False``   ``5Ah``
 	/// =========== ========== ================================================
 	#[getter]
 	fn use_hex_prefix(&self) -> bool {

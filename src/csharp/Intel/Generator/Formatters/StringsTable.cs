@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -30,6 +10,7 @@ using System.Linq;
 namespace Generator.Formatters {
 	sealed class StringsTable {
 		readonly Dictionary<string, Info> strings;
+		readonly List<(uint code, string s, bool optimize)> addedStrings;
 		Info[]? sortedInfos;
 		bool isFrozen;
 
@@ -49,13 +30,42 @@ namespace Generator.Formatters {
 			}
 		}
 
-		public StringsTable() =>
+		public StringsTable() {
 			strings = new Dictionary<string, Info>(StringComparer.Ordinal);
+			addedStrings = new List<(uint code, string s, bool optimize)>();
+		}
 
 		public void Freeze() {
 			if (isFrozen)
 				throw new InvalidOperationException();
 			isFrozen = true;
+
+			// If the string can be optimized (i.e., it's the first string (== mnemonic string) and not a possible 2nd string),
+			// and if it starts with 'v' and there already exists a string without the 'v', then we can set the 'v' flag and
+			// just store the non-v string.
+			void AddString(uint code, string s) {
+				if (!strings.TryGetValue(s, out var info))
+					strings.Add(s, info = new Info(s, code));
+				info.Count++;
+			}
+			bool CanOptimize(string s, bool optimize) => optimize && s.StartsWith("v", StringComparison.Ordinal);
+			foreach (var (code, s, optimize) in addedStrings) {
+				if (CanOptimize(s, optimize))
+					continue;
+				AddString(code, s);
+			}
+			foreach (var (code, tmp, optimize) in addedStrings) {
+				var s = tmp;
+				if (!CanOptimize(s, optimize))
+					continue;
+				Debug.Assert(s.StartsWith("v", StringComparison.Ordinal));
+				var optimizedString = s[1..];
+				// If the smaller string doesn't exist, there's no need to store it. It will just lead to an extra allocation at runtime.
+				if (strings.ContainsKey(optimizedString))
+					AddString(code, optimizedString);
+				else
+					AddString(code, s);
+			}
 
 			var infos = strings.Values.ToArray();
 			const int N = 1;
@@ -78,7 +88,7 @@ namespace Generator.Formatters {
 		}
 
 		sealed class InfoSorterOptimizeSize : IComparer<Info> {
-			public static readonly InfoSorterOptimizeSize Instance = new InfoSorterOptimizeSize();
+			public static readonly InfoSorterOptimizeSize Instance = new();
 			InfoSorterOptimizeSize() { }
 			public int Compare([AllowNull] Info x, [AllowNull] Info y) {
 				int c = y!.Count - x!.Count;
@@ -92,7 +102,7 @@ namespace Generator.Formatters {
 		}
 
 		sealed class InfoSorterMinimizeDiff : IComparer<Info> {
-			public static readonly InfoSorterMinimizeDiff Instance = new InfoSorterMinimizeDiff();
+			public static readonly InfoSorterMinimizeDiff Instance = new();
 			InfoSorterMinimizeDiff() { }
 			public int Compare([AllowNull] Info x, [AllowNull] Info y) {
 				int c = x!.ApproxCode.CompareTo(y!.ApproxCode);
@@ -102,28 +112,32 @@ namespace Generator.Formatters {
 			}
 		}
 
-		public void Add(uint code, string s, bool ignoreVPrefix) {
+		public void Add(uint code, string s, bool optimize) {
 			if (isFrozen)
 				throw new InvalidOperationException();
-			if (ignoreVPrefix && s.StartsWith("v", StringComparison.Ordinal))
-				s = s[1..];
-			if (!strings.TryGetValue(s, out var info))
-				strings.Add(s, info = new Info(s, code));
-			info.Count++;
+			addedStrings.Add((code, s, optimize));
 		}
 
-		public uint GetIndex(string s, bool ignoreVPrefix, out bool hasVPrefix) {
+		public uint GetIndex(string s, bool optimize, out bool hasVPrefix) {
 			if (!isFrozen)
 				throw new InvalidOperationException();
-			if (ignoreVPrefix && s.StartsWith("v", StringComparison.Ordinal)) {
-				s = s[1..];
-				hasVPrefix = true;
-			}
-			else
+
+			if (strings.TryGetValue(s, out var info)) {
 				hasVPrefix = false;
-			if (!strings.TryGetValue(s, out var info))
-				throw new ArgumentException();
-			return info.Index;
+				return info.Index;
+			}
+
+			if (optimize) {
+				if (s.StartsWith("v", StringComparison.Ordinal)) {
+					var optimizedString = s[1..];
+					if (strings.TryGetValue(optimizedString, out info)) {
+						hasVPrefix = true;
+						return info.Index;
+					}
+				}
+			}
+
+			throw new ArgumentException();
 		}
 	}
 }

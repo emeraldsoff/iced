@@ -1,31 +1,12 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 import copy
 import pytest
 from iced_x86 import *
+from typing import Callable
 
-def test_info():
+def test_info() -> None:
 	instr = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41").decode()
 	factory = InstructionInfoFactory()
 	info = factory.info(instr)
@@ -42,7 +23,7 @@ def test_info():
 	assert info.op_access(4) == info.op4_access
 
 	mem_list = info.used_memory()
-	assert type(mem_list) == list
+	assert isinstance(mem_list, list)
 	assert len(mem_list) == 1
 	mem = mem_list[0]
 	assert mem.segment == Register.DS
@@ -57,7 +38,7 @@ def test_info():
 	assert mem.vsib_size == 0
 
 	reg_list = info.used_registers()
-	assert type(reg_list) == list
+	assert isinstance(reg_list, list)
 	assert len(reg_list) == 4
 	assert (reg_list[0].register, reg_list[0].access) == (Register.ZMM2, OpAccess.WRITE)
 	assert (reg_list[1].register, reg_list[1].access) == (Register.XMM6, OpAccess.READ)
@@ -69,7 +50,7 @@ def test_info():
 	lambda instr: copy.deepcopy(instr),
 	lambda instr: instr.copy(),
 ])
-def test_copy_deepcopy_mcopy(copy_value):
+def test_copy_deepcopy_mcopy_used_mem(copy_value: Callable[[UsedMemory], UsedMemory]) -> None:
 	instr = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41").decode()
 	factory = InstructionInfoFactory()
 	info = factory.info(instr)
@@ -82,6 +63,16 @@ def test_copy_deepcopy_mcopy(copy_value):
 	assert not (mem != mem2)
 	assert hash(mem) == hash(mem2)
 
+@pytest.mark.parametrize("copy_value", [
+	lambda instr: copy.copy(instr),
+	lambda instr: copy.deepcopy(instr),
+	lambda instr: instr.copy(),
+])
+def test_copy_deepcopy_mcopy_used_reg(copy_value: Callable[[UsedRegister], UsedRegister]) -> None:
+	instr = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41").decode()
+	factory = InstructionInfoFactory()
+	info = factory.info(instr)
+
 	reg = info.used_registers()[0]
 	reg2 = copy_value(reg)
 	assert reg is not reg2
@@ -90,7 +81,7 @@ def test_copy_deepcopy_mcopy(copy_value):
 	assert not (reg != reg2)
 	assert hash(reg) == hash(reg2)
 
-def test_op_access_raise():
+def test_op_access_raise() -> None:
 	instr = Decoder(64, b"\xC4\xE3\x49\x48\x10\x41").decode()
 	factory = InstructionInfoFactory()
 	info = factory.info(instr)

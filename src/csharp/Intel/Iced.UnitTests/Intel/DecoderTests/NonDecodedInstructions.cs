@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER
 using System.Collections.Generic;
@@ -73,6 +53,7 @@ namespace Iced.UnitTests.Intel.DecoderTests {
 			("9B DF E0", C16(Instruction.Create(Code.Fstsw_AX, Register.AX))),
 			("9B DF E1", C16(Instruction.Create(Code.Fstdw_AX, Register.AX))),
 			("9B DF E2", C16(Instruction.Create(Code.Fstsg_AX, Register.AX))),
+			("", C16(Instruction.Create(Code.Zero_bytes))),
 			("77", C16(Instruction.CreateDeclareByte(0x77))),
 			("77 A9", C16(Instruction.CreateDeclareByte(0x77, 0xA9))),
 			("77 A9 CE", C16(Instruction.CreateDeclareByte(0x77, 0xA9, 0xCE))),
@@ -125,8 +106,9 @@ namespace Iced.UnitTests.Intel.DecoderTests {
 			("9B DD 38", C32(Instruction.Create(Code.Fstsw_m2byte, new MemoryOperand(Register.EAX, Register.None, 1, 0, 0, false, Register.None)))),
 			("9B 64 DD 38", C32(Instruction.Create(Code.Fstsw_m2byte, new MemoryOperand(Register.EAX, Register.None, 1, 0, 0, false, Register.FS)))),
 			("9B DF E0", C32(Instruction.Create(Code.Fstsw_AX, Register.AX))),
-			("9B DF E1", C16(Instruction.Create(Code.Fstdw_AX, Register.AX))),
-			("9B DF E2", C16(Instruction.Create(Code.Fstsg_AX, Register.AX))),
+			("9B DF E1", C32(Instruction.Create(Code.Fstdw_AX, Register.AX))),
+			("9B DF E2", C32(Instruction.Create(Code.Fstsg_AX, Register.AX))),
+			("", C32(Instruction.Create(Code.Zero_bytes))),
 			("77", C32(Instruction.CreateDeclareByte(0x77))),
 			("77 A9", C32(Instruction.CreateDeclareByte(0x77, 0xA9))),
 			("77 A9 CE", C32(Instruction.CreateDeclareByte(0x77, 0xA9, 0xCE))),
@@ -178,6 +160,7 @@ namespace Iced.UnitTests.Intel.DecoderTests {
 			("9B DD 38", C64(Instruction.Create(Code.Fstsw_m2byte, new MemoryOperand(Register.RAX, Register.None, 1, 0, 0, false, Register.None)))),
 			("9B 64 DD 38", C64(Instruction.Create(Code.Fstsw_m2byte, new MemoryOperand(Register.RAX, Register.None, 1, 0, 0, false, Register.FS)))),
 			("9B DF E0", C64(Instruction.Create(Code.Fstsw_AX, Register.AX))),
+			("", C64(Instruction.Create(Code.Zero_bytes))),
 			("77", C64(Instruction.CreateDeclareByte(0x77))),
 			("77 A9", C64(Instruction.CreateDeclareByte(0x77, 0xA9))),
 			("77 A9 CE", C64(Instruction.CreateDeclareByte(0x77, 0xA9, 0xCE))),

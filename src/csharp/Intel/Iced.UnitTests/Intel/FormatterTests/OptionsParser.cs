@@ -1,27 +1,7 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-#if GAS || INTEL || MASM || NASM
+#if GAS || INTEL || MASM || NASM || FAST_FMT
 using System;
 
 namespace Iced.UnitTests.Intel.FormatterTests {
@@ -38,12 +18,12 @@ namespace Iced.UnitTests.Intel.FormatterTests {
 			case OptionsProps.AddLeadingZeroToHexNumbers:
 			case OptionsProps.AlwaysShowScale:
 			case OptionsProps.AlwaysShowSegmentRegister:
-			case OptionsProps.BranchLeadingZeroes:
-			case OptionsProps.DisplacementLeadingZeroes:
+			case OptionsProps.BranchLeadingZeros:
+			case OptionsProps.DisplacementLeadingZeros:
 			case OptionsProps.GasNakedRegisters:
 			case OptionsProps.GasShowMnemonicSizeSuffix:
 			case OptionsProps.GasSpaceAfterMemoryOperandComma:
-			case OptionsProps.LeadingZeroes:
+			case OptionsProps.LeadingZeros:
 			case OptionsProps.MasmAddDsPrefix32:
 			case OptionsProps.NasmShowSignExtendedImmediateSize:
 			case OptionsProps.PreferST0:
@@ -101,55 +81,107 @@ namespace Iced.UnitTests.Intel.FormatterTests {
 				break;
 
 			case OptionsProps.NumberBase:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetNumberBase(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_b:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_b(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_ae:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_ae(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_e:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_e(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_ne:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_ne(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_be:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_be(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_a:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_a(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_p:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_p(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_np:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_np(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_l:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_l(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_ge:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_ge(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_le:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_le(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.CC_g:
+#if GAS || INTEL || MASM || NASM
 				value = ToEnumConverter.GetCC_g(valueStr);
+#else
+				value = new object();			
+#endif			
 				break;
 
 			case OptionsProps.DecoderOptions:

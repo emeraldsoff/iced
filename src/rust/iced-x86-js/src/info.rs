@@ -1,31 +1,11 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::ex_utils::to_js_error;
-use super::instruction::Instruction;
-use super::memory_size::{iced_to_memory_size, MemorySize};
-use super::op_access::{iced_to_op_access, OpAccess};
-use super::register::{iced_to_register, Register};
+use crate::ex_utils::to_js_error;
+use crate::instruction::Instruction;
+use crate::memory_size::{iced_to_memory_size, MemorySize};
+use crate::op_access::{iced_to_op_access, OpAccess};
+use crate::register::{iced_to_register, Register};
 use wasm_bindgen::prelude::*;
 
 /// A register used by an instruction
@@ -90,29 +70,8 @@ impl UsedMemory {
 		self.0.scale()
 	}
 
-	/// Displacement (low 32 bits).
-	///
-	/// Enable the `bigint` feature to use APIs with 64-bit numbers (requires `BigInt`).
-	#[wasm_bindgen(getter)]
-	#[wasm_bindgen(js_name = "displacementLo")]
-	#[cfg(not(feature = "bigint"))]
-	pub fn displacement_lo(&self) -> u32 {
-		self.0.displacement() as u32
-	}
-
-	/// Displacement (high 32 bits).
-	///
-	/// Enable the `bigint` feature to use APIs with 64-bit numbers (requires `BigInt`).
-	#[wasm_bindgen(getter)]
-	#[wasm_bindgen(js_name = "displacementHi")]
-	#[cfg(not(feature = "bigint"))]
-	pub fn displacement_hi(&self) -> u32 {
-		(self.0.displacement() >> 32) as u32
-	}
-
 	/// Displacement
 	#[wasm_bindgen(getter)]
-	#[cfg(feature = "bigint")]
 	pub fn displacement(&self) -> u64 {
 		self.0.displacement()
 	}
@@ -252,26 +211,13 @@ pub enum InstructionInfoOptions {
 
 /// Creates [`InstructionInfo`]s.
 ///
-/// If you don't need to know register and memory usage, it's faster to call [`Instruction`] and
-/// [`Code`] methods such as [`Instruction.flowControl`] instead of getting that info from this struct.
-///
 /// [`InstructionInfo`]: struct.InstructionInfo.html
-/// [`Instruction`]: struct.Instruction.html
-/// [`Code`]: enum.Code.html
-/// [`Instruction.flowControl`]: struct.Instruction.html#method.flow_control
 #[wasm_bindgen]
 pub struct InstructionInfoFactory(iced_x86_rust::InstructionInfoFactory);
 
 #[wasm_bindgen]
 impl InstructionInfoFactory {
 	/// Creates a new instance.
-	///
-	/// If you don't need to know register and memory usage, it's faster to call [`Instruction`] and
-	/// [`Code`] methods such as [`Instruction.flowControl`] instead of getting that info from this struct.
-	///
-	/// [`Instruction`]: struct.Instruction.html
-	/// [`Code`]: enum.Code.html
-	/// [`Instruction.flowControl`]: struct.Instruction.html#method.flow_control
 	///
 	/// # Examples
 	///
@@ -322,14 +268,8 @@ impl InstructionInfoFactory {
 	/// Creates a new [`InstructionInfo`], see also [`infoOptions()`] if you only need register usage
 	/// but not memory usage or vice versa.
 	///
-	/// If you don't need to know register and memory usage, it's faster to call [`Instruction`] and
-	/// [`Code`] methods such as [`Instruction.flowControl`] instead of getting that info from this struct.
-	///
 	/// [`InstructionInfo`]: struct.InstructionInfo.html
 	/// [`infoOptions()`]: #method.info_options
-	/// [`Instruction`]: struct.Instruction.html
-	/// [`Code`]: enum.Code.html
-	/// [`Instruction.flowControl`]: struct.Instruction.html#method.flow_control
 	///
 	/// # Arguments
 	///
@@ -356,8 +296,7 @@ impl InstructionInfoFactory {
 	/// assert.equal(mem.base, Register.RDI);
 	/// assert.equal(mem.index, Register.R12);
 	/// assert.equal(mem.scale, 8);
-	/// assert.equal(mem.displacementLo, 0xA55A1234);
-	/// assert.equal(mem.displacementHi, 0xFFFFFFFF);
+	/// assert.equal(mem.displacement, 0xFFFFFFFFA55A1234n);
 	/// assert.equal(mem.memorySize, MemorySize.UInt32);
 	/// assert.equal(mem.access, OpAccess.ReadWrite);
 	///
@@ -383,14 +322,8 @@ impl InstructionInfoFactory {
 
 	/// Creates a new [`InstructionInfo`], see also [`info()`].
 	///
-	/// If you don't need to know register and memory usage, it's faster to call [`Instruction`] and
-	/// [`Code`] methods such as [`Instruction.flowControl`] instead of getting that info from this struct.
-	///
 	/// [`InstructionInfo`]: struct.InstructionInfo.html
 	/// [`info()`]: #method.info
-	/// [`Instruction`]: struct.Instruction.html
-	/// [`Code`]: enum.Code.html
-	/// [`Instruction.flowControl`]: struct.Instruction.html#method.flow_control
 	///
 	/// # Arguments
 	///
@@ -400,9 +333,9 @@ impl InstructionInfoFactory {
 	/// [`InstructionInfoOptions`]: struct.InstructionInfoOptions.html
 	#[wasm_bindgen(js_name = "infoOptions")]
 	pub fn info_options(&mut self, instruction: &Instruction, options: u32 /*flags: InstructionInfoOptions*/) -> InstructionInfo {
-		const_assert_eq!(iced_x86_rust::InstructionInfoOptions::NONE, InstructionInfoOptions::None as u32);
-		const_assert_eq!(iced_x86_rust::InstructionInfoOptions::NO_MEMORY_USAGE, InstructionInfoOptions::NoMemoryUsage as u32);
-		const_assert_eq!(iced_x86_rust::InstructionInfoOptions::NO_REGISTER_USAGE, InstructionInfoOptions::NoRegisterUsage as u32);
+		const _: () = assert!(InstructionInfoOptions::None as u32 == iced_x86_rust::InstructionInfoOptions::NONE);
+		const _: () = assert!(InstructionInfoOptions::NoMemoryUsage as u32 == iced_x86_rust::InstructionInfoOptions::NO_MEMORY_USAGE);
+		const _: () = assert!(InstructionInfoOptions::NoRegisterUsage as u32 == iced_x86_rust::InstructionInfoOptions::NO_REGISTER_USAGE);
 		InstructionInfo((*self.0.info_options(&instruction.0, options)).clone())
 	}
 }

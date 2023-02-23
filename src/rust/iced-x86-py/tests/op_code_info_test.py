@@ -1,30 +1,10 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 import pytest
 from iced_x86 import *
 
-def test_props():
+def test_props() -> None:
 	idef = OpCodeInfo(Code.EVEX_VMOVAPD_YMM_K1Z_YMMM256)
 
 	assert idef.code == Code.EVEX_VMOVAPD_YMM_K1Z_YMMM256
@@ -43,6 +23,15 @@ def test_props():
 	assert not idef.is_wig
 	assert not idef.is_wig32
 	assert idef.tuple_type == TupleType.N32
+	assert idef.mvex_eh_bit == MvexEHBit.NONE
+	assert not idef.mvex_can_use_eviction_hint
+	assert not idef.mvex_can_use_imm_rounding_control
+	assert not idef.mvex_ignores_op_mask_register
+	assert not idef.mvex_no_sae_rc
+	assert idef.mvex_tuple_type_lut_kind == MvexTupleTypeLutKind.INT32
+	assert idef.mvex_conversion_func == MvexConvFn.NONE
+	assert idef.mvex_valid_conversion_funcs_mask == 0
+	assert idef.mvex_valid_swizzle_funcs_mask == 0
 	assert idef.memory_size == MemorySize.PACKED256_FLOAT64
 	assert idef.broadcast_memory_size == MemorySize.UNKNOWN
 	assert not idef.can_broadcast
@@ -82,6 +71,7 @@ def test_props():
 	assert not idef.no66
 	assert not idef.nfx
 	assert not idef.requires_unique_reg_nums
+	assert not idef.requires_unique_dest_reg_num
 	assert not idef.is_privileged
 	assert not idef.is_save_restore
 	assert not idef.is_stack_instruction
@@ -139,7 +129,7 @@ def test_props():
 	assert idef.op_kind(2) == idef.op2_kind
 	assert idef.op_kind(3) == idef.op3_kind
 	assert idef.op_kind(4) == idef.op4_kind
-	assert type(idef.op_kinds()) == list
+	assert isinstance(idef.op_kinds(), list)
 	assert idef.op_kinds() == [OpCodeOperandKind.YMM_REG, OpCodeOperandKind.YMM_OR_MEM]
 	assert idef.is_available_in_mode(16)
 	assert idef.is_available_in_mode(32)
@@ -153,7 +143,7 @@ def test_props():
 	assert f"{idef:i}" == "VMOVAPD ymm1 {k1}{z}, ymm2/m256"
 	assert f"{idef:o}" == "EVEX.256.66.0F.W1 28 /r"
 
-def test_eq_ne_hash():
+def test_eq_ne_hash() -> None:
 	idef1 = OpCodeInfo(Code.EVEX_VMOVAPD_YMM_K1Z_YMMM256)
 	idef2 = OpCodeInfo(Code.EVEX_VMOVAPD_YMM_K1Z_YMMM256)
 	idef3 = OpCodeInfo(Code.EVEX_VMOVAPD_XMM_K1Z_XMMM128)
@@ -183,21 +173,21 @@ def test_eq_ne_hash():
 	assert hash(idef1) == hash(idef1)
 	assert hash(idef1) == hash(idef2)
 
-def test_invalid_format_spec():
+def test_invalid_format_spec() -> None:
 	idef = OpCodeInfo(Code.EVEX_VMOVAPD_YMM_K1Z_YMMM256)
 	with pytest.raises(ValueError):
 		f"{idef:Q}"
 
-def test_invalid_op_kind_arg():
+def test_invalid_op_kind_arg() -> None:
 	idef = OpCodeInfo(Code.EVEX_VMOVAPD_YMM_K1Z_YMMM256)
 	with pytest.raises(ValueError):
 		idef.op_kind(100)
 
 @pytest.mark.parametrize("bitness", [16, 32, 64, 0, 15, 128])
-def test_invalid_bitness(bitness):
+def test_invalid_bitness(bitness: int) -> None:
 	idef = OpCodeInfo(Code.EVEX_VMOVAPD_YMM_K1Z_YMMM256)
 	idef.is_available_in_mode(bitness)
 
-def test_op_code_raise():
+def test_op_code_raise() -> None:
 	with pytest.raises(ValueError):
-		OpCodeInfo(10000)
+		OpCodeInfo(100000) # type: ignore

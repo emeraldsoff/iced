@@ -1,25 +1,5 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 0, Unknown, Unknown, None, None, None, None, None,
 1, UInt8, UInt8, None, byte_ptr, byte_ptr, byte_ptr, byte,
@@ -96,6 +76,7 @@
 16, Packed128_Float16, Float16, None, xmmword_ptr, xmmword_ptr, xmmword_ptr, oword, signed
 16, Packed128_Float32, Float32, None, xmmword_ptr, xmmword_ptr, xmmword_ptr, oword, signed
 16, Packed128_Float64, Float64, None, xmmword_ptr, xmmword_ptr, xmmword_ptr, oword, signed
+16, Packed128_BFloat16, BFloat16, None, xmmword_ptr, xmmword_ptr, xmmword_ptr, oword, signed
 16, Packed128_2xBFloat16, Packed32_BFloat16, None, xmmword_ptr, xmmword_ptr, xmmword_ptr, oword, signed
 32, Packed256_UInt8, UInt8, None, ymmword_ptr, ymmword_ptr, ymmword_ptr, yword,
 32, Packed256_Int8, Int8, None, ymmword_ptr, ymmword_ptr, ymmword_ptr, yword, signed
@@ -112,6 +93,7 @@
 32, Packed256_Float32, Float32, None, ymmword_ptr, ymmword_ptr, ymmword_ptr, yword, signed
 32, Packed256_Float64, Float64, None, ymmword_ptr, ymmword_ptr, ymmword_ptr, yword, signed
 32, Packed256_Float128, Float128, None, ymmword_ptr, ymmword_ptr, ymmword_ptr, yword, signed
+32, Packed256_BFloat16, BFloat16, None, ymmword_ptr, ymmword_ptr, ymmword_ptr, yword, signed
 32, Packed256_2xBFloat16, Packed32_BFloat16, None, ymmword_ptr, ymmword_ptr, ymmword_ptr, yword, signed
 64, Packed512_UInt8, UInt8, None, zmmword_ptr, zmmword_ptr, zmmword_ptr, zword,
 64, Packed512_Int8, Int8, None, zmmword_ptr, zmmword_ptr, zmmword_ptr, zword, signed
@@ -150,15 +132,34 @@
 8, Broadcast512_Int64, Int64, b1to8, qword_bcst, qword_ptr, qword_bcst, qword, signed bcst
 4, Broadcast512_Float32, Float32, b1to16, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
 8, Broadcast512_Float64, Float64, b1to8, qword_bcst, qword_ptr, qword_bcst, qword, signed bcst
-4, Broadcast128_2xInt16, Int16, b1to4, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
-4, Broadcast256_2xInt16, Int16, b1to8, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
-4, Broadcast512_2xInt16, Int16, b1to16, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
-8, Broadcast128_2xUInt32, UInt32, b1to2, qword_bcst, qword_ptr, qword_bcst, qword, bcst
-8, Broadcast256_2xUInt32, UInt32, b1to4, qword_bcst, qword_ptr, qword_bcst, qword, bcst
-8, Broadcast512_2xUInt32, UInt32, b1to8, qword_bcst, qword_ptr, qword_bcst, qword, bcst
-8, Broadcast128_2xInt32, Int32, b1to2, qword_bcst, qword_ptr, qword_bcst, qword, signed bcst
-8, Broadcast256_2xInt32, Int32, b1to4, qword_bcst, qword_ptr, qword_bcst, qword, signed bcst
-8, Broadcast512_2xInt32, Int32, b1to8, qword_bcst, qword_ptr, qword_bcst, qword, signed bcst
-4, Broadcast128_2xBFloat16, BFloat16, b1to4, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
-4, Broadcast256_2xBFloat16, BFloat16, b1to8, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
-4, Broadcast512_2xBFloat16, BFloat16, b1to16, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+4, Broadcast128_2xInt16, Packed32_Int16, b1to4, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+4, Broadcast256_2xInt16, Packed32_Int16, b1to8, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+4, Broadcast512_2xInt16, Packed32_Int16, b1to16, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+8, Broadcast128_2xUInt32, Packed64_UInt32, b1to2, qword_bcst, qword_ptr, qword_bcst, qword, bcst
+8, Broadcast256_2xUInt32, Packed64_UInt32, b1to4, qword_bcst, qword_ptr, qword_bcst, qword, bcst
+8, Broadcast512_2xUInt32, Packed64_UInt32, b1to8, qword_bcst, qword_ptr, qword_bcst, qword, bcst
+8, Broadcast128_2xInt32, Packed64_Int32, b1to2, qword_bcst, qword_ptr, qword_bcst, qword, signed bcst
+8, Broadcast256_2xInt32, Packed64_Int32, b1to4, qword_bcst, qword_ptr, qword_bcst, qword, signed bcst
+8, Broadcast512_2xInt32, Packed64_Int32, b1to8, qword_bcst, qword_ptr, qword_bcst, qword, signed bcst
+4, Broadcast128_2xBFloat16, Packed32_BFloat16, b1to4, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+4, Broadcast256_2xBFloat16, Packed32_BFloat16, b1to8, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+4, Broadcast512_2xBFloat16, Packed32_BFloat16, b1to16, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+4, Packed32_Float16, Float16, None, dword_ptr, dword_ptr, dword_ptr, dword, signed
+64, Packed512_Float16, Float16, None, zmmword_ptr, zmmword_ptr, zmmword_ptr, zword, signed
+2, Broadcast32_Float16, Float16, b1to2, word_bcst, word_ptr, word_bcst, word, signed bcst
+2, Broadcast64_Float16, Float16, b1to4, word_bcst, word_ptr, word_bcst, word, signed bcst
+2, Broadcast128_Float16, Float16, b1to8, word_bcst, word_ptr, word_bcst, word, signed bcst
+2, Broadcast256_Float16, Float16, b1to16, word_bcst, word_ptr, word_bcst, word, signed bcst
+2, Broadcast512_Float16, Float16, b1to32, word_bcst, word_ptr, word_bcst, word, signed bcst
+2, Broadcast128_Int16, Int16, b1to8, word_bcst, word_ptr, word_bcst, word, bcst
+2, Broadcast256_Int16, Int16, b1to16, word_bcst, word_ptr, word_bcst, word, bcst
+2, Broadcast512_Int16, Int16, b1to32, word_bcst, word_ptr, word_bcst, word, bcst
+2, Broadcast128_UInt16, UInt16, b1to8, word_bcst, word_ptr, word_bcst, word, bcst
+2, Broadcast256_UInt16, UInt16, b1to16, word_bcst, word_ptr, word_bcst, word, bcst
+2, Broadcast512_UInt16, UInt16, b1to32, word_bcst, word_ptr, word_bcst, word, bcst
+16, Packed128_2xFloat16, Packed32_Float16, None, xmmword_ptr, xmmword_ptr, xmmword_ptr, oword, signed
+32, Packed256_2xFloat16, Packed32_Float16, None, ymmword_ptr, ymmword_ptr, ymmword_ptr, yword, signed
+64, Packed512_2xFloat16, Packed32_Float16, None, zmmword_ptr, zmmword_ptr, zmmword_ptr, zword, signed
+4, Broadcast128_2xFloat16, Packed32_Float16, b1to4, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+4, Broadcast256_2xFloat16, Packed32_Float16, b1to8, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst
+4, Broadcast512_2xFloat16, Packed32_Float16, b1to16, dword_bcst, dword_ptr, dword_bcst, dword, signed bcst

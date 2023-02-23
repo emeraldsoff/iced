@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 mod call_instr;
 mod ip_relmem_instr;
@@ -29,81 +9,108 @@ mod simple_br_instr;
 mod simple_instr;
 mod xbegin_instr;
 
-use self::call_instr::CallInstr;
-use self::ip_relmem_instr::IpRelMemOpInstr;
-use self::jcc_instr::JccInstr;
-use self::jmp_instr::JmpInstr;
-use self::simple_br_instr::SimpleBranchInstr;
-use self::simple_instr::SimpleInstr;
-use self::xbegin_instr::XbeginInstr;
-use super::super::iced_error::IcedError;
-use super::block::{Block, BlockData};
-use super::*;
-use alloc::rc::Rc;
-#[cfg(not(feature = "std"))]
+use crate::block_enc::block::{Block, BlockData};
+use crate::block_enc::instr::call_instr::CallInstr;
+use crate::block_enc::instr::ip_relmem_instr::IpRelMemOpInstr;
+use crate::block_enc::instr::jcc_instr::JccInstr;
+use crate::block_enc::instr::jmp_instr::JmpInstr;
+use crate::block_enc::instr::simple_br_instr::SimpleBranchInstr;
+use crate::block_enc::instr::simple_instr::SimpleInstr;
+use crate::block_enc::instr::xbegin_instr::XbeginInstr;
+use crate::block_enc::*;
+use crate::iced_error::IcedError;
+use alloc::boxed::Box;
 use alloc::string::String;
 use core::cell::RefCell;
 use core::fmt::Display;
-use core::i32;
 
-pub(super) trait Instr {
-	fn block(&self) -> Rc<RefCell<Block>>;
-	fn size(&self) -> u32;
-	fn ip(&self) -> u64;
-	fn set_ip(&mut self, new_ip: u64);
-	fn orig_ip(&self) -> u64;
-
-	/// Initializes the target address and tries to optimize the instruction
-	fn initialize(&mut self, block_encoder: &BlockEncoder);
-
-	/// Returns `true` if the instruction was updated to a shorter instruction, `false` if nothing changed
-	fn optimize(&mut self) -> bool;
-
-	fn encode(&mut self, block: &mut Block) -> Result<(ConstantOffsets, bool), IcedError>;
+// This is a little bit ugly.
+//
+// TargetInstr::address() needs to get the ip of the target instr. We can't pass in the `all_instrs`
+// slice since the caller is `&mut` from inside that very same slice. So we had to move the `ip` field
+// from Instr to its own vec, which is stored in the `all_ips` slice.
+//
+// `ip` is also used by the Instr methods so need to be part of the context as well.
+//
+// The old code used Rc<RefCell<dyn Instr>> but it was slower. Converting it to Box<dyn Instr> resulted in
+// ~28% less execution time when encoding a lot of instructions.
+pub(super) struct InstrContext<'a> {
+	pub(super) block: &'a mut Block,
+	pub(super) all_ips: &'a mut [u64],
+	pub(super) ip: u64,
 }
 
-#[derive(Default)]
-pub(super) struct TargetInstr {
-	instruction: Option<Rc<RefCell<dyn Instr>>>,
-	address: u64,
-	is_owner: bool,
+// Data common among all `Instr` impls. It eliminates many slow virtual calls to getters.
+pub(super) struct InstrBase {
+	pub(super) size: u32,
+	pub(super) orig_ip: u64,
+	// If it can't be optimized, this will be set to true
+	pub(super) done: bool,
+}
+
+pub(super) trait Instr {
+	fn get_target_instr(&mut self) -> (&mut TargetInstr, u64);
+
+	/// Returns `true` if the instruction was updated to a shorter instruction, `false` if nothing changed
+	fn optimize(&mut self, base: &mut InstrBase, ctx: &mut InstrContext<'_>, gained: u64) -> bool;
+
+	fn encode(&mut self, base: &mut InstrBase, ctx: &mut InstrContext<'_>) -> Result<(ConstantOffsets, bool), IcedError>;
+}
+
+fn correct_diff(in_block: bool, diff: i64, gained: u64) -> i64 {
+	if in_block && diff >= 0 {
+		debug_assert!(diff as u64 >= gained);
+		diff - gained as i64
+	} else {
+		diff
+	}
+}
+
+pub(super) enum TargetInstr {
+	Uninitialized,
+	Instruction(usize),
+	Address(u64),
+	IsOwner,
+}
+
+impl Default for TargetInstr {
+	fn default() -> Self {
+		Self::Uninitialized
+	}
 }
 
 impl TargetInstr {
 	#[inline]
-	pub(super) fn new_instr(instruction: Rc<RefCell<dyn Instr>>) -> Self {
-		Self { instruction: Some(Rc::clone(&instruction)), address: 0, is_owner: false }
+	pub(super) const fn new_instr(instr_index: usize) -> Self {
+		TargetInstr::Instruction(instr_index)
 	}
 
 	#[inline]
-	pub(super) fn new_address(address: u64) -> Self {
-		Self { instruction: None, address, is_owner: false }
+	pub(super) const fn new_address(address: u64) -> Self {
+		TargetInstr::Address(address)
 	}
 
 	#[inline]
-	pub(super) fn new_owner() -> Self {
-		Self { instruction: None, address: 0, is_owner: true }
+	pub(super) const fn new_owner() -> Self {
+		TargetInstr::IsOwner
 	}
 
-	fn is_in_block(&self, block: Rc<RefCell<Block>>) -> bool {
-		if self.is_owner {
+	fn is_in_block(&self, block: &Block) -> bool {
+		match self {
+			TargetInstr::Instruction(instr_index) => block.is_in_block(*instr_index),
+			TargetInstr::Address(_) => false,
 			// The owner checks if the input block is part of its block, so return true
-			true
-		} else if let Some(ref instr) = self.instruction {
-			Rc::ptr_eq(&instr.borrow().block(), &block)
-		} else {
-			false
+			TargetInstr::IsOwner => true,
+			TargetInstr::Uninitialized => unreachable!(),
 		}
 	}
 
-	fn address(&self, owner: &dyn Instr) -> u64 {
-		if self.is_owner {
-			owner.ip()
-		} else {
-			match self.instruction {
-				Some(ref instr) => instr.borrow().ip(),
-				None => self.address,
-			}
+	fn address(&self, ctx: &mut InstrContext<'_>) -> u64 {
+		match self {
+			TargetInstr::Instruction(instr_index) => ctx.all_ips[*instr_index],
+			TargetInstr::Address(address) => *address,
+			TargetInstr::IsOwner => ctx.ip,
+			TargetInstr::Uninitialized => unreachable!(),
 		}
 	}
 }
@@ -111,21 +118,19 @@ impl TargetInstr {
 pub(super) struct InstrUtils;
 impl InstrUtils {
 	// 6 = FF 15 XXXXXXXX = call qword ptr [rip+mem_target]
-	pub(self) const CALL_OR_JMP_POINTER_DATA_INSTRUCTION_SIZE64: u32 = 6;
+	const CALL_OR_JMP_POINTER_DATA_INSTRUCTION_SIZE64: u32 = 6;
 
 	#[cfg(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm"))]
-	pub(self) fn create_error_message<T: Display>(error_message: T, instruction: &Instruction) -> String {
+	fn create_error_message<T: Display>(error_message: T, instruction: &Instruction) -> String {
 		format!("{} : 0x{:X} {}", error_message, instruction.ip(), instruction)
 	}
 
 	#[cfg(not(any(feature = "gas", feature = "intel", feature = "masm", feature = "nasm")))]
-	pub(self) fn create_error_message<T: Display>(error_message: T, instruction: &Instruction) -> String {
+	fn create_error_message<T: Display>(error_message: T, instruction: &Instruction) -> String {
 		format!("{} : 0x{:X}", error_message, instruction.ip())
 	}
 
-	pub(super) fn create<'a, 'b>(
-		block_encoder: &'a mut BlockEncoder, block: Rc<RefCell<Block>>, instruction: &'b Instruction,
-	) -> Rc<RefCell<dyn Instr>> {
+	pub(super) fn create(block_encoder: &mut BlockEncInt, base: &mut InstrBase, instruction: &Instruction) -> Box<dyn Instr> {
 		#[cfg_attr(feature = "cargo-fmt", rustfmt::skip)]
 		match instruction.code() {
 			// GENERATOR-BEGIN: JccInstr
@@ -226,7 +231,11 @@ impl InstrUtils {
 			| Code::Jg_rel16
 			| Code::Jg_rel32_32
 			| Code::Jg_rel32_64
-			=> return Rc::new(RefCell::new(JccInstr::new(block_encoder, block, instruction))),
+			| Code::VEX_KNC_Jkzd_kr_rel8_64
+			| Code::VEX_KNC_Jknzd_kr_rel8_64
+			| Code::VEX_KNC_Jkzd_kr_rel32_64
+			| Code::VEX_KNC_Jknzd_kr_rel32_64
+			=> return Box::new(JccInstr::new(block_encoder, base, instruction)),
 			// GENERATOR-END: JccInstr
 
 			// GENERATOR-BEGIN: SimpleBranchInstr
@@ -259,7 +268,7 @@ impl InstrUtils {
 			| Code::Jecxz_rel8_64
 			| Code::Jrcxz_rel8_16
 			| Code::Jrcxz_rel8_64
-			=> return Rc::new(RefCell::new(SimpleBranchInstr::new(block_encoder, block, instruction))),
+			=> return Box::new(SimpleBranchInstr::new(block_encoder, base, instruction)),
 			// GENERATOR-END: SimpleBranchInstr
 
 			// GENERATOR-BEGIN: CallInstr
@@ -267,7 +276,7 @@ impl InstrUtils {
 			Code::Call_rel16
 			| Code::Call_rel32_32
 			| Code::Call_rel32_64
-			=> return Rc::new(RefCell::new(CallInstr::new(block_encoder, block, instruction))),
+			=> return Box::new(CallInstr::new(block_encoder, base, instruction)),
 			// GENERATOR-END: CallInstr
 
 			// GENERATOR-BEGIN: JmpInstr
@@ -278,33 +287,28 @@ impl InstrUtils {
 			| Code::Jmp_rel8_16
 			| Code::Jmp_rel8_32
 			| Code::Jmp_rel8_64
-			=> return Rc::new(RefCell::new(JmpInstr::new(block_encoder, block, instruction))),
+			=> return Box::new(JmpInstr::new(block_encoder, base, instruction)),
 			// GENERATOR-END: JmpInstr
 
 			// GENERATOR-BEGIN: XbeginInstr
 			// ⚠️This was generated by GENERATOR!🦹‍♂️
 			Code::Xbegin_rel16
 			| Code::Xbegin_rel32
-			=> return Rc::new(RefCell::new(XbeginInstr::new(block_encoder, block, instruction))),
+			=> return Box::new(XbeginInstr::new(block_encoder, base, instruction)),
 			// GENERATOR-END: XbeginInstr
 
 			_ => {},
 		}
 
 		if block_encoder.bitness() == 64 {
-			for i in 0..instruction.op_count() {
-				if let Ok(op_kind) = instruction.try_op_kind(i) {
-					if op_kind == OpKind::Memory {
-						if instruction.is_ip_rel_memory_operand() {
-							return Rc::new(RefCell::new(IpRelMemOpInstr::new(block_encoder, block, instruction)));
-						}
-						break;
-					}
+			if instruction.is_ip_rel_memory_operand() {
+				if instruction.op_kinds().any(|op_kind| op_kind == OpKind::Memory) {
+					return Box::new(IpRelMemOpInstr::new(block_encoder, base, instruction));
 				}
 			}
 		}
 
-		Rc::new(RefCell::new(SimpleInstr::new(block_encoder, block, instruction)))
+		Box::new(SimpleInstr::new(block_encoder, base, instruction))
 	}
 
 	fn encode_branch_to_pointer_data(

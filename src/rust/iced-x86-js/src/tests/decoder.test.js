@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 const { Code, Decoder, DecoderError, DecoderOptions, Instruction, OpKind, Register } = require("iced-x86");
 
@@ -230,17 +210,11 @@ test("Create a Decoder with multiple options", () => {
 
 test("Decoder.IP prop", () => {
 	const decoder = new Decoder(64, new Uint8Array([0x90]), DecoderOptions.None);
-	expect(decoder.ipLo).toBe(0);
-	expect(decoder.ipHi).toBe(0);
-	decoder.ipLo = 0x12345678;
-	expect(decoder.ipLo).toBe(0x12345678);
-	expect(decoder.ipHi).toBe(0);
-	decoder.ipHi = 0x9ABCDEFD;
-	expect(decoder.ipLo).toBe(0x12345678);
-	expect(decoder.ipHi).toBe(0x9ABCDEFD);
-	decoder.ipLo = 0x5AA54321;
-	expect(decoder.ipLo).toBe(0x5AA54321);
-	expect(decoder.ipHi).toBe(0x9ABCDEFD);
+	expect(decoder.ip).toBe(0n);
+	decoder.ip = 0x12345678n;
+	expect(decoder.ip).toBe(0x12345678n);
+	decoder.ip = 0x9ABCDEFD12345678n;
+	expect(decoder.ip).toBe(0x9ABCDEFD12345678n);
 	decoder.free();
 });
 

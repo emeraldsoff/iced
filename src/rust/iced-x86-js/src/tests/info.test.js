@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 const {
 	Decoder, DecoderOptions, InstructionInfoFactory, InstructionInfoOptions, MemorySize,
@@ -62,8 +42,7 @@ test("Instruction info factory", () => {
 	expect(mem1[0].base).toBe(Register.RDI);
 	expect(mem1[0].index).toBe(Register.R12);
 	expect(mem1[0].scale).toBe(8);
-	expect(mem1[0].displacementHi).toBe(0xFFFFFFFF);
-	expect(mem1[0].displacementLo).toBe(0xA55A1234);
+	expect(mem1[0].displacement).toBe(0xFFFFFFFFA55A1234n);
 	expect(mem1[0].memorySize).toBe(MemorySize.UInt32);
 	expect(mem1[0].access).toBe(OpAccess.ReadWrite);
 
@@ -88,8 +67,7 @@ test("Instruction info factory", () => {
 	expect(mem3[0].base).toBe(Register.RDI);
 	expect(mem3[0].index).toBe(Register.R12);
 	expect(mem3[0].scale).toBe(8);
-	expect(mem3[0].displacementHi).toBe(0xFFFFFFFF);
-	expect(mem3[0].displacementLo).toBe(0xA55A1234);
+	expect(mem3[0].displacement).toBe(0xFFFFFFFFA55A1234n);
 	expect(mem3[0].memorySize).toBe(MemorySize.UInt32);
 	expect(mem3[0].access).toBe(OpAccess.ReadWrite);
 

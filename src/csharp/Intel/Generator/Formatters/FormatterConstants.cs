@@ -1,29 +1,10 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 
 using Generator.Enums.Formatter;
+
 namespace Generator.Formatters {
 	static class FormatterConstants {
 		public static (string mnemonic, int imm)[] GetPseudoOps(PseudoOpsKind kind) =>
@@ -46,6 +27,20 @@ namespace Generator.Formatters {
 				PseudoOpsKind.vpcomuw => vpcomuw_pseudo_ops,
 				PseudoOpsKind.vpcomud => vpcomud_pseudo_ops,
 				PseudoOpsKind.vpcomuq => vpcomuq_pseudo_ops,
+				PseudoOpsKind.vpcmpb => vpcmpb_pseudo_ops,
+				PseudoOpsKind.vpcmpw => vpcmpw_pseudo_ops,
+				PseudoOpsKind.vpcmpd => vpcmpd_pseudo_ops,
+				PseudoOpsKind.vpcmpq => vpcmpq_pseudo_ops,
+				PseudoOpsKind.vpcmpub => vpcmpub_pseudo_ops,
+				PseudoOpsKind.vpcmpuw => vpcmpuw_pseudo_ops,
+				PseudoOpsKind.vpcmpud => vpcmpud_pseudo_ops,
+				PseudoOpsKind.vpcmpuq => vpcmpuq_pseudo_ops,
+				PseudoOpsKind.vcmpph => vcmpph_pseudo_ops,
+				PseudoOpsKind.vcmpsh => vcmpsh_pseudo_ops,
+				PseudoOpsKind.vcmpps8 => vcmpps8_pseudo_ops,
+				PseudoOpsKind.vcmppd8 => vcmppd8_pseudo_ops,
+				PseudoOpsKind.vpcmpd6 => vpcmpd6_pseudo_ops,
+				PseudoOpsKind.vpcmpud6 => vpcmpud6_pseudo_ops,
 				_ => throw new ArgumentOutOfRangeException(nameof(kind)),
 			};
 
@@ -92,6 +87,23 @@ namespace Generator.Formatters {
 			vcmpss_pseudo_ops = Create(cc, 32, "vcmp", "ss");
 			cmpsd_pseudo_ops = Create(cc, 8, "cmp", "sd");
 			vcmpsd_pseudo_ops = Create(cc, 32, "vcmp", "sd");
+			vcmpph_pseudo_ops = Create(cc, 32, "vcmp", "ph");
+			vcmpsh_pseudo_ops = Create(cc, 32, "vcmp", "sh");
+			vcmpps8_pseudo_ops = Create(cc, 8, "vcmp", "ps");
+			vcmppd8_pseudo_ops = Create(cc, 8, "vcmp", "pd");
+
+			var cc6 = new string[8] {
+				"eq",
+				"lt",
+				"le",
+				"??",
+				"neq",
+				"nlt",
+				"nle",
+				"???",
+			};
+			vpcmpd6_pseudo_ops = Create(cc6, 8, "vpcmp", "d");
+			vpcmpud6_pseudo_ops = Create(cc6, 8, "vpcmp", "ud");
 
 			var xopcc = new string[8] {
 				"lt",
@@ -111,6 +123,25 @@ namespace Generator.Formatters {
 			vpcomuw_pseudo_ops = Create(xopcc, 8, "vpcom", "uw");
 			vpcomud_pseudo_ops = Create(xopcc, 8, "vpcom", "ud");
 			vpcomuq_pseudo_ops = Create(xopcc, 8, "vpcom", "uq");
+
+			var pcmpcc = new string[8] {
+				"eq",
+				"lt",
+				"le",
+				"false",
+				"neq",
+				"nlt",
+				"nle",
+				"true",
+			};
+			vpcmpb_pseudo_ops = Create(pcmpcc, 8, "vpcmp", "b");
+			vpcmpw_pseudo_ops = Create(pcmpcc, 8, "vpcmp", "w");
+			vpcmpd_pseudo_ops = Create(pcmpcc, 8, "vpcmp", "d");
+			vpcmpq_pseudo_ops = Create(pcmpcc, 8, "vpcmp", "q");
+			vpcmpub_pseudo_ops = Create(pcmpcc, 8, "vpcmp", "ub");
+			vpcmpuw_pseudo_ops = Create(pcmpcc, 8, "vpcmp", "uw");
+			vpcmpud_pseudo_ops = Create(pcmpcc, 8, "vpcmp", "ud");
+			vpcmpuq_pseudo_ops = Create(pcmpcc, 8, "vpcmp", "uq");
 		}
 
 		static (string mnemonic, int imm)[] Create(string[] cc, int size, string prefix, string suffix) {
@@ -128,6 +159,12 @@ namespace Generator.Formatters {
 		static readonly (string mnemonic, int imm)[] vcmpss_pseudo_ops;
 		static readonly (string mnemonic, int imm)[] cmpsd_pseudo_ops;
 		static readonly (string mnemonic, int imm)[] vcmpsd_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vcmpph_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vcmpsh_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vcmpps8_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vcmppd8_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpd6_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpud6_pseudo_ops;
 
 		static readonly (string mnemonic, int imm)[] pclmulqdq_pseudo_ops = new (string mnemonic, int imm)[4] {
 			("pclmullqlqdq", 0x00),
@@ -151,5 +188,14 @@ namespace Generator.Formatters {
 		static readonly (string mnemonic, int imm)[] vpcomuw_pseudo_ops;
 		static readonly (string mnemonic, int imm)[] vpcomud_pseudo_ops;
 		static readonly (string mnemonic, int imm)[] vpcomuq_pseudo_ops;
+
+		static readonly (string mnemonic, int imm)[] vpcmpb_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpw_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpd_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpq_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpub_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpuw_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpud_pseudo_ops;
+		static readonly (string mnemonic, int imm)[] vpcmpuq_pseudo_ops;
 	}
 }

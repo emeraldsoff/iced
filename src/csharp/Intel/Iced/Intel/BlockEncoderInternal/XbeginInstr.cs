@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && BLOCK_ENCODER
 using System;
@@ -33,10 +13,10 @@ namespace Iced.Intel.BlockEncoderInternal {
 		Instruction instruction;
 		TargetInstr targetInstr;
 		InstrKind instrKind;
-		readonly uint shortInstructionSize;
-		readonly uint nearInstructionSize;
+		readonly byte shortInstructionSize;
+		readonly byte nearInstructionSize;
 
-		enum InstrKind {
+		enum InstrKind : byte {
 			Unchanged,
 			Rel16,
 			Rel32,
@@ -60,31 +40,32 @@ namespace Iced.Intel.BlockEncoderInternal {
 				instrCopy = instruction;
 				instrCopy.InternalSetCodeNoCheck(Code.Xbegin_rel16);
 				instrCopy.NearBranch64 = 0;
-				shortInstructionSize = blockEncoder.GetInstructionSize(instrCopy, 0);
+				shortInstructionSize = (byte)blockEncoder.GetInstructionSize(instrCopy, 0);
 
 				instrCopy = instruction;
 				instrCopy.InternalSetCodeNoCheck(Code.Xbegin_rel32);
 				instrCopy.NearBranch64 = 0;
-				nearInstructionSize = blockEncoder.GetInstructionSize(instrCopy, 0);
+				nearInstructionSize = (byte)blockEncoder.GetInstructionSize(instrCopy, 0);
 
 				Size = nearInstructionSize;
 			}
 		}
 
-		public override void Initialize(BlockEncoder blockEncoder) {
+		public override void Initialize(BlockEncoder blockEncoder) =>
 			targetInstr = blockEncoder.GetTarget(instruction.NearBranchTarget);
-			TryOptimize();
-		}
 
-		public override bool Optimize() => TryOptimize();
+		public override bool Optimize(ulong gained) => TryOptimize(gained);
 
-		bool TryOptimize() {
-			if (instrKind == InstrKind.Unchanged || instrKind == InstrKind.Rel16)
+		bool TryOptimize(ulong gained) {
+			if (instrKind == InstrKind.Unchanged || instrKind == InstrKind.Rel16) {
+				Done = true;
 				return false;
+			}
 
 			var targetAddress = targetInstr.GetAddress();
 			var nextRip = IP + shortInstructionSize;
 			long diff = (long)(targetAddress - nextRip);
+			diff = CorrectDiff(targetInstr.IsInBlock(Block), diff, gained);
 			if (short.MinValue <= diff && diff <= short.MaxValue) {
 				instrKind = InstrKind.Rel16;
 				Size = shortInstructionSize;

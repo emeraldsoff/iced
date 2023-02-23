@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -38,6 +18,7 @@ namespace IcedFuzzer {
 		public bool IncludeValidInstructions = true;
 		public bool IncludeInvalidInstructions = true;
 		public bool IncludeValidCodeValue = false;
+		public bool UselessPrefixes = true;
 		public readonly FilterOptions Filter = new FilterOptions();
 		public string? InvalidFilename = null;
 		public string? ValidFilename = null;
@@ -55,7 +36,7 @@ namespace IcedFuzzer {
 				var infos = GetOpCodeInfos(options);
 				if (options.PrintInstructions) {
 					Array.Sort(infos, (a, b) => {
-						int c = StringComparer.OrdinalIgnoreCase.Compare(a.Code.Mnemonic().ToString(), b.Code.Mnemonic().ToString());
+						int c = StringComparer.OrdinalIgnoreCase.Compare(a.Mnemonic.ToString(), b.Mnemonic.ToString());
 						if (c != 0)
 							return c;
 						return a.Code.CompareTo(b.Code);
@@ -83,8 +64,10 @@ namespace IcedFuzzer {
 						Console.WriteLine($"Bitness: {options.OpCodeInfoOptions.Bitness}");
 					var info = Gen(options, infos);
 					if (!options.Quiet) {
-						Console.WriteLine($"valid  : {info.totValid} instrs: {(double)info.totBytesValid / 1024 / 1024:0.##} MB");
-						Console.WriteLine($"invalid: {info.totInvalid} instrs: {(double)info.totBytesInvalid / 1024 / 1024:0.##} MB");
+						if (info.gendValid)
+							Console.WriteLine($"  valid: {info.totValid,8} instrs: {(double)info.totBytesValid / 1024 / 1024,6:0.##} MB");
+						if (info.gendInvalid)
+							Console.WriteLine($"invalid: {info.totInvalid,8} instrs: {(double)info.totBytesInvalid / 1024 / 1024,6:0.##} MB");
 					}
 				}
 				return 0;
@@ -108,7 +91,7 @@ namespace IcedFuzzer {
 		static OpCodeInfo[] GetOpCodeInfos(Options options) =>
 			OpCodeInfoProvider.GetOpCodeInfos(options.OpCodeInfoOptions);
 
-		static (uint totValid, ulong totBytesValid, uint totInvalid, ulong totBytesInvalid) Gen(Options options, OpCodeInfo[] infos) {
+		static (uint totValid, ulong totBytesValid, uint totInvalid, ulong totBytesInvalid, bool gendValid, bool gendInvalid) Gen(Options options, OpCodeInfo[] infos) {
 			var genFlags = InstrGenFlags.None;
 			if (options.UnusedTables)
 				genFlags |= InstrGenFlags.UnusedTables;
@@ -120,6 +103,8 @@ namespace IcedFuzzer {
 				genFlags |= InstrGenFlags.NoEVEX;
 			if (!options.OpCodeInfoOptions.Include3DNow)
 				genFlags |= InstrGenFlags.No3DNow;
+			if (!options.OpCodeInfoOptions.IncludeMVEX)
+				genFlags |= InstrGenFlags.NoMVEX;
 			var encodingTables = InstrGen.Create(options.OpCodeInfoOptions.Bitness, infos, genFlags);
 
 			var instructions = encodingTables.GetOpCodeGroups().SelectMany(a => a.opCodes).SelectMany(a => a.Instructions).Where(instr => {
@@ -135,11 +120,16 @@ namespace IcedFuzzer {
 			BinaryWriter? validWriter = null;
 			BinaryWriter? invalidWriter = null;
 			var data2 = new byte[2];
+			bool gendValid = false, gendInvalid = false;
 			try {
-				if (options.ValidFilename is not null)
+				if (options.ValidFilename is not null) {
 					CreateFile(ref validStream, ref validWriter, options.ValidFilename);
-				if (options.InvalidFilename is not null)
+					gendValid = true;
+				}
+				if (options.InvalidFilename is not null) {
 					CreateFile(ref invalidStream, ref invalidWriter, options.InvalidFilename);
+					gendInvalid = true;
+				}
 
 				var fuzzerOptions = FuzzerOptions.NoPAUSE | FuzzerOptions.NoWBNOINVD |
 					FuzzerOptions.NoTZCNT | FuzzerOptions.NoLZCNT;
@@ -147,6 +137,8 @@ namespace IcedFuzzer {
 					fuzzerOptions |= FuzzerOptions.NoVerifyInstrs;
 				if (!options.OpCodeInfoOptions.Filter.WasRemoved(CpuidFeature.MPX))
 					fuzzerOptions |= FuzzerOptions.HasMPX;
+				if (options.UselessPrefixes)
+					fuzzerOptions |= FuzzerOptions.UselessPrefixes;
 				foreach (var instr in instructions) {
 					switch (instr.Code) {
 					case Code.Pause:
@@ -207,7 +199,7 @@ namespace IcedFuzzer {
 						writer.Write(info.EncodedData, 0, info.EncodedDataLength);
 					}
 				}
-				return (totValid, totBytesValid, totInvalid, totBytesInvalid);
+				return (totValid, totBytesValid, totInvalid, totBytesInvalid, gendValid, gendInvalid);
 			}
 			finally {
 				validWriter?.Dispose();
@@ -250,9 +242,10 @@ namespace IcedFuzzer {
 			Console.WriteLine($"--no-xop                  No XOP instructions");
 			Console.WriteLine($"--no-evex                 No EVEX instructions");
 			Console.WriteLine($"--no-3dnow                No 3DNow! instructions (implies --no-geode-3dnow)");
+			Console.WriteLine($"--mvex                    MVEX instructions");
 			Console.WriteLine($"--no-geode-3dnow          No AMD Geode GX/LX 3DNow! instructions");
 			Console.WriteLine($"--no-padlock              No Centaur (VIA) PadLock instructions");
-			Console.WriteLine($"--no-unused-tables        Don't gen unused VEX/EVEX/XOP opcode tables (eg. EVEX.mm=00). Smaller output files.");
+			Console.WriteLine($"--no-unused-tables        Don't gen unused VEX/EVEX/XOP opcode tables (eg. EVEX.mmm=000). Smaller output files.");
 			Console.WriteLine($"--include-cpuid names     Only include instructions with these CPUID names, {sep}-separated");
 			Console.WriteLine($"--exclude-cpuid names     Exclude instructions with these CPUID names, {sep}-separated");
 			Console.WriteLine($"--include-code names      Only include instructions with these Code names, {sep}-separated");
@@ -266,6 +259,10 @@ namespace IcedFuzzer {
 			Console.WriteLine($"--gen-exclude-cpuid names Gen: Exclude instructions with these CPUID names, {sep}-separated");
 			Console.WriteLine($"--gen-include-code names  Gen: Only include instructions with these Code names, {sep}-separated");
 			Console.WriteLine($"--gen-exclude-code names  Gen: Exclude instructions with these Code names, {sep}-separated");
+			Console.WriteLine();
+			Console.WriteLine($"Fuzzer options");
+			Console.WriteLine();
+			Console.WriteLine($"--no-useless-prefixes     Don't generate useless prefixes");
 			Console.WriteLine();
 			Console.WriteLine($"Output files:");
 			Console.WriteLine();
@@ -356,6 +353,10 @@ namespace IcedFuzzer {
 					options.OpCodeInfoOptions.Filter.ExcludeCpuid.Add(CpuidFeature.CYRIX_D3NOW);
 					break;
 
+				case "--mvex":
+					options.OpCodeInfoOptions.IncludeMVEX = true;
+					throw new NotImplementedException();
+
 				case "--no-geode-3dnow":
 					options.OpCodeInfoOptions.Filter.ExcludeCpuid.Add(CpuidFeature.CYRIX_D3NOW);
 					break;
@@ -366,6 +367,7 @@ namespace IcedFuzzer {
 					options.OpCodeInfoOptions.Filter.ExcludeCpuid.Add(CpuidFeature.PADLOCK_PMM);
 					options.OpCodeInfoOptions.Filter.ExcludeCpuid.Add(CpuidFeature.PADLOCK_RNG);
 					options.OpCodeInfoOptions.Filter.ExcludeCpuid.Add(CpuidFeature.PADLOCK_GMI);
+					options.OpCodeInfoOptions.Filter.ExcludeCpuid.Add(CpuidFeature.PADLOCK_UNDOC);
 					break;
 
 				case "--no-unused-tables":
@@ -418,6 +420,10 @@ namespace IcedFuzzer {
 
 				case "--no-valid-instr":
 					options.IncludeValidInstructions = false;
+					break;
+
+				case "--no-useless-prefixes":
+					options.UselessPrefixes = false;
 					break;
 
 				case "-oil":

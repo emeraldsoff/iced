@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System.Linq;
 using Generator.Enums;
@@ -66,6 +46,8 @@ namespace Generator.Decoder.Rust {
 				("CC_ge_hash", genTypes[TypeIds.CC_ge], false, "test_utils/from_str_conv/cc_table.rs"),
 				("CC_le_hash", genTypes[TypeIds.CC_le], false, "test_utils/from_str_conv/cc_table.rs"),
 				("CC_g_hash", genTypes[TypeIds.CC_g], false, "test_utils/from_str_conv/cc_table.rs"),
+				("MvexConvFnHash", genTypes[TypeIds.MvexConvFn], false, "test_utils/from_str_conv/mvex_conv_fn_table.rs"),
+				("MvexTupleTypeLutKindHash", genTypes[TypeIds.MvexTupleTypeLutKind], false, "test_utils/from_str_conv/mvex_tt_lut_kind_table.rs"),
 			};
 			foreach (var info in infos) {
 				var filename = generatorContext.Types.Dirs.GetRustFilename(info.filename.Split('/'));
@@ -81,7 +63,7 @@ namespace Generator.Decoder.Rust {
 				writer.WriteLine($"let mut h = HashMap::with_capacity({enumValues.Length});");
 			var enumStr = enumType.Name(idConverter);
 			foreach (var value in enumValues) {
-				if (value.DeprecatedInfo.IsDeprecatedAndRenamed)
+				if (value.DeprecatedInfo.IsDeprecated && value.DeprecatedInfo.IsError)
 					continue;
 				string name;
 				if (enumType.IsFlags)
@@ -91,7 +73,7 @@ namespace Generator.Decoder.Rust {
 				var key = value.RawName;
 				if (lowerCase)
 					key = key.ToLowerInvariant();
-				writer.WriteLine($"h.insert(\"{key}\", {enumStr}::{name});");
+				writer.WriteLine($"let _ = h.insert(\"{key}\", {enumStr}::{name});");
 			}
 		}
 	}

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Linq;
@@ -43,7 +23,7 @@ namespace Generator.Constants.Rust {
 		}
 
 		public void Write(FileWriter writer, ConstantsType constantsType, string[] attributes) {
-			docWriter.WriteSummary(writer, constantsType.Documentation, constantsType.RawName);
+			docWriter.WriteSummary(writer, constantsType.Documentation.GetComment(TargetLanguage.Rust), constantsType.RawName);
 			foreach (var attr in attributes)
 				writer.WriteLine(attr);
 			var pub = constantsType.IsPublic ? "pub " : "pub(crate) ";
@@ -61,7 +41,7 @@ namespace Generator.Constants.Rust {
 				foreach (var constant in constantsType.Constants) {
 					if (ShouldIgnore(constant))
 						continue;
-					docWriter.WriteSummary(writer, constant.Documentation, constantsType.RawName);
+					docWriter.WriteSummary(writer, constant.Documentation.GetComment(TargetLanguage.Rust), constantsType.RawName);
 					deprecatedWriter.WriteDeprecated(writer, constant);
 					sb.Clear();
 					sb.Append(constant.IsPublic ? "pub " : "pub(crate) ");
@@ -134,7 +114,7 @@ namespace Generator.Constants.Rust {
 		string GetValueString(Constant constant) {
 			var enumType = EnumUtils.GetEnumType(genTypes, constant.Kind);
 			var enumValue = enumType.Values.First(a => a.Value == constant.ValueUInt64);
-			return $"{enumType.Name(idConverter)}::{enumValue.Name(idConverter)}";
+			return idConverter.ToDeclTypeAndValue(enumValue);
 		}
 	}
 }

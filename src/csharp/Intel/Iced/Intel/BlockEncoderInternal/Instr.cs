@@ -1,28 +1,9 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && BLOCK_ENCODER
 using System;
+using System.Diagnostics;
 
 namespace Iced.Intel.BlockEncoderInternal {
 	abstract class Instr {
@@ -30,6 +11,8 @@ namespace Iced.Intel.BlockEncoderInternal {
 		public uint Size;
 		public ulong IP;
 		public readonly ulong OrigIP;
+		// If it can't be optimized, this will be set to true
+		public bool Done;
 
 		// 6 = FF 15 XXXXXXXX = call qword ptr [rip+mem_target]
 		protected const uint CallOrJmpPointerDataInstructionSize64 = 6;
@@ -48,7 +31,7 @@ namespace Iced.Intel.BlockEncoderInternal {
 		/// Returns <see langword="true"/> if the instruction was updated to a shorter instruction, <see langword="false"/> if nothing changed
 		/// </summary>
 		/// <returns></returns>
-		public abstract bool Optimize();
+		public abstract bool Optimize(ulong gained);
 
 		public abstract string? TryEncode(Encoder encoder, out ConstantOffsets constantOffsets, out bool isOriginalInstruction);
 
@@ -155,6 +138,10 @@ namespace Iced.Intel.BlockEncoderInternal {
 			case Code.Jg_rel16:
 			case Code.Jg_rel32_32:
 			case Code.Jg_rel32_64:
+			case Code.VEX_KNC_Jkzd_kr_rel8_64:
+			case Code.VEX_KNC_Jknzd_kr_rel8_64:
+			case Code.VEX_KNC_Jkzd_kr_rel32_64:
+			case Code.VEX_KNC_Jknzd_kr_rel32_64:
 				return new JccInstr(blockEncoder, block, instruction);
 			// GENERATOR-END: JccInstr
 
@@ -275,6 +262,15 @@ namespace Iced.Intel.BlockEncoderInternal {
 				Block.CodeWriter.WriteByte(0x90);
 			}
 			return null;
+		}
+
+		protected static long CorrectDiff(bool inBlock, long diff, ulong gained) {
+			if (inBlock && diff >= 0) {
+				Debug.Assert((ulong)diff >= gained);
+				return diff - (long)gained;
+			}
+			else
+				return diff;
 		}
 	}
 }

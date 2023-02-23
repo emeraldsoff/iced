@@ -1,16 +1,16 @@
 iced-x86 disassembler Python bindings [![pypi](https://img.shields.io/pypi/v/iced-x86.svg)](https://pypi.org/project/iced-x86/) ![Python](https://img.shields.io/pypi/pyversions/iced-x86.svg) ![License](https://img.shields.io/pypi/l/iced-x86.svg)
 
-iced-x86 is a high performance and correct x86 (16/32/64-bit) disassembler for Python.
+iced-x86 is a blazing fast and correct x86 (16/32/64-bit) disassembler for Python.
 
-- ✔️Supports all Intel and AMD instructions
-- ✔️Correct: All instructions are tested and iced has been tested against other disassemblers/assemblers (xed, gas, objdump, masm, dumpbin, nasm, ndisasm) and fuzzed
-- ✔️The formatter supports masm, nasm, gas (AT&T), Intel (XED) and there are many options to customize the output
-- ✔️The encoder can be used to re-encode decoded instructions at any address
-- ✔️API to get instruction info, eg. read/written registers, memory and rflags bits; CPUID feature flag, control flow info, etc
-- ✔️Rust + Python
-- ✔️License: MIT
+- 👍 Supports all Intel and AMD instructions
+- 👍 Correct: All instructions are tested and iced has been tested against other disassemblers/assemblers (xed, gas, objdump, masm, dumpbin, nasm, ndisasm) and fuzzed
+- 👍 The formatter supports masm, nasm, gas (AT&T), Intel (XED) and there are many options to customize the output
+- 👍 The encoder can be used to re-encode decoded instructions at any address
+- 👍 API to get instruction info, eg. read/written registers, memory and rflags bits; CPUID feature flag, control flow info, etc
+- 👍 Rust + Python
+- 👍 License: MIT
 
-Rust crate: https://github.com/0xd4d/iced/blob/master/src/rust/iced-x86/README.md
+Rust crate: https://github.com/icedland/iced/blob/master/src/rust/iced-x86/README.md
 
 ## Installing iced-x86
 
@@ -29,14 +29,14 @@ If on Windows, replace `python3` in all commands with `python` or `py`.
 Prerequisites:
 
 - Rust: https://www.rust-lang.org/tools/install
-- Python >= 3.6: https://www.python.org/downloads/
+- Python >= 3.7: https://www.python.org/downloads/
 - `python3 -m pip install -r requirements.txt`
 
 ```sh
 # Create the wheel
 python3 setup.py bdist_wheel
 # Install the built wheel
-python3 -m pip install iced-x86 --no-index -f dist --only-binary :all:
+python3 -m pip install iced-x86 --no-index -f dist --only-binary iced-x86
 # Uninstall your built copy
 python3 -m pip uninstall iced-x86
 ```
@@ -49,7 +49,7 @@ Tests:
 
 ```sh
 python3 setup.py bdist_wheel
-python3 -m pip install iced-x86 --no-index -f dist --only-binary :all:
+python3 -m pip install iced-x86 --no-index -f dist --only-binary iced-x86
 python3 -m pytest
 python3 -m pip uninstall -y iced-x86
 ```
@@ -68,6 +68,7 @@ python3 -m sphinx --color -n -W --keep-going -b doctest docs docs/_build
 ## How-tos
 
 - [Disassemble (decode and format instructions)](#disassemble-decode-and-format-instructions)
+- [Adding type annotations](#adding-type-annotations)
 - [Create and encode instructions](#create-and-encode-instructions)
 - [Move code in memory (eg. hook a function)](#move-code-in-memory-eg-hook-a-function)
 - [Get instruction info, eg. read/written regs/mem, control flow info, etc](#get-instruction-info-eg-readwritten-regsmem-control-flow-info-etc)
@@ -113,8 +114,7 @@ EXAMPLE_CODE = \
     b"\x05\x2F\x24\x0A\x00\x48\x8D\x05\x78\x7C\x04\x00\x33\xFF"
 
 # Create the decoder and initialize RIP
-decoder = Decoder(EXAMPLE_CODE_BITNESS, EXAMPLE_CODE)
-decoder.ip = EXAMPLE_CODE_RIP
+decoder = Decoder(EXAMPLE_CODE_BITNESS, EXAMPLE_CODE, ip=EXAMPLE_CODE_RIP)
 
 # Formatters: MASM, NASM, GAS (AT&T) and INTEL (XED).
 # There's also `FastFormatter` which is ~1.25x faster. Use it if formatting
@@ -142,8 +142,7 @@ for instr in decoder:
     print(f"{instr.ip:016X} {bytes_str:20} {disasm}")
 
 # Instruction also supports format specifiers, see the table below
-decoder = Decoder(64, b"\x86\x64\x32\x16")
-decoder.ip = 0x1234_5678
+decoder = Decoder(64, b"\x86\x64\x32\x16", ip=0x1234_5678)
 instr = decoder.decode()
 
 print()
@@ -176,6 +175,28 @@ print(f"{instr:gG_xSs}")
 # M      Always show the memory size (eg. ``BYTE PTR``) even when not needed
 # _      Use digit separators (eg. ``0x12345678`` vs ``0x1234_5678``) (ignored by fast fmt)
 # ====== =============================================================================
+```
+
+## Adding type annotations
+
+For performance reasons, real Python enums are not used. They're just too slow. Instead, all enums are
+currently modules with constants in them. However, this causes problems with type checkers such as
+`mypy` since it sees `int`egers instead of eg. `Register`s.
+
+If you add type annotations to methods or variables, the enum name to use is the enum name with an
+appended `_`, eg. if the enum is `Register` (which is a module), use `Register_` as the type name.
+
+You don't need to do this with classes, eg. `Instruction`, since they're not enums.
+
+```python
+from iced_x86 import *
+
+BASE_REG: Register_ = Register.RAX
+
+def my_fun(code: Code_, reg: Register_, reg2: Register_) -> Register_:
+	return reg2
+
+my_fun(Code.RDTSC, BASE_REG, Register.ECX)
 ```
 
 ## Create and encode instructions
@@ -255,8 +276,7 @@ encoded_bytes = encoder.encode(target_rip)
 # didn't disable branch optimizations.
 bytes_code = encoded_bytes[0:len(encoded_bytes) - len(raw_data)]
 bytes_data = encoded_bytes[len(encoded_bytes) - len(raw_data):]
-decoder = Decoder(bitness, bytes_code)
-decoder.ip = target_rip
+decoder = Decoder(bitness, bytes_code, ip=target_rip)
 formatter = Formatter(FormatterSyntax.GAS)
 formatter.first_operand_char_index = 8
 for instruction in decoder:
@@ -347,8 +367,7 @@ from iced_x86 import *
 
 def disassemble(data: bytes, ip: int) -> None:
     formatter = Formatter(FormatterSyntax.NASM)
-    decoder = Decoder(EXAMPLE_CODE_BITNESS, data)
-    decoder.ip = ip
+    decoder = Decoder(EXAMPLE_CODE_BITNESS, data, ip=ip)
     for instruction in decoder:
         disasm = formatter.format(instruction)
         print(f"{instruction.ip:016X} {disasm}")
@@ -358,8 +377,7 @@ def how_to_move_code() -> None:
     print("Original code:")
     disassemble(EXAMPLE_CODE, EXAMPLE_CODE_RIP)
 
-    decoder = Decoder(EXAMPLE_CODE_BITNESS, EXAMPLE_CODE)
-    decoder.ip = EXAMPLE_CODE_RIP
+    decoder = Decoder(EXAMPLE_CODE_BITNESS, EXAMPLE_CODE, ip=EXAMPLE_CODE_RIP)
 
     # In 64-bit mode, we need 12 bytes to jump to any address:
     #      mov rax,imm64   # 10
@@ -660,8 +678,7 @@ from types import ModuleType
 #     Op1: R32_OR_MEM
 #     Used reg: RDI:WRITE
 def how_to_get_instruction_info() -> None:
-    decoder = Decoder(EXAMPLE_CODE_BITNESS, EXAMPLE_CODE)
-    decoder.ip = EXAMPLE_CODE_RIP
+    decoder = Decoder(EXAMPLE_CODE_BITNESS, EXAMPLE_CODE, ip=EXAMPLE_CODE_RIP)
 
     # Use a factory to create the instruction info if you need register and
     # memory usage. If it's something else, eg. encoding, flags, etc, there
@@ -686,8 +703,6 @@ def how_to_get_instruction_info() -> None:
         print(f"    Code: {code_to_string(instr.code)}")
         print(f"    CpuidFeature: {cpuid_features_to_string(instr.cpuid_features())}")
         print(f"    FlowControl: {flow_control_to_string(instr.flow_control)}")
-        if offsets.has_displacement:
-            print(f"    Displacement offset = {offsets.displacement_offset}, size = {offsets.displacement_size}")
         if fpu_info.writes_top:
             if fpu_info.increment == 0:
                 print(f"    FPU TOP: the instruction overwrites TOP")
@@ -695,6 +710,8 @@ def how_to_get_instruction_info() -> None:
                 print(f"    FPU TOP inc: {fpu_info.increment}")
             cond_write = "True" if fpu_info.conditional else "False"
             print(f"    FPU TOP cond write: {cond_write}")
+        if offsets.has_displacement:
+            print(f"    Displacement offset = {offsets.displacement_offset}, size = {offsets.displacement_size}")
         if offsets.has_immediate:
             print(f"    Immediate offset = {offsets.immediate_offset}, size = {offsets.immediate_size}")
         if offsets.has_immediate2:
@@ -717,7 +734,7 @@ def how_to_get_instruction_info() -> None:
             print(f"    RFLAGS Modified: {rflags_bits_to_string(instr.rflags_modified)}")
         for i in range(instr.op_count):
             op_kind = instr.op_kind(i)
-            if op_kind == OpKind.MEMORY or op_kind == OpKind.MEMORY64:
+            if op_kind == OpKind.MEMORY:
                 size = MemorySizeExt.size(instr.memory_size)
                 if size != 0:
                     print(f"    Memory size: {size}")
@@ -773,57 +790,57 @@ EXAMPLE_CODE: bytes = \
 def create_enum_dict(module: ModuleType) -> Dict[int, str]:
     return {module.__dict__[key]:key for key in module.__dict__ if isinstance(module.__dict__[key], int)}
 
-REGISTER_TO_STRING: Dict[int, str] = create_enum_dict(Register)
-def register_to_string(value: int) -> str:
+REGISTER_TO_STRING: Dict[Register_, str] = create_enum_dict(Register)
+def register_to_string(value: Register_) -> str:
     s = REGISTER_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*Register enum*/"
     return s
 
-OP_ACCESS_TO_STRING: Dict[int, str] = create_enum_dict(OpAccess)
-def op_access_to_string(value: int) -> str:
+OP_ACCESS_TO_STRING: Dict[OpAccess_, str] = create_enum_dict(OpAccess)
+def op_access_to_string(value: OpAccess_) -> str:
     s = OP_ACCESS_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*OpAccess enum*/"
     return s
 
-ENCODING_KIND_TO_STRING: Dict[int, str] = create_enum_dict(EncodingKind)
-def encoding_kind_to_string(value: int) -> str:
+ENCODING_KIND_TO_STRING: Dict[EncodingKind_, str] = create_enum_dict(EncodingKind)
+def encoding_kind_to_string(value: EncodingKind_) -> str:
     s = ENCODING_KIND_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*EncodingKind enum*/"
     return s
 
-MNEMONIC_TO_STRING: Dict[int, str] = create_enum_dict(Mnemonic)
-def mnemonic_to_string(value: int) -> str:
+MNEMONIC_TO_STRING: Dict[Mnemonic_, str] = create_enum_dict(Mnemonic)
+def mnemonic_to_string(value: Mnemonic_) -> str:
     s = MNEMONIC_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*Mnemonic enum*/"
     return s
 
-CODE_TO_STRING: Dict[int, str] = create_enum_dict(Code)
-def code_to_string(value: int) -> str:
+CODE_TO_STRING: Dict[Code_, str] = create_enum_dict(Code)
+def code_to_string(value: Code_) -> str:
     s = CODE_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*Code enum*/"
     return s
 
-FLOW_CONTROL_TO_STRING: Dict[int, str] = create_enum_dict(FlowControl)
-def flow_control_to_string(value: int) -> str:
+FLOW_CONTROL_TO_STRING: Dict[FlowControl_, str] = create_enum_dict(FlowControl)
+def flow_control_to_string(value: FlowControl_) -> str:
     s = FLOW_CONTROL_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*FlowControl enum*/"
     return s
 
-OP_CODE_OPERAND_KIND_TO_STRING: Dict[int, str] = create_enum_dict(OpCodeOperandKind)
-def op_code_operand_kind_to_string(value: int) -> str:
+OP_CODE_OPERAND_KIND_TO_STRING: Dict[OpCodeOperandKind_, str] = create_enum_dict(OpCodeOperandKind)
+def op_code_operand_kind_to_string(value: OpCodeOperandKind_) -> str:
     s = OP_CODE_OPERAND_KIND_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*OpCodeOperandKind enum*/"
     return s
 
-CPUID_FEATURE_TO_STRING: Dict[int, str] = create_enum_dict(CpuidFeature)
-def cpuid_feature_to_string(value: int) -> str:
+CPUID_FEATURE_TO_STRING: Dict[CpuidFeature_, str] = create_enum_dict(CpuidFeature)
+def cpuid_feature_to_string(value: CpuidFeature_) -> str:
     s = CPUID_FEATURE_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*CpuidFeature enum*/"
@@ -832,15 +849,15 @@ def cpuid_feature_to_string(value: int) -> str:
 def cpuid_features_to_string(cpuid_features: Sequence[int]) -> str:
     return " and ".join([cpuid_feature_to_string(f) for f in cpuid_features])
 
-MEMORY_SIZE_TO_STRING: Dict[int, str] = create_enum_dict(MemorySize)
-def memory_size_to_string(value: int) -> str:
+MEMORY_SIZE_TO_STRING: Dict[MemorySize_, str] = create_enum_dict(MemorySize)
+def memory_size_to_string(value: MemorySize_) -> str:
     s = MEMORY_SIZE_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*MemorySize enum*/"
     return s
 
-CONDITION_CODE_TO_STRING: Dict[int, str] = create_enum_dict(ConditionCode)
-def condition_code_to_string(value: int) -> str:
+CONDITION_CODE_TO_STRING: Dict[ConditionCode_, str] = create_enum_dict(ConditionCode)
+def condition_code_to_string(value: ConditionCode_) -> str:
     s = CONDITION_CODE_TO_STRING.get(value)
     if s is None:
         return str(value) + " /*ConditionCode enum*/"
@@ -900,7 +917,7 @@ TEST_CODE = \
 
 # Enable decoding of Cyrix/Geode instructions, Centaur ALTINST,
 # MOV to/from TR and MPX instructions.
-# There are other options to enable other instructions such as UMOV, etc.
+# There are other options to enable other instructions such as UMOV, KNC, etc.
 # These are deprecated instructions or only used by old CPUs so they're not
 # enabled by default. Some newer instructions also use the same opcodes as
 # some of these old instructions.
@@ -909,8 +926,7 @@ DECODER_OPTIONS = DecoderOptions.MPX | \
     DecoderOptions.CYRIX | \
     DecoderOptions.CYRIX_DMI | \
     DecoderOptions.ALTINST
-decoder = Decoder(32, TEST_CODE, DECODER_OPTIONS)
-decoder.ip = 0x731E_0A03
+decoder = Decoder(32, TEST_CODE, DECODER_OPTIONS, ip=0x731E_0A03)
 
 for instr in decoder:
     # 'n' format specifier means NASM formatter, see the disassemble

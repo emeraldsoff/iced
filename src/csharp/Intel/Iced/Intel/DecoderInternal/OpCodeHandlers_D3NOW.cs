@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if DECODER
 using System.Diagnostics;
@@ -67,18 +47,17 @@ namespace Iced.Intel.DecoderInternal {
 		readonly Code[] codeValues = CodeValues;
 
 		public override void Decode(Decoder decoder, ref Instruction instruction) {
-			ref var state = ref decoder.state;
-			Debug.Assert(state.Encoding == EncodingKind.Legacy);
+			Debug.Assert(decoder.state.Encoding == EncodingKind.Legacy);
 			Static.Assert(OpKind.Register == 0 ? 0 : -1);
-			//instruction.InternalOp0Kind = OpKind.Register;
-			instruction.InternalOp0Register = (int)state.reg + Register.MM0;
-			if (state.mod == 3) {
+			//instruction.Op0Kind = OpKind.Register;
+			instruction.Op0Register = (int)decoder.state.reg + Register.MM0;
+			if (decoder.state.mod == 3) {
 				Static.Assert(OpKind.Register == 0 ? 0 : -1);
-				//instruction.InternalOp1Kind = OpKind.Register;
-				instruction.InternalOp1Register = (int)state.rm + Register.MM0;
+				//instruction.Op1Kind = OpKind.Register;
+				instruction.Op1Register = (int)decoder.state.rm + Register.MM0;
 			}
 			else {
-				instruction.InternalOp1Kind = OpKind.Memory;
+				instruction.Op1Kind = OpKind.Memory;
 				decoder.ReadOpMem(ref instruction);
 			}
 			var code = codeValues[(int)decoder.ReadByte()];
@@ -89,7 +68,7 @@ namespace Iced.Intel.DecoderInternal {
 					code = Code.INVALID;
 				break;
 			}
-			instruction.InternalCode = code;
+			instruction.InternalSetCodeNoCheck(code);
 			if (code == Code.INVALID)
 				decoder.SetInvalidInstruction();
 		}

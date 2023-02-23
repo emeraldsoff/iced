@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if MASM
 using System;
@@ -54,7 +34,6 @@ namespace Iced.Intel.MasmFormatterInternal {
 		MemoryESDI,
 		MemoryESEDI,
 		MemoryESRDI,
-		Memory64,
 		Memory,
 		ExtraImmediate8_Value3,
 		DeclareByte,
@@ -86,13 +65,13 @@ namespace Iced.Intel.MasmFormatterInternal {
 		public sbyte Op3Index;
 		public sbyte Op4Index;
 
-		public readonly int GetOpRegister(int operand) =>
+		public readonly Register GetOpRegister(int operand) =>
 			operand switch {
-				0 => Op0Register,
-				1 => Op1Register,
-				2 => Op2Register,
-				3 => Op3Register,
-				4 => Op4Register,
+				0 => (Register)Op0Register,
+				1 => (Register)Op1Register,
+				2 => (Register)Op2Register,
+				3 => (Register)Op3Register,
+				4 => (Register)Op4Register,
 				_ => throw new ArgumentOutOfRangeException(nameof(operand)),
 			};
 

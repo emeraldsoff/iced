@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -32,10 +12,18 @@ using Generator.Tables;
 
 namespace Generator.Encoder {
 	enum InstructionOperand {
+		RegisterMemory,
 		Register,
 		Memory,
 		Imm32,
 		Imm64,
+	}
+
+	static class InstructionOperandExt {
+		public static InstructionOperand Split(this InstructionOperand opKind, bool useReg) =>
+			opKind == InstructionOperand.RegisterMemory ?
+			useReg ? InstructionOperand.Register : InstructionOperand.Memory :
+			opKind;
 	}
 
 	sealed class InstructionGroup {
@@ -61,10 +49,12 @@ namespace Generator.Encoder {
 
 	sealed class InstructionGroups {
 		readonly GenTypes genTypes;
+		readonly bool splitRegMem;
 		readonly HashSet<EnumValue> ignoredCodes;
 
-		public InstructionGroups(GenTypes genTypes) {
+		public InstructionGroups(GenTypes genTypes, bool splitRegMem) {
 			this.genTypes = genTypes;
+			this.splitRegMem = splitRegMem;
 			ignoredCodes = new HashSet<EnumValue>();
 
 			foreach (var def in genTypes.GetObject<InstructionDefs>(TypeIds.InstructionDefs).Defs) {
@@ -130,7 +120,7 @@ namespace Generator.Encoder {
 				if (ignoredCodes.Contains(def.Code))
 					continue;
 
-				foreach (var ops in GetOperands(def.OpKindDefs)) {
+				foreach (var ops in GetOperands(def.OpKindDefs, splitRegMem)) {
 					if (!groups.TryGetValue(ops, out var group))
 						groups.Add(ops, group = new InstructionGroup(ops));
 					group.Defs.Add(def);
@@ -153,15 +143,16 @@ namespace Generator.Encoder {
 
 			static int GetOrder(InstructionOperand op) =>
 				op switch {
-					InstructionOperand.Register => 0,
-					InstructionOperand.Imm32 => 1,
-					InstructionOperand.Imm64 => 2,
-					InstructionOperand.Memory => 3,
+					InstructionOperand.RegisterMemory => 0,
+					InstructionOperand.Register => 1,
+					InstructionOperand.Imm32 => 2,
+					InstructionOperand.Imm64 => 3,
+					InstructionOperand.Memory => 4,
 					_ => throw new InvalidOperationException(),
 				};
 		}
 
-		static IEnumerable<InstructionOperand[]> GetOperands(OpCodeOperandKindDef[] opKinds) {
+		static IEnumerable<InstructionOperand[]> GetOperands(OpCodeOperandKindDef[] opKinds, bool splitRegMem) {
 			if (opKinds.Length == 0) {
 				yield return Array.Empty<InstructionOperand>();
 				yield break;
@@ -172,7 +163,7 @@ namespace Generator.Encoder {
 			for (int i = 0; i < ops.Length; i++)
 				ops[i] = Array.Empty<InstructionOperand>();
 			for (int i = 0; i < opKinds.Length; i++)
-				ops[i] = GetOperand(opKinds[i]);
+				ops[i] = GetOperand(opKinds[i], splitRegMem);
 			foreach (var o0 in ops[0]) {
 				if (opKinds.Length == 1)
 					yield return new[] { o0 };
@@ -205,7 +196,7 @@ namespace Generator.Encoder {
 			}
 		}
 
-		static InstructionOperand[] GetOperand(OpCodeOperandKindDef def) {
+		static InstructionOperand[] GetOperand(OpCodeOperandKindDef def, bool splitRegMem) {
 			switch (def.OperandEncoding) {
 			case OperandEncoding.Immediate:
 				if (def.ImmediateSize == 64)
@@ -224,7 +215,10 @@ namespace Generator.Encoder {
 				return new[] { InstructionOperand.Register };
 
 			case OperandEncoding.RegMemModrmRm:
-				return new[] { InstructionOperand.Register, InstructionOperand.Memory };
+				if (splitRegMem)
+					return new[] { InstructionOperand.Register, InstructionOperand.Memory };
+				else
+					return new[] { InstructionOperand.RegisterMemory };
 
 			case OperandEncoding.SegRBX:
 			case OperandEncoding.MemModrmRm:

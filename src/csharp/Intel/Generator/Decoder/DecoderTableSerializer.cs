@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -51,21 +31,21 @@ namespace Generator.Decoder {
 		}
 
 		public static DecoderTableSerializerInfo Legacy(GenTypes genTypes) {
-			var enumType = genTypes[TypeIds.OpCodeHandlerKind];
+			var enumType = genTypes[TypeIds.LegacyOpCodeHandlerKind];
 			return new DecoderTableSerializerInfo(genTypes.GetObject<DecoderTables>(TypeIds.DecoderTables).Legacy,
-				new string[] { DecoderTable_Legacy.OneByteHandlers },
+				new string[] { DecoderTable_Legacy.Handlers_MAP0 },
 				CSharpConstants.DecoderDefine,
-				enumType[nameof(OpCodeHandlerKind.Null)],
-				enumType[nameof(OpCodeHandlerKind.HandlerReference)],
-				enumType[nameof(OpCodeHandlerKind.ArrayReference)],
-				enumType[nameof(OpCodeHandlerKind.Invalid2)],
-				enumType[nameof(OpCodeHandlerKind.Dup)]);
+				enumType[nameof(LegacyOpCodeHandlerKind.Null)],
+				enumType[nameof(LegacyOpCodeHandlerKind.HandlerReference)],
+				enumType[nameof(LegacyOpCodeHandlerKind.ArrayReference)],
+				enumType[nameof(LegacyOpCodeHandlerKind.Invalid2)],
+				enumType[nameof(LegacyOpCodeHandlerKind.Dup)]);
 		}
 
 		public static DecoderTableSerializerInfo Vex(GenTypes genTypes) {
 			var enumType = genTypes[TypeIds.VexOpCodeHandlerKind];
 			return new DecoderTableSerializerInfo(genTypes.GetObject<DecoderTables>(TypeIds.DecoderTables).VEX,
-				new string[] { DecoderTable_VEX.ThreeByteHandlers_0F38XX, DecoderTable_VEX.ThreeByteHandlers_0F3AXX, DecoderTable_VEX.TwoByteHandlers_0FXX },
+				new string[] { DecoderTable_VEX.Handlers_MAP0, DecoderTable_VEX.Handlers_0F, DecoderTable_VEX.Handlers_0F38, DecoderTable_VEX.Handlers_0F3A },
 				CSharpConstants.DecoderVexDefine,
 				enumType[nameof(VexOpCodeHandlerKind.Null)],
 				enumType[nameof(VexOpCodeHandlerKind.HandlerReference)],
@@ -77,7 +57,7 @@ namespace Generator.Decoder {
 		public static DecoderTableSerializerInfo Xop(GenTypes genTypes) {
 			var enumType = genTypes[TypeIds.VexOpCodeHandlerKind];
 			return new DecoderTableSerializerInfo(genTypes.GetObject<DecoderTables>(TypeIds.DecoderTables).XOP,
-				new string[] { DecoderTable_XOP.XOP8, DecoderTable_XOP.XOP9, DecoderTable_XOP.XOPA },
+				new string[] { DecoderTable_XOP.Handlers_MAP8, DecoderTable_XOP.Handlers_MAP9, DecoderTable_XOP.Handlers_MAP10 },
 				CSharpConstants.DecoderXopDefine,
 				null,
 				enumType[nameof(VexOpCodeHandlerKind.HandlerReference)],
@@ -89,13 +69,35 @@ namespace Generator.Decoder {
 		public static DecoderTableSerializerInfo Evex(GenTypes genTypes) {
 			var enumType = genTypes[TypeIds.EvexOpCodeHandlerKind];
 			return new DecoderTableSerializerInfo(genTypes.GetObject<DecoderTables>(TypeIds.DecoderTables).EVEX,
-				new string[] { DecoderTable_EVEX.ThreeByteHandlers_0F38XX, DecoderTable_EVEX.ThreeByteHandlers_0F3AXX, DecoderTable_EVEX.TwoByteHandlers_0FXX },
+				new string[] {
+					DecoderTable_EVEX.Handlers_0F,
+					DecoderTable_EVEX.Handlers_0F38,
+					DecoderTable_EVEX.Handlers_0F3A,
+					DecoderTable_EVEX.Handlers_MAP5,
+					DecoderTable_EVEX.Handlers_MAP6,
+				},
 				CSharpConstants.DecoderEvexDefine,
 				null,
 				enumType[nameof(EvexOpCodeHandlerKind.HandlerReference)],
 				enumType[nameof(EvexOpCodeHandlerKind.ArrayReference)],
 				enumType[nameof(EvexOpCodeHandlerKind.Invalid2)],
 				enumType[nameof(EvexOpCodeHandlerKind.Dup)]);
+		}
+
+		public static DecoderTableSerializerInfo Mvex(GenTypes genTypes) {
+			var enumType = genTypes[TypeIds.MvexOpCodeHandlerKind];
+			return new DecoderTableSerializerInfo(genTypes.GetObject<DecoderTables>(TypeIds.DecoderTables).MVEX,
+				new string[] {
+					DecoderTable_MVEX.Handlers_0F,
+					DecoderTable_MVEX.Handlers_0F38,
+					DecoderTable_MVEX.Handlers_0F3A,
+				},
+				CSharpConstants.DecoderMvexDefine,
+				null,
+				enumType[nameof(MvexOpCodeHandlerKind.HandlerReference)],
+				enumType[nameof(MvexOpCodeHandlerKind.ArrayReference)],
+				enumType[nameof(MvexOpCodeHandlerKind.Invalid2)],
+				enumType[nameof(MvexOpCodeHandlerKind.Dup)]);
 		}
 	}
 
@@ -128,7 +130,7 @@ namespace Generator.Decoder {
 			infos = new Dictionary<string, Info>(StringComparer.Ordinal);
 		}
 
-		protected void SerializeCore(FileWriter writer) {
+		protected void SerializeCore(ByteTableWriter writer) {
 			var tables = info.TablesToSerialize;
 			if (tables.Length == 0)
 				throw new InvalidOperationException();
@@ -146,7 +148,7 @@ namespace Generator.Decoder {
 			}
 		}
 
-		void SerializeHandlers(FileWriter writer, object?[] handlers, bool writeKind = false) {
+		void SerializeHandlers(ByteTableWriter writer, object?[] handlers, bool writeKind = false) {
 			if (DecoderTableUtils.IsHandler(handlers)) {
 				if (writeKind)
 					Write(writer, genTypes[TypeIds.SerializedDataKind][nameof(SerializedDataKind.HandlerReference)]);
@@ -173,19 +175,19 @@ namespace Generator.Decoder {
 			}
 		}
 
-		void Write(FileWriter writer, EnumValue enumValue) {
+		void Write(ByteTableWriter writer, EnumValue enumValue) {
 			if ((uint)enumValue.Value > byte.MaxValue)
 				throw new InvalidOperationException();
 			writer.WriteByte((byte)enumValue.Value);
 			writer.WriteCommentLine(enumValue.ToStringValue(idConverter));
 		}
 
-		static void Write(FileWriter writer, uint value) {
+		static void Write(ByteTableWriter writer, uint value) {
 			writer.WriteCompressedUInt32(value);
 			writer.WriteCommentLine("0x" + value.ToString("X"));
 		}
 
-		int SerializeHandler(FileWriter writer, object?[] handlers, int index) {
+		int SerializeHandler(ByteTableWriter writer, object?[] handlers, int index) {
 			int invalidCount = CountInvalid(handlers, index);
 			if (invalidCount == 2) {
 				SerializeData(writer, new object[] { info.Invalid2Value });
@@ -240,124 +242,125 @@ namespace Generator.Decoder {
 		}
 
 		static Dictionary<IEnumValue, (int codeIndex, int codeLen)> CreateEnumValueInfo(GenTypes genTypes) {
-			var opCodeHandlerKind = genTypes[TypeIds.OpCodeHandlerKind];
+			var opCodeHandlerKind = genTypes[TypeIds.LegacyOpCodeHandlerKind];
 			var vexOpCodeHandlerKind = genTypes[TypeIds.VexOpCodeHandlerKind];
 			var evexOpCodeHandlerKind = genTypes[TypeIds.EvexOpCodeHandlerKind];
 			return new Dictionary<IEnumValue, (int codeIndex, int codeLen)> {
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ap)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.B_BM)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.B_Ev)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.BM_B)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.C_R_3a)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.DX_eAX)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.eAX_DX)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_3b)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Gv_3b)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Gv_32_64)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Gv_REX)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_P)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_REXW)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_VX)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Eb_REX)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev_3b)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev_32_64)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev_REX)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ma)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Mp_2)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_N)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_N_Ib_REX)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.IbReg2)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Jdisp)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Jx)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.M_2)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.M_REXW_2)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.M_REXW_4)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Mf_2a)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Mv_Gv_REXW)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.P_Ev)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.P_Ev_Ib)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.PushOpSizeReg_4b)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.R_C_3a)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Reg_Ib2)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Reg_Xv2)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Rv_32_64)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.RvMw_Gw)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Simple4)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.VX_Ev)], (1, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Yv_Reg2)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ap)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.B_BM)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.B_Ev)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.BM_B)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.C_R_3a)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.DX_eAX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.eAX_DX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_3b)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Gv_3b)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Gv_32_64)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Gv_REX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_P)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_REXW)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_VX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Eb_REX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev_3b)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev_32_64)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev_REX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ma)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Mp_2)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_N)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_N_Ib_REX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.IbReg2)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Jdisp)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Jx)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.M_2)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.M_REXW_2)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.M_REXW_4)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Mf_2a)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Mv_Gv_REXW)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.P_Ev)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.P_Ev_Ib)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.PushOpSizeReg_4b)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.R_C_3a)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Reg_Ib2)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Reg_Xv2)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Rv_32_64)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.RvMw_Gw)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Simple4)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.VX_Ev)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Yv_Reg2)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ed_V_Ib)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev_Ib_REX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_RX)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_W)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.GvM_VX_Ib)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.V_Ev)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.VWIb_3)], (1, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.VX_E_Ib)], (1, 2) },
 
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ed_V_Ib)], (2, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev_Ib_REX)], (2, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_RX)], (2, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_W)], (2, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.GvM_VX_Ib)], (2, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.V_Ev)], (2, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.VWIb_3)], (2, 2) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.VX_E_Ib)], (2, 2) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.BranchIw)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.BranchSimple)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ep)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_3a)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_4)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_CL)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Gv_3a)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Gv_4)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Gv_CL)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Gv_Ib)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Ib_3)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Ib_4)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Ib2_3)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Ib2_4)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Iz_3)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Iz_4)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev_Sw)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ev1)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Evj)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Evw)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ew)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gdq_Ev)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Eb)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev_3a)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev_Ib)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev_Iz)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev2)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ev3)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Ew)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_M)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_M_as)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Mp_3)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Gv_Mv)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Iw_Ib)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Jb)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Jz)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ms)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Mv_Gv)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Ov_Reg)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.PushEv)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.PushIb2)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.PushIz)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.PushOpSizeReg_4a)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.PushSimple2)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Reg_Iz)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Reg_Ov)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Reg_Xv)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Reg_Yv)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Rv)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Simple2_3a)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Simple2Iw)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Simple3)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Simple5)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Simple5_a32)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Simple5_ModRM_as)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Sw_Ev)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Xv_Yv)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Yv_Reg)], (1, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.Yv_Xv)], (1, 3) },
 
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.BranchIw)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.BranchSimple)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ep)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_3a)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_4)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_CL)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Gv_3a)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Gv_4)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Gv_CL)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Gv_Ib)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Ib_3)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Ib_4)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Ib2_3)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Ib2_4)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Iz_3)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Iz_4)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev_Sw)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ev1)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Evj)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Evw)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ew)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gdq_Ev)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Eb)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev_3a)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev_Ib)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev_Iz)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev2)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ev3)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Ew)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_M)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_M_as)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Mp_3)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Gv_Mv)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Iw_Ib)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Jb)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Jz)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ms)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Mv_Gv)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Ov_Reg)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.PushEv)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.PushIb2)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.PushIz)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.PushOpSizeReg_4a)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.PushSimple2)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Reg_Iz)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Reg_Ov)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Reg_Xv)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Reg_Yv)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Rv)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Simple2_3a)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Simple2Iw)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Simple3)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Simple5)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Simple5_ModRM_as)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Sw_Ev)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Xv_Yv)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Yv_Reg)], (1, 3) },
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.Yv_Xv)], (1, 3) },
-
-				{ opCodeHandlerKind[nameof(OpCodeHandlerKind.PushSimpleReg)], (2, 3) },
+				{ opCodeHandlerKind[nameof(LegacyOpCodeHandlerKind.PushSimpleReg)], (2, 3) },
 
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Ev_VX)], (1, 2) },
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Gv_Ev_Gv)], (1, 2) },
+				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Ev_Gv_Gv)], (1, 2) },
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Gv_Ev_Ib)], (1, 2) },
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Gv_Ev_Id)], (1, 2) },
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Gv_Gv_Ev)], (1, 2) },
@@ -365,6 +368,8 @@ namespace Generator.Decoder {
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Hv_Ev)], (1, 2) },
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.RdRq)], (1, 2) },
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.VX_Ev)], (1, 2) },
+				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Gv_Ev)], (1, 2) },
+				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Ev)], (1, 2) },
 
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Ed_V_Ib)], (2, 2) },
 				{ vexOpCodeHandlerKind[nameof(VexOpCodeHandlerKind.Gv_GPR_Ib)], (2, 2) },
@@ -387,7 +392,7 @@ namespace Generator.Decoder {
 			};
 		}
 
-		void SerializeHandler(FileWriter writer, object?[] handler) {
+		void SerializeHandler(ByteTableWriter writer, object?[] handler) {
 			int codeIndex = -1, codeLen = -1;
 			if (handler[0] is IEnumValue enumValue && enumValueInfo.TryGetValue(enumValue, out var info))
 				(codeIndex, codeLen) = info;
@@ -425,7 +430,7 @@ namespace Generator.Decoder {
 			}
 		}
 
-		void SerializeData(FileWriter writer, object? data) {
+		void SerializeData(ByteTableWriter writer, object? data) {
 			if (data is null)
 				data = info.NullValue;
 			switch (data) {
@@ -459,7 +464,7 @@ namespace Generator.Decoder {
 					writer.WriteByte((byte)enumValue.Value);
 					writer.WriteCommentLine(enumValue.ToStringValue(idConverter));
 				}
-				else if (typeId == TypeIds.OpCodeHandlerKind) {
+				else if (typeId == TypeIds.LegacyOpCodeHandlerKind) {
 					if ((uint)enumValue.Value > byte.MaxValue)
 						throw new InvalidOperationException();
 					writer.WriteByte((byte)enumValue.Value);
@@ -472,6 +477,12 @@ namespace Generator.Decoder {
 					writer.WriteCommentLine(enumValue.ToStringValue(idConverter));
 				}
 				else if (typeId == TypeIds.EvexOpCodeHandlerKind) {
+					if ((uint)enumValue.Value > byte.MaxValue)
+						throw new InvalidOperationException();
+					writer.WriteByte((byte)enumValue.Value);
+					writer.WriteCommentLine(enumValue.ToStringValue(idConverter));
+				}
+				else if (typeId == TypeIds.MvexOpCodeHandlerKind) {
 					if ((uint)enumValue.Value > byte.MaxValue)
 						throw new InvalidOperationException();
 					writer.WriteByte((byte)enumValue.Value);

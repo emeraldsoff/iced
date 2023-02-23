@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -105,9 +85,11 @@ namespace Generator.Encoder.Python {
 			}
 		}
 
-		void GenerateMethod(FileWriter writer, CreateMethod method, bool canFail, Action<GenerateMethodContext> genMethod, string? rustMethodName = null, string? pythonMethodName = null) {
-			rustMethodName ??= Rust.InstrCreateGenImpl.GetCreateName(sb, method, Rust.GenCreateNameArgs.RustNames);
-			if (canFail)
+		void GenerateMethod(FileWriter writer, CreateMethod method, bool canFail, bool isTryMethod, Action<GenerateMethodContext> genMethod,
+			string? rustMethodName = null, string? pythonMethodName = null) {
+			if (rustMethodName is null)
+				rustMethodName = Rust.InstrCreateGenImpl.GetRustOverloadedCreateName(method);
+			else if (isTryMethod)
 				rustMethodName = "try_" + rustMethodName;
 			pythonMethodName ??= Rust.InstrCreateGenImpl.GetCreateName(sb, method, genNames);
 			var info = new GeneratedMethodInfo(method, canFail, rustMethodName, pythonMethodName, rustIdConverter, idConverter);
@@ -143,7 +125,7 @@ namespace Generator.Encoder.Python {
 				case MethodArgType.Int32:
 					ctx.Writer.Write("i32");
 					break;
-				case MethodArgType.PreferedInt32:
+				case MethodArgType.PreferredInt32:
 				case MethodArgType.UInt32:
 					ctx.Writer.Write("u32");
 					break;
@@ -177,12 +159,12 @@ namespace Generator.Encoder.Python {
 
 		void WriteTextSignature(in GenerateMethodContext ctx) {
 			sb.Clear();
-			sb.Append("#[text_signature = \"(");
+			sb.Append("#[pyo3(text_signature = \"(");
 			foreach (var argInfo in ctx.Info.ArgInfos) {
 				sb.Append(argInfo.PythonName);
 				sb.Append(", ");
 			}
-			sb.Append("/)\"]");
+			sb.Append("/)\")]");
 			ctx.Writer.WriteLine(sb.ToString());
 		}
 
@@ -222,7 +204,7 @@ namespace Generator.Encoder.Python {
 				MethodArgType.UInt8 => ("int", "int", "``u8``"),
 				MethodArgType.UInt16 => ("int", "int", "``u16``"),
 				MethodArgType.Int32 => ("int", "int", "``i32``"),
-				MethodArgType.PreferedInt32 or MethodArgType.UInt32 => ("int", "int", "``u32``"),
+				MethodArgType.PreferredInt32 or MethodArgType.UInt32 => ("int", "int", "``u32``"),
 				MethodArgType.Int64 => ("int", "int", "``i64``"),
 				MethodArgType.UInt64 => ("int", "int", "``u64``"),
 				MethodArgType.ByteSlice => ("bytes, bytearray", "Union[bytes, bytearray]", null),
@@ -324,7 +306,7 @@ namespace Generator.Encoder.Python {
 						break;
 					}
 				}
-				sb.Append(")");
+				sb.Append(')');
 				if (ctx.Info.CanFail)
 					sb.Append(".map_err(to_value_error)?");
 				sb.Append(" })");
@@ -332,22 +314,22 @@ namespace Generator.Encoder.Python {
 			}
 		}
 
-		protected override void GenCreate(FileWriter writer, CreateMethod method, InstructionGroup group) {
-			bool canFail = Rust.InstrCreateGenImpl.HasTryMethod(method);
-			GenerateMethod(writer, method, canFail, GenCreate);
+		protected override void GenCreate(FileWriter writer, CreateMethod method, InstructionGroup group, int id) {
+			bool canFail = method.Args.Count > 1;
+			GenerateMethod(writer, method, canFail, canFail, GenCreate);
 		}
 
 		void GenCreate(GenerateMethodContext ctx) {
 			Func<IEnumerable<(string type, string text)>>? getThrowsDocs = null;
 			if (ctx.Info.CanFail)
-				getThrowsDocs = () => new[] { ("ValueError", "If the immediate is invalid") };
+				getThrowsDocs = () => new[] { ("ValueError", "If one of the operands is invalid (basic checks)") };
 			WriteMethod(ctx, getThrowsDocs);
 			WriteCall(ctx);
 			ctx.Writer.WriteLine("}");
 		}
 
 		protected override void GenCreateBranch(FileWriter writer, CreateMethod method) =>
-			GenerateMethod(writer, method, canFail: true, GenCreateBranch, Rust.RustInstrCreateGenNames.with_branch, "create_branch");
+			GenerateMethod(writer, method, canFail: true, isTryMethod: false, GenCreateBranch, Rust.RustInstrCreateGenNames.with_branch, "create_branch");
 
 		void GenCreateBranch(GenerateMethodContext ctx) {
 			WriteMethod(ctx, () => new[] { ("ValueError", "If the created instruction doesn't have a near branch operand") });
@@ -356,7 +338,7 @@ namespace Generator.Encoder.Python {
 		}
 
 		protected override void GenCreateFarBranch(FileWriter writer, CreateMethod method) =>
-			GenerateMethod(writer, method, canFail: true, GenCreateFarBranch, Rust.RustInstrCreateGenNames.with_far_branch, "create_far_branch");
+			GenerateMethod(writer, method, canFail: true, isTryMethod: false, GenCreateFarBranch, Rust.RustInstrCreateGenNames.with_far_branch, "create_far_branch");
 
 		void GenCreateFarBranch(GenerateMethodContext ctx) {
 			WriteMethod(ctx, () => new[] { ("ValueError", "If the created instruction doesn't have a far branch operand") });
@@ -365,7 +347,7 @@ namespace Generator.Encoder.Python {
 		}
 
 		protected override void GenCreateXbegin(FileWriter writer, CreateMethod method) =>
-			GenerateMethod(writer, method, canFail: true, GenCreateXbegin, Rust.RustInstrCreateGenNames.with_xbegin, "create_xbegin");
+			GenerateMethod(writer, method, canFail: true, isTryMethod: false, GenCreateXbegin, Rust.RustInstrCreateGenNames.with_xbegin, "create_xbegin");
 
 		void GenCreateXbegin(GenerateMethodContext ctx) {
 			WriteMethod(ctx, () => GetAddressSizeThrowsDocs(ctx));
@@ -386,7 +368,7 @@ namespace Generator.Encoder.Python {
 		void GenStringInstr(FileWriter writer, CreateMethod method, string methodBaseName) {
 			var rustName = rustIdConverter.Method("With" + methodBaseName);
 			var pythonName = idConverter.Method("Create" + methodBaseName);
-			GenerateMethod(writer, method, canFail: true, GenStringInstr, rustName, pythonName);
+			GenerateMethod(writer, method, canFail: true, isTryMethod: false, GenStringInstr, rustName, pythonName);
 		}
 
 		void GenStringInstr(GenerateMethodContext ctx) {
@@ -421,7 +403,7 @@ namespace Generator.Encoder.Python {
 			pythonName = pythonName + "_" + method.Args.Count.ToString();
 			rustName = Rust.RustInstrCreateGenNames.AppendArgCount(rustName, method.Args.Count);
 			// It can't fail since the 'db' feature is always enabled, but we must still call the try_xxx methods
-			GenerateMethod(writer, method, canFail: true, GenCreateDeclareData, rustName, pythonName);
+			GenerateMethod(writer, method, canFail: true, isTryMethod: true, GenCreateDeclareData, rustName, pythonName);
 		}
 
 		void GenCreateDeclareData(GenerateMethodContext ctx) {
@@ -432,7 +414,7 @@ namespace Generator.Encoder.Python {
 		}
 
 		void GenCreateDeclareDataSlice(FileWriter writer, CreateMethod method, int elemSize, string rustName, string pythonName) =>
-			GenerateMethod(writer, method, canFail: true, ctx => GenCreateDeclareDataSlice(ctx, elemSize), rustName, pythonName);
+			GenerateMethod(writer, method, canFail: true, isTryMethod: false, ctx => GenCreateDeclareDataSlice(ctx, elemSize), rustName, pythonName);
 
 		void GenCreateDeclareDataSlice(GenerateMethodContext ctx, int elemSize) {
 			ctx.Writer.WriteLine();

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Diagnostics.CodeAnalysis;
@@ -292,33 +272,38 @@ namespace Generator.Tables {
 				VecEncoding.VEX => EncodingKind.VEX,
 				VecEncoding.XOP => EncodingKind.XOP,
 				VecEncoding.EVEX => EncodingKind.EVEX,
-				VecEncoding.MVEX => throw new InvalidOperationException(),
+				VecEncoding.MVEX => EncodingKind.MVEX,
 				_ => throw new InvalidOperationException(),
 			};
 			result = OpCodeDef.CreateDefault(encoding);
 
 			var parts = opCodeStr.Split(' ');
 			var encParts = parts[0].Split('.');
+			OpCodeTableKind? table = null;
 			for (int i = 1; i < encParts.Length; i++) {
 				var encPart = encParts[i];
 				switch (encPart) {
 				case "0F":
 				case "0F38":
 				case "0F3A":
+				case "MAP5":
+				case "MAP6":
 				case "X8":
 				case "X9":
 				case "XA":
-					if (result.Table != OpCodeTableKind.Normal) {
+					if (table is not null) {
 						error = $"Duplicate table: `{encPart}`";
 						return false;
 					}
-					result.Table = encPart switch {
+					table = encPart switch {
 						"0F" => OpCodeTableKind.T0F,
 						"0F38" => OpCodeTableKind.T0F38,
 						"0F3A" => OpCodeTableKind.T0F3A,
-						"X8" => OpCodeTableKind.XOP8,
-						"X9" => OpCodeTableKind.XOP9,
-						"XA" => OpCodeTableKind.XOPA,
+						"MAP5" => OpCodeTableKind.MAP5,
+						"MAP6" => OpCodeTableKind.MAP6,
+						"X8" => OpCodeTableKind.MAP8,
+						"X9" => OpCodeTableKind.MAP9,
+						"XA" => OpCodeTableKind.MAP10,
 						_ => throw new InvalidOperationException(),
 					};
 					break;
@@ -370,10 +355,36 @@ namespace Generator.Tables {
 						error = $"Duplicate W bit: `{encPart}`";
 						return false;
 					}
-					result.WBit = encPart switch 					{
+					result.WBit = encPart switch {
 						"W0" => OpCodeW.W0,
 						"W1" => OpCodeW.W1,
 						"WIG" => OpCodeW.WIG,
+						_ => throw new InvalidOperationException(),
+					};
+					break;
+
+				case "NDS":
+				case "NDD":
+					if (result.NDKind != NonDestructiveOpKind.None) {
+						error = $"Duplicate NDD/NDS: `{encPart}`";
+						return false;
+					}
+					result.NDKind = encPart switch {
+						"NDS" => NonDestructiveOpKind.NDS,
+						"NDD" => NonDestructiveOpKind.NDD,
+						_ => throw new InvalidOperationException(),
+					};
+					break;
+
+				case "EH0":
+				case "EH1":
+					if (result.MvexEHBit != MvexEHBit.None) {
+						error = $"Duplicate EH bit: `{encPart}`";
+						return false;
+					}
+					result.MvexEHBit = encPart switch {
+						"EH0" => MvexEHBit.EH0,
+						"EH1" => MvexEHBit.EH1,
 						_ => throw new InvalidOperationException(),
 					};
 					break;
@@ -385,10 +396,7 @@ namespace Generator.Tables {
 			}
 			if (result.MandatoryPrefix == MandatoryPrefix.None)
 				result.MandatoryPrefix = MandatoryPrefix.PNP;
-			if (result.Table == OpCodeTableKind.Normal) {
-				error = "Missing table, eg. 0F, 0F38, 0F3A";
-				return false;
-			}
+			result.Table = table ?? OpCodeTableKind.Normal;
 			if (result.LBit == OpCodeL.None) {
 				error = "Missing L bit, eg. L128";
 				return false;
@@ -430,6 +438,15 @@ namespace Generator.Tables {
 			}
 			result.OpCodeLength = opCodeByteCount;
 
+			if (result.NDKind != NonDestructiveOpKind.None && vecEnc != VecEncoding.MVEX) {
+				error = "Can't use NDD/NDS";
+				return false;
+			}
+			if (result.MvexEHBit != MvexEHBit.None && vecEnc != VecEncoding.MVEX) {
+				error = "Can't use EH0/EH1";
+				return false;
+			}
+
 			switch (vecEnc) {
 			case VecEncoding.VEX:
 				switch (result.LBit) {
@@ -447,14 +464,16 @@ namespace Generator.Tables {
 					return false;
 				}
 				switch (result.Table) {
+				case OpCodeTableKind.Normal:
 				case OpCodeTableKind.T0F:
 				case OpCodeTableKind.T0F38:
 				case OpCodeTableKind.T0F3A:
 					break;
-				case OpCodeTableKind.Normal:
-				case OpCodeTableKind.XOP8:
-				case OpCodeTableKind.XOP9:
-				case OpCodeTableKind.XOPA:
+				case OpCodeTableKind.MAP5:
+				case OpCodeTableKind.MAP6:
+				case OpCodeTableKind.MAP8:
+				case OpCodeTableKind.MAP9:
+				case OpCodeTableKind.MAP10:
 				default:
 					error = $"Invalid table: {result.Table}";
 					return false;
@@ -477,14 +496,16 @@ namespace Generator.Tables {
 					return false;
 				}
 				switch (result.Table) {
-				case OpCodeTableKind.XOP8:
-				case OpCodeTableKind.XOP9:
-				case OpCodeTableKind.XOPA:
+				case OpCodeTableKind.MAP8:
+				case OpCodeTableKind.MAP9:
+				case OpCodeTableKind.MAP10:
 					break;
 				case OpCodeTableKind.Normal:
 				case OpCodeTableKind.T0F:
 				case OpCodeTableKind.T0F38:
 				case OpCodeTableKind.T0F3A:
+				case OpCodeTableKind.MAP5:
+				case OpCodeTableKind.MAP6:
 				default:
 					error = $"Invalid table: {result.Table}";
 					return false;
@@ -510,11 +531,13 @@ namespace Generator.Tables {
 				case OpCodeTableKind.T0F:
 				case OpCodeTableKind.T0F38:
 				case OpCodeTableKind.T0F3A:
+				case OpCodeTableKind.MAP5:
+				case OpCodeTableKind.MAP6:
 					break;
 				case OpCodeTableKind.Normal:
-				case OpCodeTableKind.XOP8:
-				case OpCodeTableKind.XOP9:
-				case OpCodeTableKind.XOPA:
+				case OpCodeTableKind.MAP8:
+				case OpCodeTableKind.MAP9:
+				case OpCodeTableKind.MAP10:
 				default:
 					error = $"Invalid table: {result.Table}";
 					return false;
@@ -522,6 +545,37 @@ namespace Generator.Tables {
 				break;
 
 			case VecEncoding.MVEX:
+				switch (result.LBit) {
+				case OpCodeL.L512:
+					break;
+				case OpCodeL.None:
+				case OpCodeL.L0:
+				case OpCodeL.L1:
+				case OpCodeL.LIG:
+				case OpCodeL.LZ:
+				case OpCodeL.L128:
+				case OpCodeL.L256:
+				default:
+					error = $"Invalid L bit: {result.LBit}";
+					return false;
+				}
+				switch (result.Table) {
+				case OpCodeTableKind.T0F:
+				case OpCodeTableKind.T0F38:
+				case OpCodeTableKind.T0F3A:
+					break;
+				case OpCodeTableKind.Normal:
+				case OpCodeTableKind.MAP5:
+				case OpCodeTableKind.MAP6:
+				case OpCodeTableKind.MAP8:
+				case OpCodeTableKind.MAP9:
+				case OpCodeTableKind.MAP10:
+				default:
+					error = $"Invalid table: {result.Table}";
+					return false;
+				}
+				break;
+
 			default:
 				throw new InvalidOperationException();
 			}

@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use wasm_bindgen::prelude::*;
 
@@ -29,25 +9,29 @@ use wasm_bindgen::prelude::*;
 #[wasm_bindgen]
 #[derive(Copy, Clone)]
 pub enum OpCodeTableKind {
-	/// Legacy encoding table
+	/// Legacy/`MAP0` table
 	Normal = 0,
-	/// `0Fxx` table (legacy, VEX, EVEX)
+	/// `0F`/`MAP1` table (legacy, VEX, EVEX, MVEX)
 	T0F = 1,
-	/// `0F38xx` table (legacy, VEX, EVEX)
+	/// `0F38`/`MAP2` table (legacy, VEX, EVEX, MVEX)
 	T0F38 = 2,
-	/// `0F3Axx` table (legacy, VEX, EVEX)
+	/// `0F3A`/`MAP3` table (legacy, VEX, EVEX, MVEX)
 	T0F3A = 3,
-	/// `XOP8` table (XOP)
-	XOP8 = 4,
-	/// `XOP9` table (XOP)
-	XOP9 = 5,
-	/// `XOPA` table (XOP)
-	XOPA = 6,
+	/// `MAP5` table (EVEX)
+	MAP5 = 4,
+	/// `MAP6` table (EVEX)
+	MAP6 = 5,
+	/// `MAP8` table (XOP)
+	MAP8 = 6,
+	/// `MAP9` table (XOP)
+	MAP9 = 7,
+	/// `MAP10` table (XOP)
+	MAP10 = 8,
 }
 // GENERATOR-END: Enum
 
 #[allow(dead_code)]
 pub(crate) fn iced_to_op_code_table_kind(value: iced_x86_rust::OpCodeTableKind) -> OpCodeTableKind {
-	// Safe, the enums are exactly identical
+	// SAFETY: the enums are exactly identical
 	unsafe { std::mem::transmute(value as u8) }
 }

@@ -1,56 +1,35 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::{Code, Instruction, Register};
-use super::enums::{FormatterFlowControl, PrefixKind};
-use super::enums_shared::FormatterTextKind;
-use super::fmt_utils_all::{show_rep_or_repe_prefix_bool, show_repne_prefix_bool, show_segment_prefix_bool};
-use super::{FormatterOptions, FormatterOutput};
-#[cfg(not(feature = "std"))]
-use alloc::string::String;
-#[cfg(not(feature = "std"))]
-use alloc::vec::Vec;
+use crate::formatter::enums::{FormatterFlowControl, PrefixKind};
+use crate::formatter::enums_shared::FormatterTextKind;
+use crate::formatter::fmt_utils_all::{show_rep_or_repe_prefix_bool, show_repne_prefix_bool, show_segment_prefix_bool};
+use crate::formatter::{FormatterOptions, FormatterOutput};
+use crate::{Code, Instruction, PrefixKindUnderlyingType, Register};
 use core::{cmp, mem};
 
-lazy_static! {
-	static ref SPACES_TABLE: Vec<String> = create_strings(' ', 20);
-}
-lazy_static! {
-	static ref TABS_TABLE: Vec<String> = create_strings('\t', 6);
-}
-
-fn create_strings(c: char, cap: usize) -> Vec<String> {
-	let mut v = Vec::with_capacity(cap);
-	let mut s = String::with_capacity(cap);
-	for _ in 0..cap - 1 {
-		s.push(c);
-		v.push(s.clone());
-	}
-	s.push(c);
-	debug_assert_eq!(cap, s.len());
-	v.push(s);
-	v
-}
+#[rustfmt::skip]
+static SPACES_TABLE: [&str; 12] = [
+	" ",
+	"  ",
+	"   ",
+	"    ",
+	"     ",
+	"      ",
+	"       ",
+	"        ",
+	"         ",
+	"          ",
+	"           ",
+	"            ",
+];
+#[rustfmt::skip]
+static TABS_TABLE: [&str; 4] = [
+	"\t",
+	"\t\t",
+	"\t\t\t",
+	"\t\t\t\t",
+];
 
 pub(super) fn add_tabs(output: &mut dyn FormatterOutput, mut column: u32, mut first_operand_char_index: u32, tab_size: u32) {
 	const MAX_FIRST_OPERAND_CHAR_INDEX: u32 = 256;
@@ -58,29 +37,29 @@ pub(super) fn add_tabs(output: &mut dyn FormatterOutput, mut column: u32, mut fi
 
 	if tab_size == 0 {
 		let chars_left = if first_operand_char_index <= column { 1 } else { first_operand_char_index - column };
-		add_strings(output, &*SPACES_TABLE, chars_left);
+		add_strings(output, &SPACES_TABLE[..], chars_left);
 	} else {
 		let end_col = if first_operand_char_index <= column { column + 1 } else { first_operand_char_index };
 		let end_col_rounded_down = end_col / tab_size * tab_size;
 		let added_tabs = end_col_rounded_down > column;
 		if added_tabs {
 			let tabs = (end_col_rounded_down - (column / tab_size * tab_size)) / tab_size;
-			add_strings(output, &*TABS_TABLE, tabs);
+			add_strings(output, &TABS_TABLE[..], tabs);
 			column = end_col_rounded_down;
 		}
 		if first_operand_char_index > column {
-			add_strings(output, &*SPACES_TABLE, first_operand_char_index - column);
+			add_strings(output, &SPACES_TABLE[..], first_operand_char_index - column);
 		} else if !added_tabs {
-			add_strings(output, &*SPACES_TABLE, 1);
+			add_strings(output, &SPACES_TABLE[..], 1);
 		}
 	}
 }
 
-fn add_strings(output: &mut dyn FormatterOutput, strings: &[String], count: u32) {
+fn add_strings(output: &mut dyn FormatterOutput, strings: &[&str], count: u32) {
 	let mut count = count as usize;
 	while count > 0 {
 		let n = cmp::min(count, strings.len());
-		output.write(&strings[n - 1], FormatterTextKind::Text);
+		output.write(strings[n - 1], FormatterTextKind::Text);
 		count -= n;
 	}
 }
@@ -148,6 +127,8 @@ pub(super) fn get_flow_control(instruction: &Instruction) -> FormatterFlowContro
 		| Code::Jmp_rel8_16
 		| Code::Jmp_rel8_32
 		| Code::Jmp_rel8_64
+		| Code::VEX_KNC_Jkzd_kr_rel8_64
+		| Code::VEX_KNC_Jknzd_kr_rel8_64
 		=> FormatterFlowControl::ShortBranch,
 		Code::Loopne_rel8_16_CX
 		| Code::Loopne_rel8_32_CX
@@ -235,6 +216,8 @@ pub(super) fn get_flow_control(instruction: &Instruction) -> FormatterFlowContro
 		| Code::Jg_rel32_64
 		| Code::Jmpe_disp16
 		| Code::Jmpe_disp32
+		| Code::VEX_KNC_Jkzd_kr_rel32_64
+		| Code::VEX_KNC_Jknzd_kr_rel32_64
 		=> FormatterFlowControl::NearBranch,
 		Code::Call_ptr1616
 		| Code::Call_ptr1632
@@ -250,11 +233,11 @@ pub(super) fn get_flow_control(instruction: &Instruction) -> FormatterFlowContro
 	}
 }
 
-pub(super) fn show_rep_or_repe_prefix(code: Code, options: &FormatterOptions) -> bool {
+pub(super) const fn show_rep_or_repe_prefix(code: Code, options: &FormatterOptions) -> bool {
 	show_rep_or_repe_prefix_bool(code, options.show_useless_prefixes())
 }
 
-pub(super) fn show_repne_prefix(code: Code, options: &FormatterOptions) -> bool {
+pub(super) const fn show_repne_prefix(code: Code, options: &FormatterOptions) -> bool {
 	show_repne_prefix_bool(code, options.show_useless_prefixes())
 }
 
@@ -269,15 +252,16 @@ pub(super) fn get_segment_register_prefix_kind(register: Register) -> PrefixKind
 			|| register == Register::FS
 			|| register == Register::GS
 	);
-	const_assert_eq!(PrefixKind::CS as u32, PrefixKind::ES as u32 + 1);
-	const_assert_eq!(PrefixKind::SS as u32, PrefixKind::ES as u32 + 2);
-	const_assert_eq!(PrefixKind::DS as u32, PrefixKind::ES as u32 + 3);
-	const_assert_eq!(PrefixKind::FS as u32, PrefixKind::ES as u32 + 4);
-	const_assert_eq!(PrefixKind::GS as u32, PrefixKind::ES as u32 + 5);
-	unsafe { mem::transmute(((register as u32 - Register::ES as u32) + PrefixKind::ES as u32) as u8) }
+	const _: () = assert!(PrefixKind::ES as u32 + 1 == PrefixKind::CS as u32);
+	const _: () = assert!(PrefixKind::ES as u32 + 2 == PrefixKind::SS as u32);
+	const _: () = assert!(PrefixKind::ES as u32 + 3 == PrefixKind::DS as u32);
+	const _: () = assert!(PrefixKind::ES as u32 + 4 == PrefixKind::FS as u32);
+	const _: () = assert!(PrefixKind::ES as u32 + 5 == PrefixKind::GS as u32);
+	// SAFETY: callers only pass in a valid segment register (ES,CS,SS,DS,FS,GS)
+	unsafe { mem::transmute(((register as u32 - Register::ES as u32) + PrefixKind::ES as u32) as PrefixKindUnderlyingType) }
 }
 
-pub(super) fn show_index_scale(instruction: &Instruction, options: &FormatterOptions) -> bool {
+pub(super) const fn show_index_scale(instruction: &Instruction, options: &FormatterOptions) -> bool {
 	options.show_useless_prefixes() || !instruction.code().ignores_index()
 }
 

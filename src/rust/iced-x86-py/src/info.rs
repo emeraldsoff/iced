@@ -1,36 +1,15 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 use crate::instruction::Instruction;
 use crate::utils::to_value_error;
 use core::hash::{Hash, Hasher};
 use pyo3::class::basic::CompareOp;
 use pyo3::prelude::*;
-use pyo3::PyObjectProtocol;
 use std::collections::hash_map::DefaultHasher;
 
 /// A register used by an instruction
-#[pyclass(module = "_iced_x86_py")]
+#[pyclass(module = "iced_x86._iced_x86_py")]
 #[derive(Copy, Clone)]
 pub(crate) struct UsedRegister {
 	info: iced_x86::UsedRegister,
@@ -56,7 +35,7 @@ impl UsedRegister {
 	///     UsedRegister: A copy of this instance
 	///
 	/// This is identical to :class:`UsedRegister.copy`
-	#[text_signature = "($self, /)"]
+	#[pyo3(text_signature = "($self, /)")]
 	fn __copy__(&self) -> Self {
 		*self
 	}
@@ -70,7 +49,7 @@ impl UsedRegister {
 	///     UsedRegister: A copy of this instance
 	///
 	/// This is identical to :class:`UsedRegister.copy`
-	#[text_signature = "($self, memo, /)"]
+	#[pyo3(text_signature = "($self, memo, /)")]
 	fn __deepcopy__(&self, _memo: &PyAny) -> Self {
 		*self
 	}
@@ -79,15 +58,12 @@ impl UsedRegister {
 	///
 	/// Returns:
 	///     UsedRegister: A copy of this instance
-	#[text_signature = "($self, /)"]
+	#[pyo3(text_signature = "($self, /)")]
 	fn copy(&self) -> Self {
 		*self
 	}
-}
 
-#[pyproto]
-impl PyObjectProtocol for UsedRegister {
-	fn __richcmp__(&self, other: PyRef<UsedRegister>, op: CompareOp) -> PyObject {
+	fn __richcmp__(&self, other: PyRef<'_, UsedRegister>, op: CompareOp) -> PyObject {
 		match op {
 			CompareOp::Eq => (self.info == other.info).into_py(other.py()),
 			CompareOp::Ne => (self.info != other.info).into_py(other.py()),
@@ -103,7 +79,7 @@ impl PyObjectProtocol for UsedRegister {
 }
 
 /// A memory location used by an instruction
-#[pyclass(module = "_iced_x86_py")]
+#[pyclass(module = "iced_x86._iced_x86_py")]
 #[derive(Copy, Clone)]
 pub(crate) struct UsedMemory {
 	info: iced_x86::UsedMemory,
@@ -177,7 +153,7 @@ impl UsedMemory {
 	///     UsedMemory: A copy of this instance
 	///
 	/// This is identical to :class:`UsedMemory.copy`
-	#[text_signature = "($self, /)"]
+	#[pyo3(text_signature = "($self, /)")]
 	fn __copy__(&self) -> Self {
 		*self
 	}
@@ -191,7 +167,7 @@ impl UsedMemory {
 	///     UsedMemory: A copy of this instance
 	///
 	/// This is identical to :class:`UsedMemory.copy`
-	#[text_signature = "($self, memo, /)"]
+	#[pyo3(text_signature = "($self, memo, /)")]
 	fn __deepcopy__(&self, _memo: &PyAny) -> Self {
 		*self
 	}
@@ -200,15 +176,12 @@ impl UsedMemory {
 	///
 	/// Returns:
 	///     UsedMemory: A copy of this instance
-	#[text_signature = "($self, /)"]
+	#[pyo3(text_signature = "($self, /)")]
 	fn copy(&self) -> Self {
 		*self
 	}
-}
 
-#[pyproto]
-impl PyObjectProtocol for UsedMemory {
-	fn __richcmp__(&self, other: PyRef<UsedMemory>, op: CompareOp) -> PyObject {
+	fn __richcmp__(&self, other: PyRef<'_, UsedMemory>, op: CompareOp) -> PyObject {
 		match op {
 			CompareOp::Eq => (self.info == other.info).into_py(other.py()),
 			CompareOp::Ne => (self.info != other.info).into_py(other.py()),
@@ -224,7 +197,7 @@ impl PyObjectProtocol for UsedMemory {
 }
 
 /// Contains accessed registers and memory locations
-#[pyclass(module = "_iced_x86_py")]
+#[pyclass(module = "iced_x86._iced_x86_py")]
 pub(crate) struct InstructionInfo {
 	info: iced_x86::InstructionInfo,
 }
@@ -242,7 +215,7 @@ impl InstructionInfo {
 	/// this method returns the 8-bit register even if it's ``SPL``, ``BPL``, ``SIL``, ``DIL`` and the
 	/// instruction was decoded in 16 or 32-bit mode. This is more accurate than returning the ``r16``/``r32``
 	/// register. Example instructions that do this: ``PINSRB``, ``ARPL``
-	#[text_signature = "($self, /)"]
+	#[pyo3(text_signature = "($self, /)")]
 	fn used_registers(&self) -> Vec<UsedRegister> {
 		self.info.used_registers().iter().map(|a| UsedRegister { info: *a }).collect()
 	}
@@ -251,7 +224,7 @@ impl InstructionInfo {
 	///
 	/// Returns:
 	///     List[UsedMemory]: All accessed memory locations
-	#[text_signature = "($self, /)"]
+	#[pyo3(text_signature = "($self, /)")]
 	fn used_memory(&self) -> Vec<UsedMemory> {
 		self.info.used_memory().iter().map(|a| UsedMemory { info: *a }).collect()
 	}
@@ -296,7 +269,7 @@ impl InstructionInfo {
 	///
 	/// Raises:
 	///     ValueError: If `operand` is invalid
-	#[text_signature = "($self, operand, /)"]
+	#[pyo3(text_signature = "($self, operand, /)")]
 	fn op_access(&self, operand: u32) -> PyResult<u32> {
 		self.info.try_op_access(operand).map_or_else(|e| Err(to_value_error(e)), |op_access| Ok(op_access as u32))
 	}
@@ -357,8 +330,8 @@ impl InstructionInfo {
 ///     Used register: reg=RDI access=READ
 ///     Used register: reg=R12 access=READ
 ///     Used register: reg=ESI access=READ
-#[pyclass(module = "_iced_x86_py")]
-#[text_signature = "(/)"]
+#[pyclass(module = "iced_x86._iced_x86_py")]
+#[pyo3(text_signature = "(/)")]
 pub(crate) struct InstructionInfoFactory {
 	info: iced_x86::InstructionInfoFactory,
 }
@@ -411,7 +384,7 @@ impl InstructionInfoFactory {
 	///     assert regs[1].access == OpAccess.READ
 	///     assert regs[2].register == Register.ESI
 	///     assert regs[2].access == OpAccess.READ
-	#[text_signature = "($self, instruction, /)"]
+	#[pyo3(text_signature = "($self, instruction, /)")]
 	fn info(&mut self, instruction: &Instruction) -> InstructionInfo {
 		InstructionInfo { info: self.info.info(&instruction.instr).clone() }
 	}

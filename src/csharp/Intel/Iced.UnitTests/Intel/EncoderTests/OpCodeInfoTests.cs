@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if ENCODER && OPCODE_INFO
 using System;
@@ -106,6 +86,7 @@ namespace Iced.UnitTests.Intel.EncoderTests {
 			Assert.Equal(tc.No66, info.No66);
 			Assert.Equal(tc.NFx, info.NFx);
 			Assert.Equal(tc.RequiresUniqueRegNums, info.RequiresUniqueRegNums);
+			Assert.Equal(tc.RequiresUniqueDestRegNum, info.RequiresUniqueDestRegNum);
 			Assert.Equal(tc.IsPrivileged, info.IsPrivileged);
 			Assert.Equal(tc.IsSaveRestore, info.IsSaveRestore);
 			Assert.Equal(tc.IsStackInstruction, info.IsStackInstruction);
@@ -165,6 +146,17 @@ namespace Iced.UnitTests.Intel.EncoderTests {
 			Static.Assert(IcedConstants.MaxOpCount == 5 ? 0 : -1);
 			for (int i = tc.OpCount; i < IcedConstants.MaxOpCount; i++)
 				Assert.Equal(OpCodeOperandKind.None, info.GetOpKind(i));
+#if MVEX
+			Assert.Equal(tc.Mvex.EHBit, info.MvexEHBit);
+			Assert.Equal(tc.Mvex.CanUseEvictionHint, info.MvexCanUseEvictionHint);
+			Assert.Equal(tc.Mvex.CanUseImmRoundingControl, info.MvexCanUseImmRoundingControl);
+			Assert.Equal(tc.Mvex.IgnoresOpMaskRegister, info.MvexIgnoresOpMaskRegister);
+			Assert.Equal(tc.Mvex.NoSaeRc, info.MvexNoSaeRc);
+			Assert.Equal(tc.Mvex.TupleTypeLutKind, info.MvexTupleTypeLutKind);
+			Assert.Equal(tc.Mvex.ConversionFunc, info.MvexConversionFunc);
+			Assert.Equal(tc.Mvex.ValidConversionFuncsMask, info.MvexValidConversionFuncsMask);
+			Assert.Equal(tc.Mvex.ValidSwizzleFuncsMask, info.MvexValidSwizzleFuncsMask);
+#endif
 		}
 		public static IEnumerable<object[]> TestAllOpCodeInfos_Data => OpCodeInfoTestCases.OpCodeInfoTests.Select(a => new object[] { a.LineNumber, a.Code, a.OpCodeString, a.InstructionString, a });
 

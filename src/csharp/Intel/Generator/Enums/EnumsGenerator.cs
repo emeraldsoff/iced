@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 namespace Generator.Enums {
 	abstract class EnumsGenerator {
@@ -28,7 +8,9 @@ namespace Generator.Enums {
 		protected EnumsGenerator(GenTypes genTypes) =>
 			this.genTypes = genTypes;
 
+		public virtual void GenerateBegin() {}
 		public abstract void Generate(EnumType enumType);
+		public virtual void GenerateEnd() {}
 
 		public void Generate() {
 			var allEnums = new EnumType[] {
@@ -40,10 +22,11 @@ namespace Generator.Enums {
 				genTypes[TypeIds.DecoderOptions],
 				genTypes[TypeIds.DecoderTestOptions],
 				genTypes[TypeIds.EvexOpCodeHandlerKind],
+				genTypes[TypeIds.MvexOpCodeHandlerKind],
 				genTypes[TypeIds.HandlerFlags],
 				genTypes[TypeIds.LegacyHandlerFlags],
 				genTypes[TypeIds.MemorySize],
-				genTypes[TypeIds.OpCodeHandlerKind],
+				genTypes[TypeIds.LegacyOpCodeHandlerKind],
 				genTypes[TypeIds.PseudoOpsKind],
 				genTypes[TypeIds.Register],
 				genTypes[TypeIds.SerializedDataKind],
@@ -97,9 +80,9 @@ namespace Generator.Enums {
 				genTypes[TypeIds.FormatterSyntax],
 				genTypes[TypeIds.RoundingControl],
 				genTypes[TypeIds.OpKind],
-				genTypes[TypeIds.Instruction_CodeFlags],
-				genTypes[TypeIds.Instruction_MemoryFlags],
-				genTypes[TypeIds.Instruction_OpKindFlags],
+				genTypes[TypeIds.InstrScale],
+				genTypes[TypeIds.InstrFlags1],
+				genTypes[TypeIds.MvexInstrFlags],
 				genTypes[TypeIds.VectorLength],
 				genTypes[TypeIds.MandatoryPrefixByte],
 				genTypes[TypeIds.StateFlags],
@@ -115,6 +98,7 @@ namespace Generator.Enums {
 				genTypes[TypeIds.VexOpCodeTable],
 				genTypes[TypeIds.XopOpCodeTable],
 				genTypes[TypeIds.EvexOpCodeTable],
+				genTypes[TypeIds.MvexOpCodeTable],
 				genTypes[TypeIds.MandatoryPrefix],
 				genTypes[TypeIds.OpCodeTableKind],
 				genTypes[TypeIds.DisplSize],
@@ -132,10 +116,20 @@ namespace Generator.Enums {
 				genTypes[TypeIds.OpCodeInfoFlags2],
 				genTypes[TypeIds.DecOptionValue],
 				genTypes[TypeIds.InstrStrFmtOption],
+				genTypes[TypeIds.CodeAsmMemoryOperandSize],
+				genTypes[TypeIds.TestInstrFlags],
+				genTypes[TypeIds.MvexConvFn],
+				genTypes[TypeIds.MvexEHBit],
+				genTypes[TypeIds.MvexInfoFlags1],
+				genTypes[TypeIds.MvexInfoFlags2],
+				genTypes[TypeIds.MvexRegMemConv],
+				genTypes[TypeIds.MvexTupleTypeLutKind],
 			};
 
+			GenerateBegin();
 			foreach (var enumType in allEnums)
 				Generate(enumType);
+			GenerateEnd();
 		}
 	}
 }

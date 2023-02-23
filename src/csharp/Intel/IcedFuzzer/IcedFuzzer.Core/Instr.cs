@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 using System;
 using System.Collections.Generic;
@@ -133,6 +113,8 @@ namespace IcedFuzzer.Core {
 		IgnoresModBits					= 0x00100000,
 		ReservedNop						= 0x00200000,
 		DefaultOperandSize64			= 0x00400000,
+		RequiresUniqueDestRegNum		= 0x00800000,
+		RequiresAddressSize32			= 0x01000000,
 	}
 
 	[DebuggerDisplay("Mem={" + nameof(IsModrmMemory) + "} {" + nameof(MandatoryPrefix) + "} L{" + nameof(L) + ",d} W{" + nameof(W) + ",d} {" + nameof(Code) + "}")]
@@ -162,12 +144,14 @@ namespace IcedFuzzer.Core {
 		public bool IgnoresModBits => (Flags & FuzzerInstructionFlags.IgnoresModBits) != 0;
 		public bool IsReservedNop => (Flags & FuzzerInstructionFlags.ReservedNop) != 0;
 		public bool DefaultOperandSize64 => (Flags & FuzzerInstructionFlags.DefaultOperandSize64) != 0;
+		public bool RequiresUniqueDestRegNum => (Flags & FuzzerInstructionFlags.RequiresUniqueDestRegNum) != 0;
+		public bool RequiresAddressSize32 => (Flags & FuzzerInstructionFlags.RequiresAddressSize32) != 0;
 
 		public readonly Code Code;
 		internal FuzzerInstructionFlags Flags;
-		// VEX/XOP/EVEX: 0-1
+		// VEX/XOP/EVEX/MVEX: 0-1
 		public readonly uint W;
-		// VEX/XOP/EVEX: 0-1 (VEX/XOP) or 0-3 (EVEX)
+		// VEX/XOP/EVEX/MVEX: 0 (MVEX) 0-1 (VEX/XOP) or 0-3 (EVEX)
 		public readonly uint L;
 		public readonly MandatoryPrefix MandatoryPrefix;
 		public readonly FuzzerOpCodeTable Table;
@@ -232,6 +216,8 @@ namespace IcedFuzzer.Core {
 				flags |= FuzzerInstructionFlags.ReservedNop;
 			if (opc.DefaultOpSize64)
 				flags |= FuzzerInstructionFlags.DefaultOperandSize64;
+			if (opc.RequiresUniqueDestRegNum)
+				flags |= FuzzerInstructionFlags.RequiresUniqueDestRegNum;
 			switch (code) {
 			case Code.Xchg_r16_AX:
 			case Code.Xchg_r32_EAX:
@@ -242,6 +228,11 @@ namespace IcedFuzzer.Core {
 			case Code.Nopd:
 			case Code.Nopq:
 				flags |= FuzzerInstructionFlags.IsNop;
+				break;
+			case Code.Montmul_16:
+			case Code.Montmul_32:
+			case Code.Montmul_64:
+				flags |= FuzzerInstructionFlags.RequiresAddressSize32;
 				break;
 			}
 
@@ -359,6 +350,7 @@ namespace IcedFuzzer.Core {
 					_ => throw ThrowHelpers.Unreachable,
 				},
 				EncodingKind.VEX => table switch {
+					OpCodeTableKind.Normal => new FuzzerOpCodeTable(encoding, 0),
 					OpCodeTableKind.T0F => new FuzzerOpCodeTable(encoding, 1),
 					OpCodeTableKind.T0F38 => new FuzzerOpCodeTable(encoding, 2),
 					OpCodeTableKind.T0F3A => new FuzzerOpCodeTable(encoding, 3),
@@ -368,16 +360,24 @@ namespace IcedFuzzer.Core {
 					OpCodeTableKind.T0F => new FuzzerOpCodeTable(encoding, 1),
 					OpCodeTableKind.T0F38 => new FuzzerOpCodeTable(encoding, 2),
 					OpCodeTableKind.T0F3A => new FuzzerOpCodeTable(encoding, 3),
+					OpCodeTableKind.MAP5 => new FuzzerOpCodeTable(encoding, 5),
+					OpCodeTableKind.MAP6 => new FuzzerOpCodeTable(encoding, 6),
 					_ => throw ThrowHelpers.Unreachable,
 				},
 				EncodingKind.XOP => table switch {
-					OpCodeTableKind.XOP8 => new FuzzerOpCodeTable(encoding, 8),
-					OpCodeTableKind.XOP9 => new FuzzerOpCodeTable(encoding, 9),
-					OpCodeTableKind.XOPA => new FuzzerOpCodeTable(encoding, 0xA),
+					OpCodeTableKind.MAP8 => new FuzzerOpCodeTable(encoding, 8),
+					OpCodeTableKind.MAP9 => new FuzzerOpCodeTable(encoding, 9),
+					OpCodeTableKind.MAP10 => new FuzzerOpCodeTable(encoding, 10),
 					_ => throw ThrowHelpers.Unreachable,
 				},
 				EncodingKind.D3NOW => table switch {
 					OpCodeTableKind.T0F => new FuzzerOpCodeTable(encoding, OpCodeTableIndexes.D3nowTable),
+					_ => throw ThrowHelpers.Unreachable,
+				},
+				EncodingKind.MVEX => table switch {
+					OpCodeTableKind.T0F => new FuzzerOpCodeTable(encoding, 1),
+					OpCodeTableKind.T0F38 => new FuzzerOpCodeTable(encoding, 2),
+					OpCodeTableKind.T0F3A => new FuzzerOpCodeTable(encoding, 3),
 					_ => throw ThrowHelpers.Unreachable,
 				},
 				_ => throw ThrowHelpers.Unreachable,

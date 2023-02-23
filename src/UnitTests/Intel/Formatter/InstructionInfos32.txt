@@ -1,25 +1,5 @@
-#
-# Copyright (C) 2018-2019 de4dot@gmail.com
-#
-# Permission is hereby granted, free of charge, to any person obtaining
-# a copy of this software and associated documentation files (the
-# "Software"), to deal in the Software without restriction, including
-# without limitation the rights to use, copy, modify, merge, publish,
-# distribute, sublicense, and/or sell copies of the Software, and to
-# permit persons to whom the Software is furnished to do so, subject to
-# the following conditions:
-#
-# The above copyright notice and this permission notice shall be
-# included in all copies or substantial portions of the Software.
-#
-# THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-# EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-# MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-# IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-# CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-# TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-# SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-#
+# SPDX-License-Identifier: MIT
+# Copyright (C) 2018-present iced project and contributors
 
 66 06, Pushw_ES
 06, Pushd_ES
@@ -608,7 +588,7 @@ DF E2, Fnstsg_AX, OldFpu
 66 0F00 30, Jmpe_rm16, Jmpe
 0F00 F2, Jmpe_rm32, Jmpe
 0F00 30, Jmpe_rm32, Jmpe
-0F04, Loadallreset286, Loadall286
+0F04, Storeall, Loadall286
 0F05, Loadall286, Loadall286
 0F07, Loadall386, Loadall386
 0F10 CE, Umov_rm8_r8, Umov
@@ -664,7 +644,7 @@ F2 0F38F8 18, Enqcmd_r32_m512
 64 67 0F01 FC, Clzerow
 64 67 F3 0FAE F5, Umonitor_r16
 F3 0FA6 C0, Montmul_32
-67 F3 0FA6 C0, Montmul_16
+67 F3 0FA6 C0, Montmul_16, NoInvalidCheck
 F3 0FA6 C8, Xsha1_32
 67 F3 0FA6 C8, Xsha1_16
 F3 0FA6 D0, Xsha256_32
@@ -749,3 +729,13 @@ F3 0FA6 E8, Ccs_hash_32
 67 F3 0FA6 E8, Ccs_hash_16
 F3 0FA7 F0, Ccs_encrypt_32
 67 F3 0FA7 F0, Ccs_encrypt_16
+67 F3 0FA6 F0, Via_undoc_F30FA6F0_16
+F3 0FA6 F0, Via_undoc_F30FA6F0_32
+67 F3 0FA6 F8, Via_undoc_F30FA6F8_16
+F3 0FA6 F8, Via_undoc_F30FA6F8_32
+67 F3 0FA6 E0, Xsha512_16
+F3 0FA6 E0, Xsha512_32
+67 F3 0FA7 F8, Xstore_alt_16
+F3 0FA7 F8, Xstore_alt_32
+67 F3 0FA6 D8, Xsha512_alt_16
+F3 0FA6 D8, Xsha512_alt_32

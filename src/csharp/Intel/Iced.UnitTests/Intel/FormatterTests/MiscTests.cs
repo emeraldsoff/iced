@@ -1,25 +1,5 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
-
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
 #if GAS || INTEL || MASM || NASM
 using System;
@@ -36,8 +16,8 @@ namespace Iced.UnitTests.Intel.FormatterTests {
 			options.MemorySizeOptions = MemorySizeOptions.Always;
 			Assert.Equal(MemorySizeOptions.Always, options.MemorySizeOptions);
 
-			options.MemorySizeOptions = MemorySizeOptions.Minimum;
-			Assert.Equal(MemorySizeOptions.Minimum, options.MemorySizeOptions);
+			options.MemorySizeOptions = MemorySizeOptions.Minimal;
+			Assert.Equal(MemorySizeOptions.Minimal, options.MemorySizeOptions);
 
 			options.MemorySizeOptions = MemorySizeOptions.Never;
 			Assert.Equal(MemorySizeOptions.Never, options.MemorySizeOptions);
@@ -283,14 +263,17 @@ namespace Iced.UnitTests.Intel.FormatterTests {
 			Assert.Null(options.BinarySuffix);
 			Assert.Equal(4, options.BinaryDigitGroupSize);
 			Assert.Null(options.DigitSeparator);
+			Assert.False(options.LeadingZeros);
 			Assert.False(options.LeadingZeroes);
 			Assert.True(options.UppercaseHex);
 			Assert.True(options.SmallHexNumbersInDecimal);
 			Assert.True(options.AddLeadingZeroToHexNumbers);
 			Assert.Equal(NumberBase.Hexadecimal, options.NumberBase);
+			Assert.True(options.BranchLeadingZeros);
 			Assert.True(options.BranchLeadingZeroes);
 			Assert.False(options.SignedImmediateOperands);
 			Assert.True(options.SignedMemoryDisplacements);
+			Assert.False(options.DisplacementLeadingZeros);
 			Assert.False(options.DisplacementLeadingZeroes);
 			Assert.Equal(MemorySizeOptions.Default, options.MemorySizeOptions);
 			Assert.False(options.RipRelativeAddresses);
@@ -322,18 +305,18 @@ namespace Iced.UnitTests.Intel.FormatterTests {
 
 		[Fact]
 		void Throws_if_invalid_CC_value() {
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_b = (CC_b)3);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_ae = (CC_ae)3);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_e = (CC_e)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_ne = (CC_ne)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_be = (CC_be)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_a = (CC_a)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_p = (CC_p)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_np = (CC_np)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_l = (CC_l)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_ge = (CC_ge)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_le = (CC_le)2);
-			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_g = (CC_g)2);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_b = (CC_b)IcedConstants.CC_b_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_ae = (CC_ae)IcedConstants.CC_ae_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_e = (CC_e)IcedConstants.CC_e_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_ne = (CC_ne)IcedConstants.CC_ne_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_be = (CC_be)IcedConstants.CC_be_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_a = (CC_a)IcedConstants.CC_a_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_p = (CC_p)IcedConstants.CC_p_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_np = (CC_np)IcedConstants.CC_np_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_l = (CC_l)IcedConstants.CC_l_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_ge = (CC_ge)IcedConstants.CC_ge_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_le = (CC_le)IcedConstants.CC_le_EnumCount);
+			Assert.Throws<ArgumentOutOfRangeException>(() => new FormatterOptions().CC_g = (CC_g)IcedConstants.CC_g_EnumCount);
 		}
 	}
 }

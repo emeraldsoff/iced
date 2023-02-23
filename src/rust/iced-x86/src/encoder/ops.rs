@@ -1,29 +1,9 @@
-/*
-Copyright (C) 2018-2019 de4dot@gmail.com
+// SPDX-License-Identifier: MIT
+// Copyright (C) 2018-present iced project and contributors
 
-Permission is hereby granted, free of charge, to any person obtaining
-a copy of this software and associated documentation files (the
-"Software"), to deal in the Software without restriction, including
-without limitation the rights to use, copy, modify, merge, publish,
-distribute, sublicense, and/or sell copies of the Software, and to
-permit persons to whom the Software is furnished to do so, subject to
-the following conditions:
-
-The above copyright notice and this permission notice shall be
-included in all copies or substantial portions of the Software.
-
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND,
-EXPRESS OR IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF
-MERCHANTABILITY, FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT.
-IN NO EVENT SHALL THE AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY
-CLAIM, DAMAGES OR OTHER LIABILITY, WHETHER IN AN ACTION OF CONTRACT,
-TORT OR OTHERWISE, ARISING FROM, OUT OF OR IN CONNECTION WITH THE
-SOFTWARE OR THE USE OR OTHER DEALINGS IN THE SOFTWARE.
-*/
-
-use super::super::*;
-use super::enums::*;
-use super::Encoder;
+use crate::encoder::enums::*;
+use crate::encoder::Encoder;
+use crate::*;
 use core::mem;
 
 pub(crate) trait Op {
@@ -129,13 +109,14 @@ pub(super) struct OpModRM_regF0 {
 impl Op for OpModRM_regF0 {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
 		if encoder.bitness() != 64
-			&& instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16) == OpKind::Register
-			&& instruction.try_op_register(operand).unwrap_or(Register::None) as u32 >= self.reg_lo as u32 + 8
-			&& instruction.try_op_register(operand).unwrap_or(Register::None) as u32 <= self.reg_lo as u32 + 15
+			&& instruction.op_kind(operand) == OpKind::Register
+			&& instruction.op_register(operand) as u32 >= self.reg_lo as u32 + 8
+			&& instruction.op_register(operand) as u32 <= self.reg_lo as u32 + 15
 		{
 			encoder.encoder_flags |= EncoderFlags::PF0;
-			let reg_lo = unsafe { mem::transmute(self.reg_lo as u8 + 8) };
-			let reg_hi = unsafe { mem::transmute(self.reg_lo as u8 + 15) };
+			// SAFETY: reg_lo is eg. CR0 and CR0 + 15 == CR15, a valid value (CR0-CR15 are consecutive enum values)
+			let reg_lo = unsafe { mem::transmute(self.reg_lo as RegisterUnderlyingType + 8) };
+			let reg_hi = unsafe { mem::transmute(self.reg_lo as RegisterUnderlyingType + 15) };
 			encoder.add_mod_rm_register(instruction, operand, reg_lo, reg_hi);
 		} else {
 			encoder.add_mod_rm_register(instruction, operand, self.reg_lo, self.reg_hi);
@@ -149,8 +130,8 @@ pub(super) struct OpReg {
 }
 impl Op for OpReg {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		let _ = encoder.verify_op_kind(operand, OpKind::Register, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16));
-		let _ = encoder.verify_register(operand, self.register, instruction.try_op_register(operand).unwrap_or(Register::None));
+		let _ = encoder.verify_op_kind(operand, OpKind::Register, instruction.op_kind(operand));
+		let _ = encoder.verify_register(operand, self.register, instruction.op_register(operand));
 	}
 }
 
@@ -158,10 +139,10 @@ impl Op for OpReg {
 pub(super) struct OpRegSTi;
 impl Op for OpRegSTi {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		if !encoder.verify_op_kind(operand, OpKind::Register, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+		if !encoder.verify_op_kind(operand, OpKind::Register, instruction.op_kind(operand)) {
 			return;
 		}
-		let reg = instruction.try_op_register(operand).unwrap_or(Register::None);
+		let reg = instruction.op_register(operand);
 		if !encoder.verify_register_range(operand, reg, Register::ST0, Register::ST7) {
 			return;
 		}
@@ -173,7 +154,7 @@ impl Op for OpRegSTi {
 #[allow(non_camel_case_types)]
 pub(super) struct OprDI;
 impl OprDI {
-	pub fn get_reg_size(op_kind: OpKind) -> u32 {
+	pub const fn get_reg_size(op_kind: OpKind) -> u32 {
 		match op_kind {
 			OpKind::MemorySegRDI => 8,
 			OpKind::MemorySegEDI => 4,
@@ -184,7 +165,7 @@ impl OprDI {
 }
 impl Op for OprDI {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		let reg_size = Self::get_reg_size(instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16));
+		let reg_size = Self::get_reg_size(instruction.op_kind(operand));
 		if reg_size == 0 {
 			encoder.set_error_message(format!(
 				"Operand {}: expected OpKind = OpKind::MemorySegDI, OpKind::MemorySegEDI or OpKind::MemorySegRDI",
@@ -204,21 +185,21 @@ impl Op for OpIb {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
 		match encoder.imm_size {
 			ImmSize::Size1 => {
-				if !encoder.verify_op_kind(operand, OpKind::Immediate8_2nd, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+				if !encoder.verify_op_kind(operand, OpKind::Immediate8_2nd, instruction.op_kind(operand)) {
 					return;
 				}
 				encoder.imm_size = ImmSize::Size1_1;
 				encoder.immediate_hi = instruction.immediate8_2nd() as u32;
 			}
 			ImmSize::Size2 => {
-				if !encoder.verify_op_kind(operand, OpKind::Immediate8_2nd, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+				if !encoder.verify_op_kind(operand, OpKind::Immediate8_2nd, instruction.op_kind(operand)) {
 					return;
 				}
 				encoder.imm_size = ImmSize::Size2_1;
 				encoder.immediate_hi = instruction.immediate8_2nd() as u32;
 			}
 			_ => {
-				let op_imm_kind = instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16);
+				let op_imm_kind = instruction.op_kind(operand);
 				if !encoder.verify_op_kind(operand, self.op_kind, op_imm_kind) {
 					return;
 				}
@@ -237,7 +218,7 @@ impl Op for OpIb {
 pub(super) struct OpIw;
 impl Op for OpIw {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		if !encoder.verify_op_kind(operand, OpKind::Immediate16, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+		if !encoder.verify_op_kind(operand, OpKind::Immediate16, instruction.op_kind(operand)) {
 			return;
 		}
 		encoder.imm_size = ImmSize::Size2;
@@ -255,7 +236,7 @@ pub(super) struct OpId {
 }
 impl Op for OpId {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		let op_imm_kind = instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16);
+		let op_imm_kind = instruction.op_kind(operand);
 		if !encoder.verify_op_kind(operand, self.op_kind, op_imm_kind) {
 			return;
 		}
@@ -272,7 +253,7 @@ impl Op for OpId {
 pub(super) struct OpIq;
 impl Op for OpIq {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		if !encoder.verify_op_kind(operand, OpKind::Immediate64, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+		if !encoder.verify_op_kind(operand, OpKind::Immediate64, instruction.op_kind(operand)) {
 			return;
 		}
 		encoder.imm_size = ImmSize::Size8;
@@ -290,12 +271,12 @@ impl Op for OpIq {
 pub(super) struct OpI4;
 impl Op for OpI4 {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		let op_imm_kind = instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16);
+		let op_imm_kind = instruction.op_kind(operand);
 		if !encoder.verify_op_kind(operand, OpKind::Immediate8, op_imm_kind) {
 			return;
 		}
-		debug_assert_eq!(ImmSize::SizeIbReg, encoder.imm_size);
-		debug_assert_eq!(0, encoder.immediate & 0xF);
+		debug_assert_eq!(encoder.imm_size, ImmSize::SizeIbReg);
+		debug_assert_eq!(encoder.immediate & 0xF, 0);
 		if instruction.immediate8() > 0xF {
 			encoder.set_error_message(format!("Operand {}: Immediate value must be 0-15, but value is 0x{:02X}", operand, instruction.immediate8()));
 			return;
@@ -312,7 +293,7 @@ impl Op for OpI4 {
 #[allow(non_camel_case_types)]
 pub(super) struct OpX;
 impl OpX {
-	pub fn get_xreg_size(op_kind: OpKind) -> u32 {
+	pub const fn get_xreg_size(op_kind: OpKind) -> u32 {
 		match op_kind {
 			OpKind::MemorySegRSI => 8,
 			OpKind::MemorySegESI => 4,
@@ -321,7 +302,7 @@ impl OpX {
 		}
 	}
 
-	pub fn get_yreg_size(op_kind: OpKind) -> u32 {
+	pub const fn get_yreg_size(op_kind: OpKind) -> u32 {
 		match op_kind {
 			OpKind::MemoryESRDI => 8,
 			OpKind::MemoryESEDI => 4,
@@ -332,7 +313,7 @@ impl OpX {
 }
 impl Op for OpX {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		let regx_size = Self::get_xreg_size(instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16));
+		let regx_size = Self::get_xreg_size(instruction.op_kind(operand));
 		if regx_size == 0 {
 			encoder.set_error_message(format!(
 				"Operand {}: expected OpKind = OpKind::MemorySegSI, OpKind::MemorySegESI or OpKind::MemorySegRSI",
@@ -362,7 +343,7 @@ impl Op for OpX {
 pub(super) struct OpY;
 impl Op for OpY {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		let regy_size = OpX::get_yreg_size(instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16));
+		let regy_size = OpX::get_yreg_size(instruction.op_kind(operand));
 		if regy_size == 0 {
 			encoder
 				.set_error_message(format!("Operand {}: expected OpKind = OpKind::MemoryESDI, OpKind::MemoryESEDI or OpKind::MemoryESRDI", operand));
@@ -390,11 +371,13 @@ impl Op for OpY {
 pub(super) struct OpMRBX;
 impl Op for OpMRBX {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		if !encoder.verify_op_kind(operand, OpKind::Memory, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+		if !encoder.verify_op_kind(operand, OpKind::Memory, instruction.op_kind(operand)) {
 			return;
 		}
 		let base = instruction.memory_base();
 		if instruction.memory_displ_size() != 0
+			|| instruction.memory_displacement64() != 0
+			|| instruction.memory_index_scale() != 1
 			|| instruction.memory_index() != Register::AL
 			|| (base != Register::BX && base != Register::EBX && base != Register::RBX)
 		{
@@ -406,7 +389,7 @@ impl Op for OpMRBX {
 		} else if base == Register::EBX {
 			4
 		} else {
-			debug_assert_eq!(Register::BX, base);
+			debug_assert_eq!(base, Register::BX);
 			2
 		};
 		encoder.set_addr_size(reg_size);
@@ -487,12 +470,11 @@ pub(super) struct OpImm {
 }
 impl Op for OpImm {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		if !encoder.verify_op_kind(operand, OpKind::Immediate8, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+		if !encoder.verify_op_kind(operand, OpKind::Immediate8, instruction.op_kind(operand)) {
 			return;
 		}
 		if instruction.immediate8() != self.value {
 			encoder.set_error_message(format!("Operand {}: Expected 0x{:02X}, actual: 0x{:02X}", operand, self.value, instruction.immediate8()));
-			return;
 		}
 	}
 
@@ -508,10 +490,10 @@ pub(super) struct OpHx {
 }
 impl Op for OpHx {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		if !encoder.verify_op_kind(operand, OpKind::Register, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+		if !encoder.verify_op_kind(operand, OpKind::Register, instruction.op_kind(operand)) {
 			return;
 		}
-		let reg = instruction.try_op_register(operand).unwrap_or(Register::None);
+		let reg = instruction.op_register(operand);
 		if !encoder.verify_register_range(operand, reg, self.reg_lo, self.reg_hi) {
 			return;
 		}
@@ -519,13 +501,13 @@ impl Op for OpHx {
 	}
 }
 
-#[cfg(any(not(feature = "no_vex"), not(feature = "no_evex")))]
+#[cfg(any(not(feature = "no_vex"), not(feature = "no_evex"), feature = "mvex"))]
 #[allow(non_camel_case_types)]
 pub(super) struct OpVsib {
 	pub(super) vsib_index_reg_lo: Register,
 	pub(super) vsib_index_reg_hi: Register,
 }
-#[cfg(any(not(feature = "no_vex"), not(feature = "no_evex")))]
+#[cfg(any(not(feature = "no_vex"), not(feature = "no_evex"), feature = "mvex"))]
 impl Op for OpVsib {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
 		encoder.encoder_flags |= EncoderFlags::MUST_USE_SIB;
@@ -551,10 +533,10 @@ pub(super) struct OpIsX {
 #[cfg(any(not(feature = "no_vex"), not(feature = "no_xop")))]
 impl Op for OpIsX {
 	fn encode(&self, encoder: &mut Encoder, instruction: &Instruction, operand: u32) {
-		if !encoder.verify_op_kind(operand, OpKind::Register, instruction.try_op_kind(operand).unwrap_or(OpKind::FarBranch16)) {
+		if !encoder.verify_op_kind(operand, OpKind::Register, instruction.op_kind(operand)) {
 			return;
 		}
-		let reg = instruction.try_op_register(operand).unwrap_or(Register::None);
+		let reg = instruction.op_register(operand);
 		if !encoder.verify_register_range(operand, reg, self.reg_lo, self.reg_hi) {
 			return;
 		}
